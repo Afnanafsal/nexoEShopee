@@ -170,7 +170,7 @@ class ProductDatabaseHelper {
       });
     }
 
-    return docRef.id!;
+    return docRef.id;
   }
 
   Future<List<String>> getCategoryProductsList(ProductType productType) async {

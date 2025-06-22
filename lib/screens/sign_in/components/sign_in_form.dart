@@ -3,7 +3,7 @@ import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_except
 import 'package:nexoeshopee/exceptions/firebaseauth/signin_exceptions.dart';
 import 'package:nexoeshopee/screens/forgot_password/forgot_password_screen.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:future_progress_dialog/future_progress_dialog.dart';
+//import 'package:future_progress_dialog/future_progress_dialog.dart';
 import 'package:logger/logger.dart';
 
 import '../../../components/custom_suffix_icon.dart';
@@ -150,6 +150,7 @@ class _SignInFormState extends State<SignInForm> {
         if (signInStatus == true) {
           snackbarMessage = "Signed In Successfully";
         } else {
+          // ignore: unnecessary_null_comparison
           if (snackbarMessage == null) {
             throw FirebaseSignInAuthUnknownReasonFailure(message: "Unknown sign in failure");
           } else {

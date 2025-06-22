@@ -5,14 +5,14 @@ import 'package:nexoeshopee/screens/cart/cart_screen.dart';
 import 'package:nexoeshopee/screens/category_products/category_products_screen.dart';
 import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
 import 'package:nexoeshopee/screens/search_result/search_result_screen.dart';
-import 'package:nexoeshopee/screens/category_products/category_products_screen.dart';
+//import 'package:nexoeshopee/screens/category_products/category_products_screen.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/services/data_streams/all_products_stream.dart';
 import 'package:nexoeshopee/services/data_streams/favourite_products_stream.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
-import 'package:future_progress_dialog/future_progress_dialog.dart';
+//import 'package:future_progress_dialog/future_progress_dialog.dart';
 import 'package:logger/logger.dart';
 import '../../../utils.dart';
 import '../components/home_header.dart';
@@ -103,6 +103,7 @@ class _BodyState extends State<Body> {
                     try {
                       searchedProductsId = await ProductDatabaseHelper()
                           .searchInProducts(query.toLowerCase());
+                      // ignore: unnecessary_null_comparison
                       if (searchedProductsId != null) {
                         await Navigator.push(
                           context,
