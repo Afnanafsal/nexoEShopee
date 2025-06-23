@@ -11,7 +11,7 @@ class HomeScreen extends StatelessWidget {
     SizeConfig().init(context);
     return Scaffold(
       body: Body(),
-      drawer: HomeScreenDrawer(),
+      drawer: HomeScreenDrawer(key: Key('home_screen_drawer')),
     );
   }
 }

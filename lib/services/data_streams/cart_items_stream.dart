@@ -11,4 +11,6 @@ class CartItemsStream extends DataStream<List<String>> {
       addError(e);
     });
   }
+
+  void init() {}
 }

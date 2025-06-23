@@ -1,24 +1,25 @@
 import 'dart:async';
 
 abstract class DataStream<T> {
-  late StreamController<T> streamController;
-  void init() {
-    streamController = StreamController();
-    reload();
-  }
+  final StreamController<T> streamController = StreamController<T>();
 
-  Stream get stream => streamController.stream;
+  /// Expose the stream
+  Stream<T> get stream => streamController.stream;
 
+  /// Add data to stream
   void addData(T data) {
     streamController.sink.add(data);
   }
 
-  void addError(dynamic e) {
-    streamController.sink.addError(e);
+  /// Add error to stream
+  void addError(dynamic error) {
+    streamController.sink.addError(error);
   }
 
+  /// Override this to fetch/reload data
   void reload();
 
+  /// Dispose the stream when done
   void dispose() {
     streamController.close();
   }
