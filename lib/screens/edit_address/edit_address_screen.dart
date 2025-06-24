@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'components/body.dart';
 
 class EditAddressScreen extends StatelessWidget {
-  final String addressIdToEdit;
+  final String? addressIdToEdit;
 
-  const EditAddressScreen({required Key key, required this.addressIdToEdit}) : super(key: key);
+  const EditAddressScreen({Key? key, this.addressIdToEdit}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Scaffold(

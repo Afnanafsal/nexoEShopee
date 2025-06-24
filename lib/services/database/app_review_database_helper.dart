@@ -11,13 +11,10 @@ class AppReviewDatabaseHelper {
   factory AppReviewDatabaseHelper() {
     return _instance;
   }
-  late FirebaseFirestore _firebaseFirestore;
-  FirebaseFirestore get firestore {
-    if (_firebaseFirestore == null) {
-      _firebaseFirestore = FirebaseFirestore.instance;
-    }
-    return _firebaseFirestore;
-  }
+  FirebaseFirestore? _firebaseFirestore;
+  FirebaseFirestore get firestore =>
+      _firebaseFirestore ??= FirebaseFirestore.instance;
+
 
   Future<bool> editAppReview(AppReview appReview) async {
     final uid = AuthentificationService().currentUser.uid;

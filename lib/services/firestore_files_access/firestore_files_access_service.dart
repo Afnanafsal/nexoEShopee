@@ -10,13 +10,9 @@ class FirestoreFilesAccess {
   factory FirestoreFilesAccess() {
     return _instance;
   }
-  late FirebaseFirestore _firebaseFirestore;
-  FirebaseFirestore get firestore {
-    if (_firebaseFirestore == null) {
-      _firebaseFirestore = FirebaseFirestore.instance;
-    }
-    return _firebaseFirestore;
-  }
+  FirebaseFirestore? _firebaseFirestore;
+  FirebaseFirestore get firestore =>
+      _firebaseFirestore ??= FirebaseFirestore.instance;
 
   Future<String> uploadFileToPath(File file, String path) async {
     final Reference firestorageRef = FirebaseStorage.instance.ref();

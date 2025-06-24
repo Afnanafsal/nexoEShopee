@@ -9,10 +9,10 @@ import 'package:string_validator/string_validator.dart';
 import '../../../constants.dart';
 
 class AddressDetailsForm extends StatefulWidget {
-  final Address addressToEdit;
+  final Address? addressToEdit;
   AddressDetailsForm({
-    required Key key,
-    required this.addressToEdit,
+    Key? key,
+    this.addressToEdit,
   }) : super(key: key);
 
   @override
@@ -96,16 +96,16 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
       ),
     );
     if (widget.addressToEdit != null) {
-      titleFieldController.text = widget.addressToEdit.title!;
-      receiverFieldController.text = widget.addressToEdit.receiver!;
-      addressLine1FieldController.text = widget.addressToEdit.addressLine1!;
-      addressLine2FieldController.text = widget.addressToEdit.addressLine2!;
-      cityFieldController.text = widget.addressToEdit.city!;
-      districtFieldController.text = widget.addressToEdit.district!;
-      stateFieldController.text = widget.addressToEdit.state!;
-      landmarkFieldController.text = widget.addressToEdit.landmark!;
-      pincodeFieldController.text = widget.addressToEdit.pincode!;
-      phoneFieldController.text = widget.addressToEdit.phone!;
+      titleFieldController.text = widget.addressToEdit!.title!;
+      receiverFieldController.text = widget.addressToEdit!.receiver!;
+      addressLine1FieldController.text = widget.addressToEdit!.addressLine1!;
+      addressLine2FieldController.text = widget.addressToEdit!.addressLine2!;
+      cityFieldController.text = widget.addressToEdit!.city!;
+      districtFieldController.text = widget.addressToEdit!.district!;
+      stateFieldController.text = widget.addressToEdit!.state!;
+      landmarkFieldController.text = widget.addressToEdit!.landmark!;
+      pincodeFieldController.text = widget.addressToEdit!.pincode!;
+      phoneFieldController.text = widget.addressToEdit!.phone!;
     }
     return form;
   }
@@ -342,7 +342,7 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       final Address newAddress =
-          generateAddressObject(id: widget.addressToEdit.id);
+          generateAddressObject(id: widget.addressToEdit!.id);
 
       bool status = false;
       String snackbarMessage = "";
