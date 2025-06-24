@@ -78,10 +78,7 @@ class ProductDetails extends ChangeNotifier {
   }
 
   void removeSearchTag({required int index}) {
-    if (index == null)
-      _searchTags.removeLast();
-    else
-      _searchTags.removeAt(index);
+     _searchTags.removeAt(index);
     notifyListeners();
   }
 }

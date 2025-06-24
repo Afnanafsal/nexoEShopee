@@ -7,10 +7,9 @@ import 'package:flutter/material.dart';
 import 'address_details_form.dart';
 
 class Body extends StatelessWidget {
-  final String addressIdToEdit;
+  final String? addressIdToEdit;
 
-  const Body({required Key key, required this.addressIdToEdit}) : super(key: key);
-  @override
+  const Body({Key? key, this.addressIdToEdit}) : super(key: key);
   Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
@@ -31,11 +30,11 @@ class Body extends StatelessWidget {
                 addressIdToEdit == null
                     ? AddressDetailsForm(
                         key: UniqueKey(),
-                        addressToEdit: null!,
+                        addressToEdit: null,
                       )
                     : FutureBuilder<Address>(
                         future: UserDatabaseHelper()
-                            .getAddressFromId(addressIdToEdit),
+                            .getAddressFromId(addressIdToEdit!),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             return AddressDetailsForm(
@@ -46,12 +45,12 @@ class Body extends StatelessWidget {
                               ConnectionState.waiting) {
                             return AddressDetailsForm(
                               key: UniqueKey(),
-                              addressToEdit: null!,
+                              addressToEdit: null,
                             );
                           }
                           return AddressDetailsForm(
                             key: UniqueKey(),
-                            addressToEdit: null!,
+                            addressToEdit: null,
                           );
                         },
                       ),

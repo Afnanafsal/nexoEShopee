@@ -36,7 +36,7 @@ class Body extends StatelessWidget {
                   onTap: () async {
                     const String linkedInUrl =
                         "https://www.linkedin.com/in/imrb7here";
-                    await launchUrl(linkedInUrl);
+                    await launchExternalUrl(linkedInUrl);
                   },
                   child: buildDeveloperAvatar(),
                 ),
@@ -69,7 +69,7 @@ class Body extends StatelessWidget {
                       padding: EdgeInsets.all(16),
                       onPressed: () async {
                         const String githubUrl = "https://github.com/imRB7here";
-                        await launchUrl(githubUrl);
+                        await launchExternalUrl(githubUrl);
                       },
                     ),
                     IconButton(
@@ -82,7 +82,7 @@ class Body extends StatelessWidget {
                       onPressed: () async {
                         const String linkedInUrl =
                             "https://www.linkedin.com/in/imrb7here";
-                        await launchUrl(linkedInUrl);
+                        await launchExternalUrl(linkedInUrl);
                       },
                     ),
                     IconButton(
@@ -93,7 +93,7 @@ class Body extends StatelessWidget {
                       onPressed: () async {
                         const String instaUrl =
                             "https://www.instagram.com/_rahul.badgujar_";
-                        await launchUrl(instaUrl);
+                        await launchExternalUrl(instaUrl);
                       },
                     ),
                     Spacer(),
@@ -162,12 +162,13 @@ class Body extends StatelessWidget {
         });
   }
 
-  Future<void> launchUrl(String url) async {
+  Future<void> launchExternalUrl(String url) async {
+    final Uri uri = Uri.parse(url);
     try {
-      if (await canLaunch(url)) {
-        await launch(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        Logger().i("LinkedIn URL was unable to launch");
+        Logger().i("$url URL was unable to launch");
       }
     } catch (e) {
       Logger().e("Exception while launching URL: $e");
