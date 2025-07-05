@@ -2,7 +2,6 @@ import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/models/AppReview.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/services/database/app_review_database_helper.dart';
-import 'package:nexoeshopee/services/firestore_files_access/firestore_files_access_service.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -27,10 +26,7 @@ class Body extends StatelessWidget {
             child: Column(
               children: [
                 SizedBox(height: getProportionateScreenHeight(10)),
-                Text(
-                  "About Developer",
-                  style: headingStyle,
-                ),
+                Text("About Developer", style: headingStyle),
                 SizedBox(height: getProportionateScreenHeight(50)),
                 InkWell(
                   onTap: () async {
@@ -43,17 +39,11 @@ class Body extends StatelessWidget {
                 SizedBox(height: getProportionateScreenHeight(30)),
                 Text(
                   '" Rahul Badgujar "',
-                  style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w900,
-                  ),
+                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
                 ),
                 Text(
                   "PCCoE Pune",
-                  style: TextStyle(
-                    fontSize: 21,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 21, fontWeight: FontWeight.w500),
                 ),
                 SizedBox(height: getProportionateScreenHeight(30)),
                 Row(
@@ -86,8 +76,10 @@ class Body extends StatelessWidget {
                       },
                     ),
                     IconButton(
-                      icon: SvgPicture.asset("assets/icons/instagram_icon.svg",
-                          color: kTextColor.withOpacity(0.75)),
+                      icon: SvgPicture.asset(
+                        "assets/icons/instagram_icon.svg",
+                        color: kTextColor.withOpacity(0.75),
+                      ),
                       iconSize: 40,
                       padding: EdgeInsets.all(16),
                       onPressed: () async {
@@ -131,7 +123,7 @@ class Body extends StatelessWidget {
                     ),
                     Spacer(),
                   ],
-                )
+                ),
               ],
             ),
           ),
@@ -141,25 +133,16 @@ class Body extends StatelessWidget {
   }
 
   Widget buildDeveloperAvatar() {
-    return FutureBuilder<String>(
-        future: FirestoreFilesAccess().getDeveloperImage(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final url = snapshot.data;
-            return CircleAvatar(
-              radius: SizeConfig.screenWidth * 0.3,
-              backgroundColor: kTextColor.withOpacity(0.75),
-              backgroundImage: NetworkImage(url!),
-            );
-          } else if (snapshot.hasError) {
-            final error = snapshot.error.toString();
-            Logger().e(error);
-          }
-          return CircleAvatar(
-            radius: SizeConfig.screenWidth * 0.3,
-            backgroundColor: kTextColor.withOpacity(0.75),
-          );
-        });
+    // For developer avatar, we'll use a default asset image or placeholder
+    return CircleAvatar(
+      radius: SizeConfig.screenWidth * 0.3,
+      backgroundColor: kTextColor.withOpacity(0.75),
+      child: Icon(
+        Icons.person,
+        size: SizeConfig.screenWidth * 0.2,
+        color: Colors.white,
+      ),
+    );
   }
 
   Future<void> launchExternalUrl(String url) async {
@@ -175,8 +158,10 @@ class Body extends StatelessWidget {
     }
   }
 
-  Future<void> submitAppReview(BuildContext context,
-      {bool liked = true}) async {
+  Future<void> submitAppReview(
+    BuildContext context, {
+    bool liked = true,
+  }) async {
     AppReview? prevReview;
     try {
       prevReview = await AppReviewDatabaseHelper().getAppReviewOfCurrentUser();
@@ -197,10 +182,7 @@ class Body extends StatelessWidget {
     final AppReview result = await showDialog(
       context: context,
       builder: (context) {
-        return AppReviewDialog(
-          key: UniqueKey(),
-          appReview: prevReview!,
-        );
+        return AppReviewDialog(key: UniqueKey(), appReview: prevReview!);
       },
     );
     if (result != null) {
@@ -209,7 +191,7 @@ class Body extends StatelessWidget {
       String snackbarMessage = "An unknown error occurred";
       try {
         reviewAdded = await AppReviewDatabaseHelper().editAppReview(result);
-        if (reviewAdded == true) {
+        if (reviewAdded) {
           snackbarMessage = "Feedback submitted successfully";
         } else {
           throw "Coulnd't add feeback due to unknown reason";
@@ -222,11 +204,9 @@ class Body extends StatelessWidget {
         snackbarMessage = e.toString();
       } finally {
         Logger().i(snackbarMessage);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(snackbarMessage),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
   }

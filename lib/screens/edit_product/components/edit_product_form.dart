@@ -1,19 +1,19 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:nexoeshopee/components/async_progress_dialog.dart';
 import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/exceptions/local_files_handling/image_picking_exceptions.dart';
 import 'package:nexoeshopee/exceptions/local_files_handling/local_file_handling_exception.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/screens/edit_product/provider_models/ProductDetails.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/firestore_files_access/firestore_files_access_service.dart';
+import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 import 'package:nexoeshopee/services/local_files_access/local_files_access_service.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tags/flutter_tags.dart';
-import 'package:future_progress_dialog/future_progress_dialog.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
@@ -21,14 +21,11 @@ import '../../../constants.dart';
 import '../../../size_config.dart';
 
 class EditProductForm extends StatefulWidget {
-  final Product product;
-  EditProductForm({
-    required Key key,
-    required this.product,
-  }) : super(key: key);
+  final Product? product;
+  const EditProductForm({super.key, required this.product});
 
   @override
-  _EditProductFormState createState() => _EditProductFormState();
+  State<EditProductForm> createState() => _EditProductFormState();
 }
 
 class _EditProductFormState extends State<EditProductForm> {
@@ -71,14 +68,21 @@ class _EditProductFormState extends State<EditProductForm> {
       product = Product('');
       newProduct = true;
     } else {
-      product = widget.product;
+      product = widget.product!;
       newProduct = false;
-      final productDetails =
-          Provider.of<ProductDetails>(context, listen: false);
-      productDetails.initialSelectedImages = widget.product.images!
-          .map((e) => CustomImage(imgType: ImageType.network, path: e))
-          .toList();
-      productDetails.initialProductType = product.productType!;
+      final productDetails = Provider.of<ProductDetails>(
+        context,
+        listen: false,
+      );
+      if (widget.product!.images != null &&
+          widget.product!.images!.isNotEmpty) {
+        productDetails.initialSelectedImages = widget.product!.images!
+            .map((e) => CustomImage(imgType: ImageType.network, path: e))
+            .toList();
+      }
+      if (product.productType != null) {
+        productDetails.initialProductType = product.productType!;
+      }
       productDetails.initSearchTags = product.searchTags ?? [];
     }
   }
@@ -98,10 +102,11 @@ class _EditProductFormState extends State<EditProductForm> {
         buildProductSearchTagsTile(),
         SizedBox(height: getProportionateScreenHeight(80)),
         DefaultButton(
-            text: "Save Product",
-            press: () {
-              saveProductButtonCallback(context);
-            }),
+          text: "Save Product",
+          press: () {
+            saveProductButtonCallback(context);
+          },
+        ),
         SizedBox(height: getProportionateScreenHeight(10)),
       ],
     );
@@ -142,10 +147,7 @@ class _EditProductFormState extends State<EditProductForm> {
               title: item,
               active: true,
               activeColor: kPrimaryColor,
-              padding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               alignment: MainAxisAlignment.spaceBetween,
               removeButton: ItemTagsRemoveButton(
                 backgroundColor: Colors.white,
@@ -171,11 +173,10 @@ class _EditProductFormState extends State<EditProductForm> {
           "Basic Details",
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        leading: Icon(
-          Icons.shop,
+        leading: Icon(Icons.shop),
+        childrenPadding: EdgeInsets.symmetric(
+          vertical: getProportionateScreenHeight(20),
         ),
-        childrenPadding:
-            EdgeInsets.symmetric(vertical: getProportionateScreenHeight(20)),
         children: [
           buildTitleField(),
           SizedBox(height: getProportionateScreenHeight(20)),
@@ -214,11 +215,10 @@ class _EditProductFormState extends State<EditProductForm> {
           "Describe Product",
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        leading: Icon(
-          Icons.description,
+        leading: Icon(Icons.description),
+        childrenPadding: EdgeInsets.symmetric(
+          vertical: getProportionateScreenHeight(20),
         ),
-        childrenPadding:
-            EdgeInsets.symmetric(vertical: getProportionateScreenHeight(20)),
         children: [
           buildHighlightsField(),
           SizedBox(height: getProportionateScreenHeight(20)),
@@ -241,10 +241,7 @@ class _EditProductFormState extends State<EditProductForm> {
 
   Widget buildProductTypeDropdown() {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 24,
-        vertical: 6,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
       decoration: BoxDecoration(
         border: Border.all(color: kTextColor, width: 1),
         borderRadius: BorderRadius.all(Radius.circular(28)),
@@ -257,19 +254,12 @@ class _EditProductFormState extends State<EditProductForm> {
                 .map(
                   (e) => DropdownMenuItem(
                     value: e,
-                    child: Text(
-                      EnumToString.convertToString(e),
-                    ),
+                    child: Text(EnumToString.convertToString(e)),
                   ),
                 )
                 .toList(),
-            hint: Text(
-              "Chose Product Type",
-            ),
-            style: TextStyle(
-              color: kTextColor,
-              fontSize: 16,
-            ),
+            hint: Text("Chose Product Type"),
+            style: TextStyle(color: kTextColor, fontSize: 16),
             onChanged: (value) {
               productDetails.productType = value!;
             },
@@ -283,13 +273,11 @@ class _EditProductFormState extends State<EditProductForm> {
 
   Widget buildProductSearchTagsTile() {
     return ExpansionTile(
-      title: Text(
-        "Search Tags",
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
+      title: Text("Search Tags", style: Theme.of(context).textTheme.titleLarge),
       leading: Icon(Icons.check_circle_sharp),
-      childrenPadding:
-          EdgeInsets.symmetric(vertical: getProportionateScreenHeight(20)),
+      childrenPadding: EdgeInsets.symmetric(
+        vertical: getProportionateScreenHeight(20),
+      ),
       children: [
         Text("Your product will be searched for this Tags"),
         SizedBox(height: getProportionateScreenHeight(15)),
@@ -305,19 +293,19 @@ class _EditProductFormState extends State<EditProductForm> {
         style: Theme.of(context).textTheme.titleLarge,
       ),
       leading: Icon(Icons.image),
-      childrenPadding:
-          EdgeInsets.symmetric(vertical: getProportionateScreenHeight(20)),
+      childrenPadding: EdgeInsets.symmetric(
+        vertical: getProportionateScreenHeight(20),
+      ),
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: IconButton(
-              icon: Icon(
-                Icons.add_a_photo,
-              ),
-              color: kTextColor,
-              onPressed: () {
-                addImageButtonCallback(index: null);
-              }),
+            icon: Icon(Icons.add_a_photo),
+            color: kTextColor,
+            onPressed: () {
+              addImageButtonCallback(index: null);
+            },
+          ),
         ),
         Consumer<ProductDetails>(
           builder: (context, productDetails, child) {
@@ -335,13 +323,52 @@ class _EditProductFormState extends State<EditProductForm> {
                         onTap: () {
                           addImageButtonCallback(index: index);
                         },
-                        child: productDetails.selectedImages[index].imgType ==
+                        child:
+                            productDetails.selectedImages[index].imgType ==
                                 ImageType.local
-                            ? Image.memory(
-                                File(productDetails.selectedImages[index].path)
-                                    .readAsBytesSync())
-                            : Image.network(
-                                productDetails.selectedImages[index].path),
+                            ? kIsWeb
+                                  ? (productDetails
+                                                .selectedImages[index]
+                                                .xFile !=
+                                            null
+                                        ? FutureBuilder<Uint8List>(
+                                            future: productDetails
+                                                .selectedImages[index]
+                                                .xFile!
+                                                .readAsBytes(),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.hasData) {
+                                                return Image.memory(
+                                                  snapshot.data!,
+                                                );
+                                              } else {
+                                                return Container(
+                                                  color: Colors.grey[300],
+                                                  child: Icon(
+                                                    Icons.image,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                          )
+                                        : Container(
+                                            color: Colors.grey[300],
+                                            child: Icon(
+                                              Icons.image,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ))
+                                  : Image.file(
+                                      File(
+                                        productDetails
+                                            .selectedImages[index]
+                                            .path,
+                                      ),
+                                    )
+                            : Base64ImageService().base64ToImage(
+                                productDetails.selectedImages[index].path,
+                              ),
                       ),
                     ),
                   ),
@@ -493,44 +520,34 @@ class _EditProductFormState extends State<EditProductForm> {
 
   Future<void> saveProductButtonCallback(BuildContext context) async {
     if (validateBasicDetailsForm() == false) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Erros in Basic Details Form"),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Erros in Basic Details Form")));
       return;
     }
     if (validateDescribeProductForm() == false) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Errors in Describe Product Form"),
-        ),
+        SnackBar(content: Text("Errors in Describe Product Form")),
       );
       return;
     }
     final productDetails = Provider.of<ProductDetails>(context, listen: false);
-    if (productDetails.selectedImages.length < 1) {
+    if (productDetails.selectedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Upload atleast One Image of Product"),
-        ),
+        SnackBar(content: Text("Upload atleast One Image of Product")),
       );
       return;
     }
     if (productDetails.productType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Please select Product Type"),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please select Product Type")));
       return;
     }
     if (productDetails.searchTags.length < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Add atleast 3 search tags"),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Add atleast 3 search tags")));
       return;
     }
     String? productId;
@@ -546,8 +563,9 @@ class _EditProductFormState extends State<EditProductForm> {
         builder: (context) {
           return AsyncProgressDialog(
             productUploadFuture,
-            message:
-                Text(newProduct ? "Uploading Product" : "Updating Product"),
+            message: Text(
+              newProduct ? "Uploading Product" : "Updating Product",
+            ),
           );
         },
       );
@@ -564,17 +582,17 @@ class _EditProductFormState extends State<EditProductForm> {
       snackbarMessage = e.toString();
     } finally {
       Logger().i(snackbarMessage);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(snackbarMessage),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+      }
     }
     if (productId == null) return;
     bool allImagesUploaded = false;
     try {
       allImagesUploaded = await uploadProductImages(productId);
-      if (allImagesUploaded == true) {
+      if (allImagesUploaded) {
         snackbarMessage = "All images uploaded successfully";
       } else {
         throw "Some images couldn't be uploaded, please try again";
@@ -587,20 +605,21 @@ class _EditProductFormState extends State<EditProductForm> {
       snackbarMessage = "Something went wrong";
     } finally {
       Logger().i(snackbarMessage);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(snackbarMessage),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+      }
     }
-    List<String> downloadUrls = productDetails.selectedImages
-        .map((e) => e.imgType == ImageType.network ? e.path : null)
-        .whereType<String>()
+    List<String> base64Images = productDetails.selectedImages
+        .map((e) => e.imgType == ImageType.network ? e.path : e.path)
         .toList();
     bool productFinalizeUpdate = false;
     try {
-      final updateProductFuture =
-          ProductDatabaseHelper().updateProductsImages(productId, downloadUrls);
+      final updateProductFuture = ProductDatabaseHelper().updateProductsImages(
+        productId,
+        base64Images,
+      );
       productFinalizeUpdate = await showDialog(
         context: context,
         builder: (context) {
@@ -610,7 +629,7 @@ class _EditProductFormState extends State<EditProductForm> {
           );
         },
       );
-      if (productFinalizeUpdate == true) {
+      if (productFinalizeUpdate) {
         snackbarMessage = "Product uploaded successfully";
       } else {
         throw "Couldn't upload product properly, please retry";
@@ -623,13 +642,15 @@ class _EditProductFormState extends State<EditProductForm> {
       snackbarMessage = e.toString();
     } finally {
       Logger().i(snackbarMessage);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(snackbarMessage),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+      }
     }
-    Navigator.pop(context);
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   Future<bool> uploadProductImages(String productId) async {
@@ -637,38 +658,47 @@ class _EditProductFormState extends State<EditProductForm> {
     final productDetails = Provider.of<ProductDetails>(context, listen: false);
     for (int i = 0; i < productDetails.selectedImages.length; i++) {
       if (productDetails.selectedImages[i].imgType == ImageType.local) {
-        print("Image being uploaded: " + productDetails.selectedImages[i].path);
-        String? downloadUrl;
+        Logger().i(
+          "Image being processed: ${productDetails.selectedImages[i].path}",
+        );
+        String? base64Image;
         try {
-          final imgUploadFuture = FirestoreFilesAccess().uploadFileToPath(
-              File(productDetails.selectedImages[i].path),
-              ProductDatabaseHelper().getPathForProductImage(productId, i));
-          downloadUrl = await showDialog(
-            context: context,
-            builder: (context) {
-              return AsyncProgressDialog(
-                imgUploadFuture,
-                message: Text(
-                    "Uploading Images ${i + 1}/${productDetails.selectedImages.length}"),
-              );
-            },
-          );
-        } on FirebaseException catch (e) {
-          Logger().w("Firebase Exception: $e");
+          // Convert image to base64 - use XFile when available
+          if (productDetails.selectedImages[i].xFile != null) {
+            // Use XFile for conversion (works on all platforms)
+            base64Image = await Base64ImageService().xFileToBase64(
+              productDetails.selectedImages[i].xFile!,
+            );
+          } else {
+            // Fallback to file path method
+            if (kIsWeb) {
+              Logger().w("No XFile available for web image, skipping");
+              base64Image = null;
+            } else {
+              // On mobile platforms, use File normally
+              final file = File(productDetails.selectedImages[i].path);
+              base64Image = await Base64ImageService().fileToBase64(file);
+            }
+          }
         } catch (e) {
-          Logger().w("Firebase Exception: $e");
+          Logger().w("Error converting image to base64: $e");
         } finally {
-          if (downloadUrl != null) {
-            productDetails.selectedImages[i] =
-                CustomImage(imgType: ImageType.network, path: downloadUrl);
+          if (base64Image != null) {
+            productDetails.selectedImages[i] = CustomImage(
+              imgType: ImageType.network,
+              path: base64Image,
+            );
           } else {
             allImagesUpdated = false;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content:
-                    Text("Couldn't upload image ${i + 1} due to some issue"),
-              ),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    "Couldn't process image ${i + 1} due to some issue",
+                  ),
+                ),
+              );
+            }
           }
         }
       }
@@ -679,17 +709,17 @@ class _EditProductFormState extends State<EditProductForm> {
   Future<void> addImageButtonCallback({int? index}) async {
     final productDetails = Provider.of<ProductDetails>(context, listen: false);
     if (index == null && productDetails.selectedImages.length >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Max 3 images can be uploaded")));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Max 3 images can be uploaded")));
+      }
       return;
     }
-    String? path;
+    ImagePickResult? result;
     String snackbarMessage = '';
     try {
-      path = await choseImageFromLocalFiles(context);
-      if (path == null) {
-        throw LocalImagePickingUnknownReasonFailureException();
-      }
+      result = await choseImageFromLocalFiles(context);
     } on LocalFileHandlingException catch (e) {
       Logger().i("Local File Handling Exception: $e");
       snackbarMessage = e.toString();
@@ -699,22 +729,33 @@ class _EditProductFormState extends State<EditProductForm> {
     } finally {
       if (snackbarMessage.isNotEmpty) {
         Logger().i(snackbarMessage);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(snackbarMessage),
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+        }
       }
     }
-    if (path == null) {
+    if (result == null) {
       return;
     }
     if (index == null) {
       productDetails.addNewSelectedImage(
-          CustomImage(imgType: ImageType.local, path: path));
+        CustomImage(
+          imgType: ImageType.local,
+          path: result.path,
+          xFile: result.xFile,
+        ),
+      );
     } else {
       productDetails.setSelectedImageAtIndex(
-          CustomImage(imgType: ImageType.local, path: path), index);
+        CustomImage(
+          imgType: ImageType.local,
+          path: result.path,
+          xFile: result.xFile,
+        ),
+        index,
+      );
     }
   }
 }

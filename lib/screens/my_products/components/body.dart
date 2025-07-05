@@ -7,11 +7,10 @@ import 'package:nexoeshopee/screens/edit_product/edit_product_screen.dart';
 import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
 import 'package:nexoeshopee/services/data_streams/users_products_stream.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/firestore_files_access/firestore_files_access_service.dart';
+
 import 'package:nexoeshopee/size_config.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:future_progress_dialog/future_progress_dialog.dart';
 import 'package:logger/logger.dart';
 
 import '../../../utils.dart';
@@ -45,7 +44,8 @@ class _BodyState extends State<Body> {
           physics: AlwaysScrollableScrollPhysics(),
           child: Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: getProportionateScreenWidth(screenPadding)),
+              horizontal: getProportionateScreenWidth(screenPadding),
+            ),
             child: SizedBox(
               width: double.infinity,
               child: Column(
@@ -81,9 +81,7 @@ class _BodyState extends State<Body> {
                           );
                         } else if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
+                          return Center(child: CircularProgressIndicator());
                         } else if (snapshot.hasError) {
                           final error = snapshot.error;
                           Logger().w(error.toString());
@@ -128,13 +126,7 @@ class _BodyState extends State<Body> {
             final error = snapshot.error.toString();
             Logger().e(error);
           }
-          return Center(
-            child: Icon(
-              Icons.error,
-              color: kTextColor,
-              size: 60,
-            ),
-          );
+          return Center(child: Icon(Icons.error, color: kTextColor, size: 60));
         },
       ),
     );
@@ -167,30 +159,18 @@ class _BodyState extends State<Body> {
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
           final confirmation = await showConfirmationDialog(
-              context, "Are you sure to Delete Product?");
+            context,
+            "Are you sure to Delete Product?",
+          );
           if (confirmation) {
-            for (int i = 0; i < product.images!.length; i++) {
-              String path =
-                  ProductDatabaseHelper().getPathForProductImage(product.id, i);
-              final deletionFuture =
-                  FirestoreFilesAccess().deleteFileFromPath(path);
-              await showDialog(
-                context: context,
-                builder: (context) {
-                  return AsyncProgressDialog(
-                    deletionFuture,
-                    message: Text(
-                        "Deleting Product Images ${i + 1}/${product.images!.length}"),
-                  );
-                },
-              );
-            }
+            // Since we're using base64 storage, we only need to delete the product data
+            // No need to delete individual image files from storage
 
             bool productInfoDeleted = false;
             String snackbarMessage = "";
             try {
-              final deleteProductFuture =
-                  ProductDatabaseHelper().deleteUserProduct(product.id);
+              final deleteProductFuture = ProductDatabaseHelper()
+                  .deleteUserProduct(product.id);
               productInfoDeleted = await showDialog(
                 context: context,
                 builder: (context) {
@@ -213,18 +193,18 @@ class _BodyState extends State<Body> {
               snackbarMessage = e.toString();
             } finally {
               Logger().i(snackbarMessage);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(snackbarMessage),
-                ),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
             }
           }
           await refreshPage();
           return confirmation;
         } else if (direction == DismissDirection.endToStart) {
           final confirmation = await showConfirmationDialog(
-              context, "Are you sure to Edit Product?");
+            context,
+            "Are you sure to Edit Product?",
+          );
           if (confirmation) {
             await Navigator.push(
               context,
@@ -258,10 +238,7 @@ class _BodyState extends State<Body> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Icon(
-            Icons.edit,
-            color: Colors.white,
-          ),
+          Icon(Icons.edit, color: Colors.white),
           SizedBox(width: 4),
           Text(
             "Edit",
@@ -296,10 +273,7 @@ class _BodyState extends State<Body> {
             ),
           ),
           SizedBox(width: 4),
-          Icon(
-            Icons.delete,
-            color: Colors.white,
-          ),
+          Icon(Icons.delete, color: Colors.white),
         ],
       ),
     );

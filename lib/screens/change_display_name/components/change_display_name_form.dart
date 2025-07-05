@@ -3,14 +3,11 @@ import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:future_progress_dialog/future_progress_dialog.dart';
 
 import '../../../size_config.dart';
 
 class ChangeDisplayNameForm extends StatefulWidget {
-  const ChangeDisplayNameForm({
-    required Key key,
-  }) : super(key: key);
+  const ChangeDisplayNameForm({required Key key}) : super(key: key);
 
   @override
   _ChangeDisplayNameFormState createState() => _ChangeDisplayNameFormState();
@@ -56,8 +53,9 @@ class _ChangeDisplayNameFormState extends State<ChangeDisplayNameForm> {
                   );
                 },
               );
-              ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Display Name updated")));
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text("Display Name updated")));
             },
           ),
         ],
@@ -114,8 +112,9 @@ class _ChangeDisplayNameFormState extends State<ChangeDisplayNameForm> {
   Future<void> changeDisplayNameButtonCallback() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      await AuthentificationService()
-          .updateCurrentUserDisplayName(newDisplayNameController.text);
+      await AuthentificationService().updateCurrentUserDisplayName(
+        newDisplayNameController.text,
+      );
       print("Display Name updated to ${newDisplayNameController.text} ...");
     }
   }

@@ -9,12 +9,12 @@ class ProductDatabaseHelper {
   static const String REVIEWS_COLLECTION_NAME = "reviews";
 
   ProductDatabaseHelper._privateConstructor();
-  static final ProductDatabaseHelper _instance = ProductDatabaseHelper._privateConstructor();
+  static final ProductDatabaseHelper _instance =
+      ProductDatabaseHelper._privateConstructor();
   factory ProductDatabaseHelper() => _instance;
 
   late final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   FirebaseFirestore get firestore => _firebaseFirestore;
-
 
   Future<List<String>> getProductIdsByCategory(ProductType productType) async {
     try {
@@ -22,7 +22,7 @@ class ProductDatabaseHelper {
           .collection(PRODUCTS_COLLECTION_NAME)
           .where('productType', isEqualTo: productType.toString())
           .get();
-      
+
       return productsQuery.docs.map((doc) => doc.id).toList();
     } catch (e) {
       print("Error getting products by category: $e");
@@ -30,7 +30,10 @@ class ProductDatabaseHelper {
     }
   }
 
-  Future<List<String>> searchInProducts(String query, {ProductType? productType}) async {
+  Future<List<String>> searchInProducts(
+    String query, {
+    ProductType? productType,
+  }) async {
     Query queryRef;
     if (productType == null) {
       queryRef = firestore.collection(PRODUCTS_COLLECTION_NAME);
@@ -44,15 +47,19 @@ class ProductDatabaseHelper {
     final lowerQuery = query.toLowerCase();
     final Set<String> productsId = {};
 
-    final querySearchInTags =
-        await queryRef.where(Product.SEARCH_TAGS_KEY, arrayContains: query).get();
+    final querySearchInTags = await queryRef
+        .where(Product.SEARCH_TAGS_KEY, arrayContains: query)
+        .get();
     for (final doc in querySearchInTags.docs) {
       productsId.add(doc.id);
     }
 
     final queryDocs = await queryRef.get();
     for (final doc in queryDocs.docs) {
-      final product = Product.fromMap(doc.data() as Map<String, dynamic>, id: doc.id);
+      final product = Product.fromMap(
+        doc.data() as Map<String, dynamic>,
+        id: doc.id,
+      );
       if (product.title?.toLowerCase().contains(lowerQuery) == true ||
           product.description?.toLowerCase().contains(lowerQuery) == true ||
           product.highlights?.toLowerCase().contains(lowerQuery) == true ||
@@ -80,12 +87,22 @@ class ProductDatabaseHelper {
     } else {
       final oldRating = reviewDoc.data()?[Review.RATING_KEY] ?? 0;
       await reviewRef.update(review.toUpdateMap());
-      return addUsersRatingForProduct(productId, review.rating, oldRating: oldRating);
+      return addUsersRatingForProduct(
+        productId,
+        review.rating,
+        oldRating: oldRating,
+      );
     }
   }
 
-  Future<bool> addUsersRatingForProduct(String productId, int rating, {int? oldRating}) async {
-    final productRef = firestore.collection(PRODUCTS_COLLECTION_NAME).doc(productId);
+  Future<bool> addUsersRatingForProduct(
+    String productId,
+    int rating, {
+    int? oldRating,
+  }) async {
+    final productRef = firestore
+        .collection(PRODUCTS_COLLECTION_NAME)
+        .doc(productId);
     final reviews = await productRef.collection(REVIEWS_COLLECTION_NAME).get();
     final ratingsCount = reviews.docs.length;
 
@@ -96,7 +113,8 @@ class ProductDatabaseHelper {
     if (oldRating == null) {
       newRating = (prevRating * (ratingsCount - 1) + rating) / ratingsCount;
     } else {
-      newRating = (prevRating * ratingsCount + rating - oldRating) / ratingsCount;
+      newRating =
+          (prevRating * ratingsCount + rating - oldRating) / ratingsCount;
     }
 
     await productRef.update({
@@ -106,7 +124,10 @@ class ProductDatabaseHelper {
     return true;
   }
 
-  Future<Review?> getProductReviewWithID(String productId, String reviewId) async {
+  Future<Review?> getProductReviewWithID(
+    String productId,
+    String reviewId,
+  ) async {
     final reviewDoc = await firestore
         .collection(PRODUCTS_COLLECTION_NAME)
         .doc(productId)
@@ -126,13 +147,18 @@ class ProductDatabaseHelper {
         .doc(productId)
         .collection(REVIEWS_COLLECTION_NAME)
         .snapshots()
-        .map((query) => query.docs
-            .map((doc) => Review.fromMap(doc.data(), id: doc.id))
-            .toList());
+        .map(
+          (query) => query.docs
+              .map((doc) => Review.fromMap(doc.data(), id: doc.id))
+              .toList(),
+        );
   }
 
   Future<Product?> getProductWithID(String productId) async {
-    final doc = await firestore.collection(PRODUCTS_COLLECTION_NAME).doc(productId).get();
+    final doc = await firestore
+        .collection(PRODUCTS_COLLECTION_NAME)
+        .doc(productId)
+        .get();
     if (doc.exists) {
       return Product.fromMap(doc.data()!, id: doc.id);
     }
@@ -143,30 +169,37 @@ class ProductDatabaseHelper {
     final uid = AuthentificationService().currentUser.uid;
     final productData = product.toMap()..[Product.OWNER_KEY] = uid;
 
-    final docRef = await firestore.collection(PRODUCTS_COLLECTION_NAME).add(productData);
+    final docRef = await firestore
+        .collection(PRODUCTS_COLLECTION_NAME)
+        .add(productData);
     await docRef.update({
-      Product.SEARCH_TAGS_KEY: FieldValue.arrayUnion(
-        [productData[Product.PRODUCT_TYPE_KEY].toString().toLowerCase()],
-      )
+      Product.SEARCH_TAGS_KEY: FieldValue.arrayUnion([
+        productData[Product.PRODUCT_TYPE_KEY].toString().toLowerCase(),
+      ]),
     });
     return docRef.id;
   }
 
   Future<bool> deleteUserProduct(String productId) async {
-    await firestore.collection(PRODUCTS_COLLECTION_NAME).doc(productId).delete();
+    await firestore
+        .collection(PRODUCTS_COLLECTION_NAME)
+        .doc(productId)
+        .delete();
     return true;
   }
 
   Future<String> updateUsersProduct(Product product) async {
     final productData = product.toUpdateMap();
-    final docRef = firestore.collection(PRODUCTS_COLLECTION_NAME).doc(product.id);
+    final docRef = firestore
+        .collection(PRODUCTS_COLLECTION_NAME)
+        .doc(product.id);
 
     await docRef.update(productData);
     if (product.productType != null) {
       await docRef.update({
         Product.SEARCH_TAGS_KEY: FieldValue.arrayUnion([
           productData[Product.PRODUCT_TYPE_KEY].toString().toLowerCase(),
-        ])
+        ]),
       });
     }
 
@@ -176,7 +209,10 @@ class ProductDatabaseHelper {
   Future<List<String>> getCategoryProductsList(ProductType productType) async {
     final queryResult = await firestore
         .collection(PRODUCTS_COLLECTION_NAME)
-        .where(Product.PRODUCT_TYPE_KEY, isEqualTo: EnumToString.convertToString(productType))
+        .where(
+          Product.PRODUCT_TYPE_KEY,
+          isEqualTo: EnumToString.convertToString(productType),
+        )
         .get();
 
     return queryResult.docs.map((doc) => doc.id).toList();
@@ -197,15 +233,14 @@ class ProductDatabaseHelper {
     return products.docs.map((doc) => doc.id).toList();
   }
 
-  Future<bool> updateProductsImages(String productId, List<String> imgUrls) async {
-    final docRef = firestore.collection(PRODUCTS_COLLECTION_NAME).doc(productId);
-    await docRef.update({
-      Product.IMAGES_KEY: imgUrls,
-    });
+  Future<bool> updateProductsImages(
+    String productId,
+    List<String> base64Images,
+  ) async {
+    final docRef = firestore
+        .collection(PRODUCTS_COLLECTION_NAME)
+        .doc(productId);
+    await docRef.update({Product.IMAGES_KEY: base64Images});
     return true;
-  }
-
-  String getPathForProductImage(String id, int index) {
-    return "products/images/$id" + "_$index";
   }
 }

@@ -4,7 +4,6 @@ import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/size_config.dart';
-import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/screens/home/home_screen.dart';
 
 class ProfileCompletionForm extends StatefulWidget {

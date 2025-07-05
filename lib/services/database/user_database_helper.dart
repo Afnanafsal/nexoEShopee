@@ -323,15 +323,10 @@ class UserDatabaseHelper {
     return true;
   }
 
-  String getPathForCurrentUserDisplayPicture() {
-    final uid = AuthentificationService().currentUser.uid;
-    return "user/display_picture/$uid";
-  }
-
-  Future<bool> uploadDisplayPictureForCurrentUser(String url) async {
+  Future<bool> uploadDisplayPictureForCurrentUser(String base64String) async {
     String uid = AuthentificationService().currentUser.uid;
     await firestore.collection(USERS_COLLECTION_NAME).doc(uid).update({
-      DP_KEY: url,
+      DP_KEY: base64String,
     });
     return true;
   }

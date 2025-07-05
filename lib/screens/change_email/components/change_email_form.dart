@@ -8,7 +8,6 @@ import 'package:nexoeshopee/services/authentification/authentification_service.d
 import 'package:nexoeshopee/size_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:future_progress_dialog/future_progress_dialog.dart';
 import 'package:logger/logger.dart';
 
 import '../../../constants.dart';
@@ -38,7 +37,8 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
       key: _formKey,
       child: Padding(
         padding: EdgeInsets.symmetric(
-            horizontal: getProportionateScreenWidth(screenPadding)),
+          horizontal: getProportionateScreenWidth(screenPadding),
+        ),
         child: Column(
           children: [
             buildCurrentEmailFormField(),
@@ -78,9 +78,7 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
         hintText: "Password",
         labelText: "Enter Password",
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: CustomSuffixIcon(
-          svgIcon: "assets/icons/Lock.svg",
-        ),
+        suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Lock.svg"),
       ),
       validator: (value) {
         if (passwordController.text.isEmpty) {
@@ -105,9 +103,7 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
             hintText: "CurrentEmail",
             labelText: "Current Email",
             floatingLabelBehavior: FloatingLabelBehavior.always,
-            suffixIcon: CustomSuffixIcon(
-              svgIcon: "assets/icons/Mail.svg",
-            ),
+            suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Mail.svg"),
           ),
           readOnly: true,
         );
@@ -124,9 +120,7 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
         hintText: "Enter New Email",
         labelText: "New Email",
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: CustomSuffixIcon(
-          svgIcon: "assets/icons/Mail.svg",
-        ),
+        suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Mail.svg"),
       ),
       validator: (value) {
         if (newEmailController.text.isEmpty) {
@@ -146,21 +140,24 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       final AuthentificationService authService = AuthentificationService();
-      bool passwordValidation =
-          await authService.verifyCurrentUserPassword(passwordController.text);
+      bool passwordValidation = await authService.verifyCurrentUserPassword(
+        passwordController.text,
+      );
       if (passwordValidation) {
         bool updationStatus = false;
         String snackbarMessage = '';
         try {
           updationStatus = await authService.changeEmailForCurrentUser(
-              newEmail: newEmailController.text);
+            newEmail: newEmailController.text,
+          );
           if (updationStatus == true) {
             snackbarMessage =
                 "Verification email sent. Please verify your new email";
           } else {
             throw FirebaseCredentialActionAuthUnknownReasonFailureException(
-                message:
-                    "Couldn't process your request now. Please try again later");
+              message:
+                  "Couldn't process your request now. Please try again later",
+            );
           }
         } on MessagedFirebaseAuthException catch (e) {
           snackbarMessage = e.message;
@@ -168,11 +165,9 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
           snackbarMessage = e.toString();
         } finally {
           Logger().i(snackbarMessage);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(snackbarMessage),
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
         }
       }
     }
