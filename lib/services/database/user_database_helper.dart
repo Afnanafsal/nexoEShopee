@@ -36,10 +36,11 @@ class UserDatabaseHelper {
   Future<void> createNewUserWithDisplayName(
     String uid,
     String displayName,
+    String phoneNumber,
   ) async {
     await firestore.collection(USERS_COLLECTION_NAME).doc(uid).set({
       DISPLAY_NAME_KEY: displayName,
-      PHONE_KEY: null,
+      PHONE_KEY: phoneNumber,
       DP_KEY: null,
       FAV_PRODUCTS_KEY: <String>[],
     });

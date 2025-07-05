@@ -138,7 +138,55 @@ class AuthentificationService {
       }
 
       // Create user profile in Firestore with display name
-      await UserDatabaseHelper().createNewUserWithDisplayName(uid, displayName);
+      await UserDatabaseHelper().createNewUserWithDisplayName(
+        uid,
+        displayName,
+        email,
+      );
+      return true;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case EMAIL_ALREADY_IN_USE_EXCEPTION_CODE:
+          throw FirebaseSignUpAuthEmailAlreadyInUseException();
+        case INVALID_EMAIL_EXCEPTION_CODE:
+          throw FirebaseSignUpAuthInvalidEmailException();
+        case OPERATION_NOT_ALLOWED_EXCEPTION_CODE:
+          throw FirebaseSignUpAuthOperationNotAllowedException();
+        case WEAK_PASSWORD_EXCEPTION_CODE:
+          throw FirebaseSignUpAuthWeakPasswordException();
+        default:
+          throw FirebaseSignInAuthException(message: e.code);
+      }
+    }
+  }
+
+  // New method to include phone number in signup
+  Future<bool> signUpWithCompleteProfile({
+    required String email,
+    required String password,
+    required String displayName,
+    required String phoneNumber,
+  }) async {
+    try {
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final uid = userCredential.user!.uid;
+
+      // Set display name immediately after user creation
+      await userCredential.user!.updateDisplayName(displayName);
+
+      if (!userCredential.user!.emailVerified) {
+        await userCredential.user!.sendEmailVerification();
+      }
+
+      // Create user profile in Firestore with display name and phone number
+      await UserDatabaseHelper().createNewUserWithDisplayName(
+        uid,
+        displayName,
+        phoneNumber,
+      );
       return true;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
