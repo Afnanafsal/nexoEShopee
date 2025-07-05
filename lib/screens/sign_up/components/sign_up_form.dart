@@ -8,7 +8,7 @@ import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../../../constants.dart';
-import '../../profile_completion/profile_completion_screen.dart';
+import '../../home/home_screen.dart';
 
 class SignUpForm extends StatefulWidget {
   @override
@@ -22,6 +22,7 @@ class _SignUpFormState extends State<SignUpForm> {
   final TextEditingController confirmPasswordFieldController =
       TextEditingController();
   final TextEditingController displayNameController = TextEditingController();
+  final TextEditingController phoneNumberController = TextEditingController();
 
   @override
   void dispose() {
@@ -29,6 +30,7 @@ class _SignUpFormState extends State<SignUpForm> {
     passwordFieldController.dispose();
     confirmPasswordFieldController.dispose();
     displayNameController.dispose();
+    phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -45,6 +47,8 @@ class _SignUpFormState extends State<SignUpForm> {
             buildDisplayNameFormField(),
             SizedBox(height: getProportionateScreenHeight(30)),
             buildEmailFormField(),
+            SizedBox(height: getProportionateScreenHeight(30)),
+            buildPhoneNumberFormField(),
             SizedBox(height: getProportionateScreenHeight(30)),
             buildPasswordFormField(),
             SizedBox(height: getProportionateScreenHeight(30)),
@@ -73,6 +77,28 @@ class _SignUpFormState extends State<SignUpForm> {
           return "Display name must be at least 2 characters";
         } else if (displayNameController.text.length > 30) {
           return "Display name must be less than 30 characters";
+        }
+        return null;
+      },
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+    );
+  }
+
+  Widget buildPhoneNumberFormField() {
+    return TextFormField(
+      controller: phoneNumberController,
+      keyboardType: TextInputType.phone,
+      decoration: InputDecoration(
+        hintText: "Enter your phone number",
+        labelText: "Phone Number",
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Phone.svg"),
+      ),
+      validator: (value) {
+        if (phoneNumberController.text.isEmpty) {
+          return "Please enter your phone number";
+        } else if (phoneNumberController.text.length < 10) {
+          return "Phone number must be at least 10 digits";
         }
         return null;
       },
@@ -155,10 +181,11 @@ class _SignUpFormState extends State<SignUpForm> {
       bool signUpStatus = false;
       String snackbarMessage = '';
       try {
-        final signUpFuture = authService.signUpWithDisplayName(
+        final signUpFuture = authService.signUpWithCompleteProfile(
           email: emailFieldController.text,
           password: passwordFieldController.text,
           displayName: displayNameController.text,
+          phoneNumber: phoneNumberController.text,
         );
         signUpFuture.then((value) => signUpStatus = value);
         signUpStatus = await showDialog(
@@ -173,10 +200,11 @@ class _SignUpFormState extends State<SignUpForm> {
         if (signUpStatus == true) {
           snackbarMessage =
               "Account created successfully! Please verify your email.";
-          // Navigate to profile completion screen
-          Navigator.pushReplacement(
+          // Navigate directly to home screen
+          Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => ProfileCompletionScreen()),
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+            (route) => false,
           );
         } else {
           throw FirebaseSignUpAuthUnknownReasonFailureException();
