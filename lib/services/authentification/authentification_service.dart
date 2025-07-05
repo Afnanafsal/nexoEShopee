@@ -12,21 +12,27 @@ class AuthentificationService {
   static const String USER_NOT_FOUND_EXCEPTION_CODE = "user-not-found";
   static const String WRONG_PASSWORD_EXCEPTION_CODE = "wrong-password";
   static const String TOO_MANY_REQUESTS_EXCEPTION_CODE = 'too-many-requests';
-  static const String EMAIL_ALREADY_IN_USE_EXCEPTION_CODE = "email-already-in-use";
-  static const String OPERATION_NOT_ALLOWED_EXCEPTION_CODE = "operation-not-allowed";
+  static const String EMAIL_ALREADY_IN_USE_EXCEPTION_CODE =
+      "email-already-in-use";
+  static const String OPERATION_NOT_ALLOWED_EXCEPTION_CODE =
+      "operation-not-allowed";
   static const String WEAK_PASSWORD_EXCEPTION_CODE = "weak-password";
   static const String USER_MISMATCH_EXCEPTION_CODE = "user-mismatch";
   static const String INVALID_CREDENTIALS_EXCEPTION_CODE = "invalid-credential";
   static const String INVALID_EMAIL_EXCEPTION_CODE = "invalid-email";
   static const String USER_DISABLED_EXCEPTION_CODE = "user-disabled";
-  static const String INVALID_VERIFICATION_CODE_EXCEPTION_CODE = "invalid-verification-code";
-  static const String INVALID_VERIFICATION_ID_EXCEPTION_CODE = "invalid-verification-id";
-  static const String REQUIRES_RECENT_LOGIN_EXCEPTION_CODE = "requires-recent-login";
+  static const String INVALID_VERIFICATION_CODE_EXCEPTION_CODE =
+      "invalid-verification-code";
+  static const String INVALID_VERIFICATION_ID_EXCEPTION_CODE =
+      "invalid-verification-id";
+  static const String REQUIRES_RECENT_LOGIN_EXCEPTION_CODE =
+      "requires-recent-login";
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   AuthentificationService._privateConstructor();
-  static final AuthentificationService _instance = AuthentificationService._privateConstructor();
+  static final AuthentificationService _instance =
+      AuthentificationService._privateConstructor();
   factory AuthentificationService() => _instance;
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
@@ -54,7 +60,10 @@ class AuthentificationService {
 
   Future<bool> signIn({required String email, required String password}) async {
     try {
-      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       if (userCredential.user!.emailVerified) {
         return true;
       } else {
@@ -81,7 +90,10 @@ class AuthentificationService {
 
   Future<bool> signUp({required String email, required String password}) async {
     try {
-      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       final uid = userCredential.user!.uid;
 
       if (!userCredential.user!.emailVerified) {
@@ -89,6 +101,44 @@ class AuthentificationService {
       }
 
       await UserDatabaseHelper().createNewUser(uid);
+      return true;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case EMAIL_ALREADY_IN_USE_EXCEPTION_CODE:
+          throw FirebaseSignUpAuthEmailAlreadyInUseException();
+        case INVALID_EMAIL_EXCEPTION_CODE:
+          throw FirebaseSignUpAuthInvalidEmailException();
+        case OPERATION_NOT_ALLOWED_EXCEPTION_CODE:
+          throw FirebaseSignUpAuthOperationNotAllowedException();
+        case WEAK_PASSWORD_EXCEPTION_CODE:
+          throw FirebaseSignUpAuthWeakPasswordException();
+        default:
+          throw FirebaseSignInAuthException(message: e.code);
+      }
+    }
+  }
+
+  Future<bool> signUpWithDisplayName({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    try {
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final uid = userCredential.user!.uid;
+
+      // Set display name immediately after user creation
+      await userCredential.user!.updateDisplayName(displayName);
+
+      if (!userCredential.user!.emailVerified) {
+        await userCredential.user!.sendEmailVerification();
+      }
+
+      // Create user profile in Firestore with display name
+      await UserDatabaseHelper().createNewUserWithDisplayName(uid, displayName);
       return true;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
@@ -119,7 +169,10 @@ class AuthentificationService {
     }
   }
 
-  Future<bool> changePasswordForCurrentUser({String? oldPassword, required String newPassword}) async {
+  Future<bool> changePasswordForCurrentUser({
+    String? oldPassword,
+    required String newPassword,
+  }) async {
     try {
       bool verified = true;
       if (oldPassword != null) {
@@ -144,7 +197,10 @@ class AuthentificationService {
     }
   }
 
-  Future<bool> changeEmailForCurrentUser({String? password, required String newEmail}) async {
+  Future<bool> changeEmailForCurrentUser({
+    String? password,
+    required String newEmail,
+  }) async {
     try {
       bool verified = true;
       if (password != null) {
