@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/screens/profile_completion/profile_completion_form.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:nexoeshopee/constants.dart';

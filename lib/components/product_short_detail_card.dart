@@ -1,5 +1,6 @@
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
+import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -32,8 +33,8 @@ class ProductShortDetailCard extends StatelessWidget {
                     aspectRatio: 0.88,
                     child: Padding(
                       padding: EdgeInsets.all(10),
-                      child: product.images!.length > 0
-                          ? Image.network(
+                      child: product.images!.isNotEmpty
+                          ? Base64ImageService().base64ToImage(
                               product.images![0],
                               fit: BoxFit.contain,
                             )
@@ -60,23 +61,24 @@ class ProductShortDetailCard extends StatelessWidget {
                       SizedBox(height: 10),
                       Text.rich(
                         TextSpan(
-                            text: "\₹${product.discountPrice}    ",
-                            style: TextStyle(
-                              color: kPrimaryColor,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: "\₹${product.originalPrice}",
-                                style: TextStyle(
-                                  color: kTextColor,
-                                  decoration: TextDecoration.lineThrough,
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 11,
-                                ),
+                          text: "\₹${product.discountPrice}    ",
+                          style: TextStyle(
+                            color: kPrimaryColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: "\₹${product.originalPrice}",
+                              style: TextStyle(
+                                color: kTextColor,
+                                decoration: TextDecoration.lineThrough,
+                                fontWeight: FontWeight.normal,
+                                fontSize: 11,
                               ),
-                            ]),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -89,13 +91,7 @@ class ProductShortDetailCard extends StatelessWidget {
             final errorMessage = snapshot.error.toString();
             Logger().e(errorMessage);
           }
-          return Center(
-            child: Icon(
-              Icons.error,
-              color: kTextColor,
-              size: 60,
-            ),
-          );
+          return Center(child: Icon(Icons.error, color: kTextColor, size: 60));
         },
       ),
     );

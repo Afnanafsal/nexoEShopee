@@ -1,4 +1,5 @@
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
+import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logger/logger.dart';
@@ -8,11 +9,7 @@ import 'package:nexoeshopee/models/Product.dart';
 class ProductCard extends StatelessWidget {
   final String productId;
   final GestureTapCallback press;
-  const ProductCard({
-    super.key,
-    required this.productId,
-    required this.press,
-  });
+  const ProductCard({super.key, required this.productId, required this.press});
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +19,7 @@ class ProductCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: kTextColor.withOpacity(0.15)),
-          borderRadius: BorderRadius.all(
-            Radius.circular(16),
-          ),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
@@ -43,11 +38,7 @@ class ProductCard extends StatelessWidget {
                 Logger().e(error);
               }
               return Center(
-                child: Icon(
-                  Icons.error,
-                  color: kTextColor,
-                  size: 60,
-                ),
+                child: Icon(Icons.error, color: kTextColor, size: 60),
               );
             },
           ),
@@ -64,10 +55,15 @@ class ProductCard extends StatelessWidget {
           flex: 2,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Image.network(
-              product.images![0],
-              fit: BoxFit.contain,
-            ),
+            child: product.images!.isNotEmpty
+                ? Base64ImageService().base64ToImage(
+                    product.images![0],
+                    fit: BoxFit.contain,
+                  )
+                : Container(
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.image, size: 50),
+                  ),
           ),
         ),
         SizedBox(height: 10),

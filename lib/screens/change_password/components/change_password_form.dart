@@ -7,7 +7,6 @@ import 'package:nexoeshopee/exceptions/firebaseauth/credential_actions_exception
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
-import 'package:future_progress_dialog/future_progress_dialog.dart';
 import 'package:logger/logger.dart';
 
 class ChangePasswordForm extends StatefulWidget {
@@ -37,7 +36,8 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
       key: _formKey,
       child: Padding(
         padding: EdgeInsets.symmetric(
-            horizontal: getProportionateScreenWidth(screenPadding)),
+          horizontal: getProportionateScreenWidth(screenPadding),
+        ),
         child: Column(
           children: [
             buildCurrentPasswordFormField(),
@@ -75,9 +75,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
         hintText: "Confirm New Password",
         labelText: "Confirm New Password",
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: CustomSuffixIcon(
-          svgIcon: "assets/icons/Lock.svg",
-        ),
+        suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Lock.svg"),
       ),
       validator: (value) {
         if (confirmNewPasswordController.text != newPasswordController.text) {
@@ -97,9 +95,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
         hintText: "Enter Current Password",
         labelText: "Current Password",
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: CustomSuffixIcon(
-          svgIcon: "assets/icons/Lock.svg",
-        ),
+        suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Lock.svg"),
       ),
       validator: (value) {
         return null;
@@ -116,9 +112,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
         hintText: "Enter New password",
         labelText: "New Password",
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: CustomSuffixIcon(
-          svgIcon: "assets/icons/Lock.svg",
-        ),
+        suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Lock.svg"),
       ),
       validator: (value) {
         if (newPasswordController.text.isEmpty) {
@@ -145,13 +139,14 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
         String snackbarMessage = "An error occurred";
         try {
           updationStatus = await authService.changePasswordForCurrentUser(
-              newPassword: newPasswordController.text);
+            newPassword: newPasswordController.text,
+          );
           if (updationStatus == true) {
             snackbarMessage = "Password changed successfully";
           } else {
             throw FirebaseCredentialActionAuthUnknownReasonFailureException(
-                message:
-                    "Failed to change password, due to some unknown reason");
+              message: "Failed to change password, due to some unknown reason",
+            );
           }
         } on MessagedFirebaseAuthException catch (e) {
           snackbarMessage = e.message;
@@ -159,11 +154,9 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
           snackbarMessage = e.toString();
         } finally {
           Logger().i(snackbarMessage);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(snackbarMessage),
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
         }
       }
     }

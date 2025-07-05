@@ -1,6 +1,7 @@
 import 'package:nexoeshopee/models/CartItem.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
+import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -9,10 +10,7 @@ import '../../../size_config.dart';
 
 class CartItemCard extends StatelessWidget {
   final CartItem cartItem;
-  const CartItemCard({
-    Key? key,
-    required this.cartItem,
-  }) : super(key: key);
+  const CartItemCard({Key? key, required this.cartItem}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +30,16 @@ class CartItemCard extends StatelessWidget {
                       color: Color(0xFFFF5F6F9),
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: Image.asset(
-                      (snapshot.data!.images != null && snapshot.data!.images?.isNotEmpty == true)
-                          ? snapshot.data!.images![0]
-                          : 'assets/images/default.png',
-                    ),
+                    child:
+                        (snapshot.data!.images != null &&
+                            snapshot.data!.images?.isNotEmpty == true)
+                        ? Base64ImageService().base64ToImage(
+                            snapshot.data!.images![0],
+                          )
+                        : Container(
+                            color: Colors.grey[300],
+                            child: Icon(Icons.image, size: 50),
+                          ),
                   ),
                 ),
               ),
@@ -46,51 +49,37 @@ class CartItemCard extends StatelessWidget {
                 children: [
                   Text(
                     snapshot.data!.title ?? '',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.black),
                     maxLines: 2,
                   ),
                   SizedBox(height: 10),
                   Text.rich(
                     TextSpan(
-                        text: "\$${snapshot.data!.originalPrice}",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: kPrimaryColor,
+                      text: "\$${snapshot.data!.originalPrice}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: kPrimaryColor,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: "  x${cartItem.itemCount}",
+                          style: TextStyle(color: kTextColor),
                         ),
-                        children: [
-                          TextSpan(
-                            text: "  x${cartItem.itemCount}",
-                            style: TextStyle(
-                              color: kTextColor,
-                            ),
-                          ),
-                        ]),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ],
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           final error = snapshot.error;
           Logger().w(error.toString());
-          return Center(
-            child: Text(
-              error.toString(),
-            ),
-          );
+          return Center(child: Text(error.toString()));
         } else {
-          return Center(
-            child: Icon(
-              Icons.error,
-            ),
-          );
+          return Center(child: Icon(Icons.error));
         }
       },
     );

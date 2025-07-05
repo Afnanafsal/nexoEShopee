@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/screens/product_details/provider_models/ProductImageSwiper.dart';
+import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:provider/provider.dart';
 
@@ -24,12 +25,15 @@ class ProductImages extends StatelessWidget {
                     if (details.primaryVelocity! < 0) {
                       // Swipe Left
                       swiper.currentImageIndex =
-                          (swiper.currentImageIndex + 1) % product.images!.length;
+                          (swiper.currentImageIndex + 1) %
+                          product.images!.length;
                     } else if (details.primaryVelocity! > 0) {
                       // Swipe Right
                       swiper.currentImageIndex =
-                          (swiper.currentImageIndex - 1 + product.images!.length) %
-                              product.images!.length;
+                          (swiper.currentImageIndex -
+                              1 +
+                              product.images!.length) %
+                          product.images!.length;
                     }
                   }
                 },
@@ -42,7 +46,7 @@ class ProductImages extends StatelessWidget {
                   child: SizedBox(
                     height: SizeConfig.screenHeight * 0.35,
                     width: SizeConfig.screenWidth * 0.75,
-                    child: Image.network(
+                    child: Base64ImageService().base64ToImage(
                       product.images![swiper.currentImageIndex],
                       fit: BoxFit.contain,
                     ),
@@ -65,13 +69,18 @@ class ProductImages extends StatelessWidget {
   }
 
   Widget buildSmallPreview(
-      BuildContext context, ProductImageSwiper swiper, int index) {
+    BuildContext context,
+    ProductImageSwiper swiper,
+    int index,
+  ) {
     return GestureDetector(
       onTap: () {
         swiper.currentImageIndex = index;
       },
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: getProportionateScreenWidth(8)),
+        margin: EdgeInsets.symmetric(
+          horizontal: getProportionateScreenWidth(8),
+        ),
         padding: EdgeInsets.all(getProportionateScreenHeight(8)),
         height: getProportionateScreenWidth(48),
         width: getProportionateScreenWidth(48),
@@ -84,7 +93,7 @@ class ProductImages extends StatelessWidget {
                 : Colors.transparent,
           ),
         ),
-        child: Image.network(product.images![index]),
+        child: Base64ImageService().base64ToImage(product.images![index]),
       ),
     );
   }

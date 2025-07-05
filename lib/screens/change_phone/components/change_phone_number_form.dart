@@ -3,15 +3,12 @@ import 'package:nexoeshopee/components/async_progress_dialog.dart';
 import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:future_progress_dialog/future_progress_dialog.dart';
 import 'package:logger/logger.dart';
 
 import '../../../size_config.dart';
 
 class ChangePhoneNumberForm extends StatefulWidget {
-  const ChangePhoneNumberForm({
-    required Key key,
-  }) : super(key: key);
+  const ChangePhoneNumberForm({required Key key}) : super(key: key);
 
   @override
   _ChangePhoneNumberFormState createState() => _ChangePhoneNumberFormState();
@@ -71,8 +68,9 @@ class _ChangePhoneNumberFormState extends State<ChangePhoneNumberForm> {
       bool status = false;
       String snackbarMessage = "";
       try {
-        status = await UserDatabaseHelper()
-            .updatePhoneForCurrentUser(newPhoneNumberController.text);
+        status = await UserDatabaseHelper().updatePhoneForCurrentUser(
+          newPhoneNumberController.text,
+        );
         if (status == true) {
           snackbarMessage = "Phone updated successfully";
         } else {
@@ -86,11 +84,9 @@ class _ChangePhoneNumberFormState extends State<ChangePhoneNumberForm> {
         snackbarMessage = "Something went wrong";
       } finally {
         Logger().i(snackbarMessage);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(snackbarMessage),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
   }

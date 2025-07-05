@@ -1,24 +1,25 @@
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
-enum ImageType {
-  local,
-  network,
-}
+enum ImageType { local, network }
 
 class CustomImage {
   final ImageType imgType;
   final String path;
-  CustomImage({this.imgType = ImageType.local, required this.path});
+  final XFile? xFile; // Store XFile for web compatibility
+
+  CustomImage({this.imgType = ImageType.local, required this.path, this.xFile});
+
   @override
   String toString() {
-    return "Instance of Custom Image: {imgType: $imgType, path: $path}";
+    return "Instance of Custom Image: {imgType: $imgType, path: $path, hasXFile: ${xFile != null}}";
   }
 }
 
 class ProductDetails extends ChangeNotifier {
   List<CustomImage> _selectedImages = [];
-  late ProductType _productType;
+  ProductType? _productType;
   List<String> _searchTags = [];
 
   List<CustomImage> get selectedImages {
@@ -46,7 +47,7 @@ class ProductDetails extends ChangeNotifier {
     notifyListeners();
   }
 
-  ProductType get productType {
+  ProductType? get productType {
     return _productType;
   }
 
@@ -54,7 +55,7 @@ class ProductDetails extends ChangeNotifier {
     _productType = type;
   }
 
-  set productType(ProductType type) {
+  set productType(ProductType? type) {
     _productType = type;
     notifyListeners();
   }
@@ -78,7 +79,7 @@ class ProductDetails extends ChangeNotifier {
   }
 
   void removeSearchTag({required int index}) {
-     _searchTags.removeAt(index);
+    _searchTags.removeAt(index);
     notifyListeners();
   }
 }

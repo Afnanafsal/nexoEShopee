@@ -32,7 +32,6 @@ class DefaultFirebaseOptions {
     apiKey: "AIzaSyCv86vxKH0t_VTzmUodO-jt49N7ewqaJ9I",
     authDomain: "nexoeshopee-7c6f6.firebaseapp.com",
     projectId: "nexoeshopee-7c6f6",
-    storageBucket: "nexoeshopee-7c6f6.firebasestorage.app",
     messagingSenderId: "655019407854",
     appId: "1:655019407854:web:591b4cb2330cca9d95f6ff",
     measurementId: "G-4EKJ13SNZE",
@@ -41,7 +40,6 @@ class DefaultFirebaseOptions {
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: "AIzaSyCv86vxKH0t_VTzmUodO-jt49N7ewqaJ9I",
     projectId: "nexoeshopee-7c6f6",
-    storageBucket: "nexoeshopee-7c6f6.firebasestorage.app",
     messagingSenderId: "655019407854",
     appId: "1:655019407854:android:<GENERATE_FROM_FIREBASE>",
   );

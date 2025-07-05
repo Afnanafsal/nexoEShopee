@@ -11,6 +11,7 @@ import 'package:nexoeshopee/screens/my_orders/my_orders_screen.dart';
 import 'package:nexoeshopee/screens/my_products/my_products_screen.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 import 'package:nexoeshopee/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +20,7 @@ import 'package:logger/logger.dart';
 import '../../change_display_name/change_display_name_screen.dart';
 
 class HomeScreenDrawer extends StatelessWidget {
-  const HomeScreenDrawer({
-    required Key key,
-  }) : super(key: key);
+  const HomeScreenDrawer({required Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,22 +29,18 @@ class HomeScreenDrawer extends StatelessWidget {
         physics: BouncingScrollPhysics(),
         children: [
           StreamBuilder<User?>(
-              stream: AuthentificationService().userChanges,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final user = snapshot.data;
-                  return buildUserAccountsHeader(user!);
-                } else if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else {
-                  return Center(
-                    child: Icon(Icons.error),
-                  );
-                }
-              }),
+            stream: AuthentificationService().userChanges,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final user = snapshot.data;
+                return buildUserAccountsHeader(user!);
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else {
+                return Center(child: Icon(Icons.error));
+              }
+            },
+          ),
           buildEditAccountExpansionTile(context),
           ListTile(
             leading: Icon(Icons.edit_location),
@@ -56,10 +51,12 @@ class HomeScreenDrawer extends StatelessWidget {
             onTap: () async {
               bool allowed = AuthentificationService().currentUserVerified;
               if (!allowed) {
-                final reverify = await showConfirmationDialog(context,
-                    "You haven't verified your email address. This action is only allowed for verified users.",
-                    positiveResponse: "Resend verification email",
-                    negativeResponse: "Go back");
+                final reverify = await showConfirmationDialog(
+                  context,
+                  "You haven't verified your email address. This action is only allowed for verified users.",
+                  positiveResponse: "Resend verification email",
+                  negativeResponse: "Go back",
+                );
                 if (reverify) {
                   final future = AuthentificationService()
                       .sendVerificationEmailToCurrentUser();
@@ -92,10 +89,12 @@ class HomeScreenDrawer extends StatelessWidget {
             onTap: () async {
               bool allowed = AuthentificationService().currentUserVerified;
               if (!allowed) {
-                final reverify = await showConfirmationDialog(context,
-                    "You haven't verified your email address. This action is only allowed for verified users.",
-                    positiveResponse: "Resend verification email",
-                    negativeResponse: "Go back");
+                final reverify = await showConfirmationDialog(
+                  context,
+                  "You haven't verified your email address. This action is only allowed for verified users.",
+                  positiveResponse: "Resend verification email",
+                  negativeResponse: "Go back",
+                );
                 if (reverify) {
                   final future = AuthentificationService()
                       .sendVerificationEmailToCurrentUser();
@@ -113,9 +112,7 @@ class HomeScreenDrawer extends StatelessWidget {
               }
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => MyOrdersScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => MyOrdersScreen()),
               );
             },
           ),
@@ -129,9 +126,7 @@ class HomeScreenDrawer extends StatelessWidget {
             onTap: () async {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => AboutDeveloperScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => AboutDeveloperScreen()),
               );
             },
           ),
@@ -142,8 +137,10 @@ class HomeScreenDrawer extends StatelessWidget {
               style: TextStyle(fontSize: 16, color: Colors.black),
             ),
             onTap: () async {
-              final confirmation =
-                  await showConfirmationDialog(context, "Confirm Sign out ?");
+              final confirmation = await showConfirmationDialog(
+                context,
+                "Confirm Sign out ?",
+              );
               if (confirmation) AuthentificationService().signOut();
             },
           ),
@@ -155,15 +152,10 @@ class HomeScreenDrawer extends StatelessWidget {
   UserAccountsDrawerHeader buildUserAccountsHeader(User user) {
     return UserAccountsDrawerHeader(
       margin: EdgeInsets.zero,
-      decoration: BoxDecoration(
-        color: kTextColor.withOpacity(0.15),
-      ),
+      decoration: BoxDecoration(color: kTextColor.withOpacity(0.15)),
       accountEmail: Text(
         user.email ?? "No Email",
-        style: TextStyle(
-          fontSize: 15,
-          color: Colors.black,
-        ),
+        style: TextStyle(fontSize: 15, color: Colors.black),
       ),
       accountName: Text(
         user.displayName ?? "No Name",
@@ -177,20 +169,21 @@ class HomeScreenDrawer extends StatelessWidget {
         future: UserDatabaseHelper().displayPictureForCurrentUser,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return CircleAvatar(
-              backgroundImage: NetworkImage(snapshot.data ?? ''),
-            );
+            final base64String = snapshot.data;
+            if (base64String != null && base64String.isNotEmpty) {
+              return CircleAvatar(
+                backgroundImage: Base64ImageService().base64ToImageProvider(
+                  base64String,
+                ),
+              );
+            }
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             final error = snapshot.error;
             Logger().w(error.toString());
           }
-          return CircleAvatar(
-            backgroundColor: kTextColor,
-          );
+          return CircleAvatar(backgroundColor: kTextColor);
         },
       ),
     );
@@ -207,81 +200,65 @@ class HomeScreenDrawer extends StatelessWidget {
         ListTile(
           title: Text(
             "Change Display Picture",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 15,
-            ),
+            style: TextStyle(color: Colors.black, fontSize: 15),
           ),
           onTap: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangeDisplayPictureScreen(),
-                ));
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChangeDisplayPictureScreen(),
+              ),
+            );
           },
         ),
         ListTile(
           title: Text(
             "Change Display Name",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 15,
-            ),
+            style: TextStyle(color: Colors.black, fontSize: 15),
           ),
           onTap: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangeDisplayNameScreen(),
-                ));
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChangeDisplayNameScreen(),
+              ),
+            );
           },
         ),
         ListTile(
           title: Text(
             "Change Phone Number",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 15,
-            ),
+            style: TextStyle(color: Colors.black, fontSize: 15),
           ),
           onTap: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangePhoneScreen(),
-                ));
+              context,
+              MaterialPageRoute(builder: (context) => ChangePhoneScreen()),
+            );
           },
         ),
         ListTile(
           title: Text(
             "Change Email",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 15,
-            ),
+            style: TextStyle(color: Colors.black, fontSize: 15),
           ),
           onTap: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangeEmailScreen(),
-                ));
+              context,
+              MaterialPageRoute(builder: (context) => ChangeEmailScreen()),
+            );
           },
         ),
         ListTile(
           title: Text(
             "Change Password",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 15,
-            ),
+            style: TextStyle(color: Colors.black, fontSize: 15),
           ),
           onTap: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangePasswordScreen(),
-                ));
+              context,
+              MaterialPageRoute(builder: (context) => ChangePasswordScreen()),
+            );
           },
         ),
       ],
@@ -299,59 +276,17 @@ class HomeScreenDrawer extends StatelessWidget {
         ListTile(
           title: Text(
             "Add New Product",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 15,
-            ),
+            style: TextStyle(color: Colors.black, fontSize: 15),
           ),
           onTap: () async {
             bool allowed = AuthentificationService().currentUserVerified;
             if (!allowed) {
-              final reverify = await showConfirmationDialog(context,
-                  "You haven't verified your email address. This action is only allowed for verified users.",
-                  positiveResponse: "Resend verification email",
-                  negativeResponse: "Go back");
-              if (reverify) {
-                final future = AuthentificationService()
-                    .sendVerificationEmailToCurrentUser();
-                await showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AsyncProgressDialog(
-                      future,
-                      message: Text("Resending verification email"),
-                    );
-                  },
-                );
-              }
-              return;
-            }
-            Navigator.push(
+              final reverify = await showConfirmationDialog(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => EditProductScreen(
-                    key: UniqueKey(),
-                    productToEdit: null,
-                  ),
-                ),
-            );
-          },
-        ),
-        ListTile(
-          title: Text(
-            "Manage My Products",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 15,
-            ),
-          ),
-          onTap: () async {
-            bool allowed = AuthentificationService().currentUserVerified;
-            if (!allowed) {
-              final reverify = await showConfirmationDialog(context,
-                  "You haven't verified your email address. This action is only allowed for verified users.",
-                  positiveResponse: "Resend verification email",
-                  negativeResponse: "Go back");
+                "You haven't verified your email address. This action is only allowed for verified users.",
+                positiveResponse: "Resend verification email",
+                negativeResponse: "Go back",
+              );
               if (reverify) {
                 final future = AuthentificationService()
                     .sendVerificationEmailToCurrentUser();
@@ -370,8 +305,44 @@ class HomeScreenDrawer extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => MyProductsScreen(),
+                builder: (context) =>
+                    EditProductScreen(key: UniqueKey(), productToEdit: null),
               ),
+            );
+          },
+        ),
+        ListTile(
+          title: Text(
+            "Manage My Products",
+            style: TextStyle(color: Colors.black, fontSize: 15),
+          ),
+          onTap: () async {
+            bool allowed = AuthentificationService().currentUserVerified;
+            if (!allowed) {
+              final reverify = await showConfirmationDialog(
+                context,
+                "You haven't verified your email address. This action is only allowed for verified users.",
+                positiveResponse: "Resend verification email",
+                negativeResponse: "Go back",
+              );
+              if (reverify) {
+                final future = AuthentificationService()
+                    .sendVerificationEmailToCurrentUser();
+                await showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AsyncProgressDialog(
+                      future,
+                      message: Text("Resending verification email"),
+                    );
+                  },
+                );
+              }
+              return;
+            }
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MyProductsScreen()),
             );
           },
         ),

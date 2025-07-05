@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'edit_product_form.dart';
 
 class Body extends StatelessWidget {
-  final Product productToEdit;
+  final Product? productToEdit;
 
-  const Body({required key, required this.productToEdit}) : super(key: key);
+  const Body({super.key, required this.productToEdit});
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -16,18 +16,19 @@ class Body extends StatelessWidget {
         physics: BouncingScrollPhysics(),
         child: Padding(
           padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding)),
+            horizontal: getProportionateScreenWidth(screenPadding),
+          ),
           child: SizedBox(
             width: double.infinity,
             child: Column(
               children: [
                 SizedBox(height: getProportionateScreenHeight(10)),
-                Text(
-                  "Fill Product Details",
-                  style: headingStyle,
-                ),
+                Text("Fill Product Details", style: headingStyle),
                 SizedBox(height: getProportionateScreenHeight(30)),
-                EditProductForm(key: Key('edit_product'), product: productToEdit),
+                EditProductForm(
+                  key: Key('edit_product'),
+                  product: productToEdit,
+                ),
                 SizedBox(height: getProportionateScreenHeight(30)),
               ],
             ),

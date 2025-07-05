@@ -1,11 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:nexoeshopee/components/async_progress_dialog.dart';
 import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/exceptions/local_files_handling/image_picking_exceptions.dart';
 import 'package:nexoeshopee/exceptions/local_files_handling/local_file_handling_exception.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/firestore_files_access/firestore_files_access_service.dart';
+import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 import 'package:nexoeshopee/services/local_files_access/local_files_access_service.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import '../provider_models/body_model.dart';
-import 'package:future_progress_dialog/future_progress_dialog.dart';
 
 class Body extends StatelessWidget {
   @override
@@ -71,13 +70,37 @@ class Body extends StatelessWidget {
           Logger().w(error.toString());
         }
         ImageProvider? backImage;
+
+        // Handle chosen image (File or XFile)
         if (bodyState.chosenImage != null) {
-          backImage = MemoryImage(bodyState.chosenImage!.readAsBytesSync());
+          backImage = FileImage(bodyState.chosenImage!);
+        } else if (bodyState.chosenXFile != null) {
+          // For web, we need to handle XFile differently
+          return FutureBuilder<Uint8List>(
+            future: bodyState.chosenXFile!.readAsBytes(),
+            builder: (context, futureSnapshot) {
+              if (futureSnapshot.hasData) {
+                return CircleAvatar(
+                  radius: SizeConfig.screenWidth * 0.3,
+                  backgroundColor: kTextColor.withOpacity(0.5),
+                  backgroundImage: MemoryImage(futureSnapshot.data!),
+                );
+              } else {
+                return CircleAvatar(
+                  radius: SizeConfig.screenWidth * 0.3,
+                  backgroundColor: kTextColor.withOpacity(0.5),
+                  child: CircularProgressIndicator(),
+                );
+              }
+            },
+          );
         } else if (snapshot.hasData && snapshot.data != null) {
           final data = snapshot.data!.data();
-          final url = data?[UserDatabaseHelper.DP_KEY] as String?;
-          if (url != null && url.isNotEmpty) {
-            backImage = NetworkImage(url);
+          final base64String = data?[UserDatabaseHelper.DP_KEY] as String?;
+          if (base64String != null && base64String.isNotEmpty) {
+            backImage = Base64ImageService().base64ToImageProvider(
+              base64String,
+            );
           }
         }
         return CircleAvatar(
@@ -90,13 +113,10 @@ class Body extends StatelessWidget {
   }
 
   void getImageFromUser(BuildContext context, ChosenImage bodyState) async {
-    String? path;
+    ImagePickResult? result;
     String? snackbarMessage;
     try {
-      path = await choseImageFromLocalFiles(context);
-      if (path == null) {
-        throw LocalImagePickingUnknownReasonFailureException();
-      }
+      result = await choseImageFromLocalFiles(context);
     } on LocalFileHandlingException catch (e) {
       Logger().i("LocalFileHandlingException: $e");
       snackbarMessage = e.toString();
@@ -111,10 +131,10 @@ class Body extends StatelessWidget {
         ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
-    if (path == null) {
+    if (result == null) {
       return;
     }
-    bodyState.setChosenImage = File(path);
+    bodyState.setChosenXFile = result.xFile;
   }
 
   Widget buildChosePictureButton(BuildContext context, ChosenImage bodyState) {
@@ -157,16 +177,28 @@ class Body extends StatelessWidget {
     bool uploadDisplayPictureStatus = false;
     String snackbarMessage = "";
     try {
-      if (bodyState.chosenImage == null) {
+      if (bodyState.chosenImage == null && bodyState.chosenXFile == null) {
         throw "No image selected to upload.";
       }
-      final downloadUrl = await FirestoreFilesAccess().uploadFileToPath(
-        bodyState.chosenImage!,
-        UserDatabaseHelper().getPathForCurrentUserDisplayPicture(),
-      );
+
+      // Convert image to base64
+      String base64String;
+      if (bodyState.chosenXFile != null) {
+        // Use XFile for conversion (works on all platforms)
+        base64String = await Base64ImageService().xFileToBase64(
+          bodyState.chosenXFile!,
+        );
+      } else if (bodyState.chosenImage != null) {
+        // Fallback to File method (mobile only)
+        base64String = await Base64ImageService().fileToBase64(
+          bodyState.chosenImage!,
+        );
+      } else {
+        throw "No valid image available for upload.";
+      }
 
       uploadDisplayPictureStatus = await UserDatabaseHelper()
-          .uploadDisplayPictureForCurrentUser(downloadUrl);
+          .uploadDisplayPictureForCurrentUser(base64String);
       if (uploadDisplayPictureStatus == true) {
         snackbarMessage = "Display Picture updated successfully";
       } else {
@@ -218,14 +250,7 @@ class Body extends StatelessWidget {
     bool status = false;
     String snackbarMessage = "";
     try {
-      bool fileDeletedFromFirestore = false;
-      fileDeletedFromFirestore = await FirestoreFilesAccess()
-          .deleteFileFromPath(
-            UserDatabaseHelper().getPathForCurrentUserDisplayPicture(),
-          );
-      if (fileDeletedFromFirestore == false) {
-        throw "Couldn't delete file from Storage, please retry";
-      }
+      // Since we're using base64 storage, we just need to remove the reference from the database
       status = await UserDatabaseHelper().removeDisplayPictureForCurrentUser();
       if (status == true) {
         snackbarMessage = "Picture removed successfully";
