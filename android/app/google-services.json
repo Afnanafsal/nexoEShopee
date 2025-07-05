@@ -1,32 +1,13 @@
 {
   "project_info": {
-    "project_number": "559841067643",
-    "project_id": "expensetracker-6b9a8",
-    "storage_bucket": "expensetracker-6b9a8.firebasestorage.app"
+    "project_number": "655019407854",
+    "project_id": "nexoeshopee-7c6f6",
+    "storage_bucket": "nexoeshopee-7c6f6.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:559841067643:android:1f35cf591e85748a2a18de",
-        "android_client_info": {
-          "package_name": "com.example.expense_tracker"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCKvl0q7it9HY6GDCdwFwB63DnAiAzesqc"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:559841067643:android:95a4ddc9937191f32a18de",
+        "mobilesdk_app_id": "1:655019407854:android:d00ab157c8f092ad95f6ff",
         "android_client_info": {
           "package_name": "com.example.nexoeshopee"
         }
@@ -34,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCKvl0q7it9HY6GDCdwFwB63DnAiAzesqc"
+          "current_key": "AIzaSyCTqzP6L1L306suJyejmXHHXSDUpbVo26M"
         }
       ],
       "services": {
