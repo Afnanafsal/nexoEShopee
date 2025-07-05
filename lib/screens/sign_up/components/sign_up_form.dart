@@ -37,7 +37,8 @@ class _SignUpFormState extends State<SignUpForm> {
       key: _formKey,
       child: Padding(
         padding: EdgeInsets.symmetric(
-            horizontal: getProportionateScreenWidth(screenPadding)),
+          horizontal: getProportionateScreenWidth(screenPadding),
+        ),
         child: Column(
           children: [
             buildEmailFormField(),
@@ -46,10 +47,7 @@ class _SignUpFormState extends State<SignUpForm> {
             SizedBox(height: getProportionateScreenHeight(30)),
             buildConfirmPasswordFormField(),
             SizedBox(height: getProportionateScreenHeight(40)),
-            DefaultButton(
-              text: "Sign up",
-              press: signUpButtonCallback,
-            ),
+            DefaultButton(text: "Sign up", press: signUpButtonCallback),
           ],
         ),
       ),
@@ -64,9 +62,7 @@ class _SignUpFormState extends State<SignUpForm> {
         hintText: "Re-enter your password",
         labelText: "Confirm Password",
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: CustomSuffixIcon(
-          svgIcon: "assets/icons/Lock.svg",
-        ),
+        suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Lock.svg"),
       ),
       validator: (value) {
         if (confirmPasswordFieldController.text.isEmpty) {
@@ -91,9 +87,7 @@ class _SignUpFormState extends State<SignUpForm> {
         hintText: "Enter your email",
         labelText: "Email",
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: CustomSuffixIcon(
-          svgIcon: "assets/icons/Mail.svg",
-        ),
+        suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Mail.svg"),
       ),
       validator: (value) {
         if (emailFieldController.text.isEmpty) {
@@ -115,9 +109,7 @@ class _SignUpFormState extends State<SignUpForm> {
         hintText: "Enter your password",
         labelText: "Password",
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: CustomSuffixIcon(
-          svgIcon: "assets/icons/Lock.svg",
-        ),
+        suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Lock.svg"),
       ),
       validator: (value) {
         if (passwordFieldController.text.isEmpty) {
@@ -164,11 +156,9 @@ class _SignUpFormState extends State<SignUpForm> {
         snackbarMessage = e.toString();
       } finally {
         Logger().i(snackbarMessage);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(snackbarMessage),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
         if (signUpStatus == true) {
           Navigator.pop(context);
         }
