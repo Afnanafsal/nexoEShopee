@@ -6,10 +6,9 @@ import 'package:nexoeshopee/exceptions/firebaseauth/signup_exceptions.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
-//import 'package:future_progress_dialog/future_progress_dialog.dart';
 import 'package:logger/logger.dart';
-
 import '../../../constants.dart';
+import '../../profile_completion/profile_completion_screen.dart';
 
 class SignUpForm extends StatefulWidget {
   @override
@@ -22,12 +21,14 @@ class _SignUpFormState extends State<SignUpForm> {
   final TextEditingController passwordFieldController = TextEditingController();
   final TextEditingController confirmPasswordFieldController =
       TextEditingController();
+  final TextEditingController displayNameController = TextEditingController();
 
   @override
   void dispose() {
     emailFieldController.dispose();
     passwordFieldController.dispose();
     confirmPasswordFieldController.dispose();
+    displayNameController.dispose();
     super.dispose();
   }
 
@@ -41,6 +42,8 @@ class _SignUpFormState extends State<SignUpForm> {
         ),
         child: Column(
           children: [
+            buildDisplayNameFormField(),
+            SizedBox(height: getProportionateScreenHeight(30)),
             buildEmailFormField(),
             SizedBox(height: getProportionateScreenHeight(30)),
             buildPasswordFormField(),
@@ -51,6 +54,29 @@ class _SignUpFormState extends State<SignUpForm> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget buildDisplayNameFormField() {
+    return TextFormField(
+      controller: displayNameController,
+      decoration: InputDecoration(
+        hintText: "Enter your display name",
+        labelText: "Display Name",
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/User.svg"),
+      ),
+      validator: (value) {
+        if (displayNameController.text.isEmpty) {
+          return "Please enter your display name";
+        } else if (displayNameController.text.length < 2) {
+          return "Display name must be at least 2 characters";
+        } else if (displayNameController.text.length > 30) {
+          return "Display name must be less than 30 characters";
+        }
+        return null;
+      },
+      autovalidateMode: AutovalidateMode.onUserInteraction,
     );
   }
 
@@ -125,14 +151,14 @@ class _SignUpFormState extends State<SignUpForm> {
 
   Future<void> signUpButtonCallback() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // goto complete profile page
       final AuthentificationService authService = AuthentificationService();
       bool signUpStatus = false;
       String snackbarMessage = '';
       try {
-        final signUpFuture = authService.signUp(
+        final signUpFuture = authService.signUpWithDisplayName(
           email: emailFieldController.text,
           password: passwordFieldController.text,
+          displayName: displayNameController.text,
         );
         signUpFuture.then((value) => signUpStatus = value);
         signUpStatus = await showDialog(
@@ -146,22 +172,27 @@ class _SignUpFormState extends State<SignUpForm> {
         );
         if (signUpStatus == true) {
           snackbarMessage =
-              "Registered successfully, Please verify your email id";
+              "Account created successfully! Please verify your email.";
+          // Navigate to profile completion screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ProfileCompletionScreen()),
+          );
         } else {
           throw FirebaseSignUpAuthUnknownReasonFailureException();
         }
       } on MessagedFirebaseAuthException catch (e) {
         snackbarMessage = e.message;
-      } catch (e) {
-        snackbarMessage = e.toString();
-      } finally {
-        Logger().i(snackbarMessage);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
-        if (signUpStatus == true) {
-          Navigator.pop(context);
-        }
+      } catch (e) {
+        snackbarMessage = e.toString();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+      } finally {
+        Logger().i(snackbarMessage);
       }
     }
   }
