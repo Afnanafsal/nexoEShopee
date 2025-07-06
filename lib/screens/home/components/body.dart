@@ -32,32 +32,42 @@ class Body extends StatefulWidget {
 class _BodyState extends State<Body> {
   final productCategories = <Map>[
     <String, dynamic>{
-      ICON_KEY: "assets/icons/Electronics.svg",
-      TITLE_KEY: "Electronics",
-      PRODUCT_TYPE_KEY: ProductType.Electronics,
+      ICON_KEY: "assets/icons/chicken.svg",
+      TITLE_KEY: "Chicken",
+      PRODUCT_TYPE_KEY: ProductType.Chicken,
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/Books.svg",
-      TITLE_KEY: "Books",
-      PRODUCT_TYPE_KEY: ProductType.Books,
+      ICON_KEY: "assets/icons/mutton.svg",
+      TITLE_KEY: "Mutton",
+      PRODUCT_TYPE_KEY: ProductType.Mutton,
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/Fashion.svg",
-      TITLE_KEY: "Fashion",
-      PRODUCT_TYPE_KEY: ProductType.Fashion,
+      ICON_KEY: "assets/icons/beef.svg",
+      TITLE_KEY: "Beef",
+      PRODUCT_TYPE_KEY: ProductType.Beef,
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/Groceries.svg",
-      TITLE_KEY: "Groceries",
-      PRODUCT_TYPE_KEY: ProductType.Groceries,
+      ICON_KEY: "assets/icons/fish.svg",
+      TITLE_KEY: "Fish",
+      PRODUCT_TYPE_KEY: ProductType.Fish,
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/Art.svg",
-      TITLE_KEY: "Art",
-      PRODUCT_TYPE_KEY: ProductType.Art,
+      ICON_KEY: "assets/icons/eggs.svg",
+      TITLE_KEY: "Eggs",
+      PRODUCT_TYPE_KEY: ProductType.Eggs,
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/Others.svg",
+      ICON_KEY: "assets/icons/marinated.svg",
+      TITLE_KEY: "Marinated",
+      PRODUCT_TYPE_KEY: ProductType.MarinatedItems,
+    },
+    <String, dynamic>{
+      ICON_KEY: "assets/icons/ready_to_eat.svg",
+      TITLE_KEY: "Ready to Eat",
+      PRODUCT_TYPE_KEY: ProductType.ReadyToEat,
+    },
+    <String, dynamic>{
+      ICON_KEY: "assets/icons/others.svg",
       TITLE_KEY: "Others",
       PRODUCT_TYPE_KEY: ProductType.Others,
     },
@@ -207,9 +217,9 @@ class _BodyState extends State<Body> {
                       SizedBox(
                         height: SizeConfig.screenHeight * 0.5,
                         child: ProductsSection(
-                          sectionTitle: "Products You Like",
+                          sectionTitle: "Today's Fresh Arrivals",
                           productsStreamController: favouriteProductsStream,
-                          emptyListMessage: "Add Product to Favourites",
+                          emptyListMessage: "No fresh arrivals today",
                           onProductCardTapped: onProductCardTapped,
                         ),
                       ),
@@ -217,9 +227,9 @@ class _BodyState extends State<Body> {
                       SizedBox(
                         height: SizeConfig.screenHeight * 0.8,
                         child: ProductsSection(
-                          sectionTitle: "Explore All Products",
+                          sectionTitle: "Explore Our Fresh Meat Selection",
                           productsStreamController: allProductsStream,
-                          emptyListMessage: "Looks like all Stores are closed",
+                          emptyListMessage: "Our butchers are preparing fresh stock",
                           onProductCardTapped: onProductCardTapped,
                         ),
                       ),

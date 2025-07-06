@@ -2,11 +2,13 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:nexoeshopee/models/Model.dart';
 
 enum ProductType {
-  Electronics,
-  Books,
-  Fashion,
-  Groceries,
-  Art,
+  Chicken,
+  Mutton,
+  Beef,
+  Fish,
+  Eggs,
+  MarinatedItems,
+  ReadyToEat,
   Others,
 }
 

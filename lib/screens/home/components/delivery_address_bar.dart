@@ -25,7 +25,7 @@ class DeliveryAddressBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Delivering to",
+                  "Fresh Meat Delivery to",
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
