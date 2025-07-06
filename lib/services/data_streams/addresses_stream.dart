@@ -5,10 +5,14 @@ class AddressesStream extends DataStream<List<String>> {
   @override
   void reload() {
     final addressesList = UserDatabaseHelper().addressesList;
-    addressesList.then((list) {
-      addData(list);
-    }).catchError((e) {
-      addError(e);
-    });
+    addressesList
+        .then((list) {
+          addData(list);
+        })
+        .catchError((e) {
+          addError(e);
+        });
   }
+
+  void init() {}
 }

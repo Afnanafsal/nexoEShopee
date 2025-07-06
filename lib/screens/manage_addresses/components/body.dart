@@ -22,6 +22,8 @@ class _BodyState extends State<Body> {
   @override
   void initState() {
     super.initState();
+    addressesStream.init();
+    addressesStream.reload();
   }
 
   @override
@@ -39,16 +41,14 @@ class _BodyState extends State<Body> {
           physics: AlwaysScrollableScrollPhysics(),
           child: Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: getProportionateScreenWidth(screenPadding)),
+              horizontal: getProportionateScreenWidth(screenPadding),
+            ),
             child: SizedBox(
               width: double.infinity,
               child: Column(
                 children: [
                   SizedBox(height: getProportionateScreenHeight(10)),
-                  Text(
-                    "Manage Addresses",
-                    style: headingStyle,
-                  ),
+                  Text("Manage Addresses", style: headingStyle),
                   Text(
                     "Swipe LEFT to Edit, Swipe RIGHT to Delete",
                     style: TextStyle(fontSize: 12),
@@ -85,16 +85,15 @@ class _BodyState extends State<Body> {
                             );
                           }
                           return ListView.builder(
-                              physics: BouncingScrollPhysics(),
-                              itemCount: addresses.length,
-                              itemBuilder: (context, index) {
-                                return buildAddressItemCard(addresses[index]);
-                              });
+                            physics: BouncingScrollPhysics(),
+                            itemCount: addresses.length,
+                            itemBuilder: (context, index) {
+                              return buildAddressItemCard(addresses[index]);
+                            },
+                          );
                         } else if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
+                          return Center(child: CircularProgressIndicator());
                         } else if (snapshot.hasError) {
                           final error = snapshot.error;
                           Logger().w(error.toString());
@@ -125,7 +124,9 @@ class _BodyState extends State<Body> {
   }
 
   Future<bool> deleteButtonCallback(
-      BuildContext context, String addressId) async {
+    BuildContext context,
+    String addressId,
+  ) async {
     final confirmDeletion = await showDialog(
       context: context,
       builder: (context) {
@@ -154,8 +155,9 @@ class _BodyState extends State<Body> {
       bool status = false;
       String snackbarMessage = "";
       try {
-        status =
-            await UserDatabaseHelper().deleteAddressForCurrentUser(addressId);
+        status = await UserDatabaseHelper().deleteAddressForCurrentUser(
+          addressId,
+        );
         if (status == true) {
           snackbarMessage = "Address deleted successfully";
         } else {
@@ -169,11 +171,9 @@ class _BodyState extends State<Body> {
         snackbarMessage = e.toString();
       } finally {
         Logger().i(snackbarMessage);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(snackbarMessage),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
       await refreshPage();
       return status;
@@ -182,12 +182,16 @@ class _BodyState extends State<Body> {
   }
 
   Future<bool> editButtonCallback(
-      BuildContext context, String addressId) async {
+    BuildContext context,
+    String addressId,
+  ) async {
     await Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                EditAddressScreen(key: Key(addressId), addressIdToEdit: addressId)));
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            EditAddressScreen(key: Key(addressId), addressIdToEdit: addressId),
+      ),
+    );
     await refreshPage();
     return false;
   }
@@ -198,10 +202,7 @@ class _BodyState extends State<Body> {
       builder: (context) {
         return SimpleDialog(
           backgroundColor: Colors.transparent,
-          title: AddressBox(
-            key: Key(addressId),
-            addressId: addressId,
-          ),
+          title: AddressBox(key: Key(addressId), addressId: addressId),
           titlePadding: EdgeInsets.zero,
         );
       },
@@ -211,9 +212,7 @@ class _BodyState extends State<Body> {
 
   Widget buildAddressItemCard(String addressId) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Dismissible(
         key: Key(addressId),
         direction: DismissDirection.horizontal,
@@ -258,10 +257,7 @@ class _BodyState extends State<Body> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Icon(
-            Icons.edit,
-            color: Colors.white,
-          ),
+          Icon(Icons.edit, color: Colors.white),
           SizedBox(width: 4),
           Text(
             "Edit",
@@ -296,10 +292,7 @@ class _BodyState extends State<Body> {
             ),
           ),
           SizedBox(width: 4),
-          Icon(
-            Icons.delete,
-            color: Colors.white,
-          ),
+          Icon(Icons.delete, color: Colors.white),
         ],
       ),
     );
