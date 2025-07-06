@@ -8,7 +8,8 @@ import 'edit_product_form.dart';
 class Body extends StatelessWidget {
   final Product? productToEdit;
 
-  const Body({super.key, required this.productToEdit});
+  const Body({Key? key, this.productToEdit}) : super(key: key);
+  
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -26,7 +27,6 @@ class Body extends StatelessWidget {
                 Text("Fill Product Details", style: headingStyle),
                 SizedBox(height: getProportionateScreenHeight(30)),
                 EditProductForm(
-                  key: Key('edit_product'),
                   product: productToEdit,
                 ),
                 SizedBox(height: getProportionateScreenHeight(30)),

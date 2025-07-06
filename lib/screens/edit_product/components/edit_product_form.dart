@@ -13,7 +13,6 @@ import 'package:nexoeshopee/services/base64_image_service/base64_image_service.d
 import 'package:nexoeshopee/services/local_files_access/local_files_access_service.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tags/flutter_tags.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
@@ -22,7 +21,7 @@ import '../../../size_config.dart';
 
 class EditProductForm extends StatefulWidget {
   final Product? product;
-  const EditProductForm({super.key, required this.product});
+  const EditProductForm({Key? key, this.product}) : super(key: key);
 
   @override
   State<EditProductForm> createState() => _EditProductFormState();
@@ -31,7 +30,6 @@ class EditProductForm extends StatefulWidget {
 class _EditProductFormState extends State<EditProductForm> {
   final _basicDetailsFormKey = GlobalKey<FormState>();
   final _describeProductFormKey = GlobalKey<FormState>();
-  final _tagStateKey = GlobalKey<TagsState>();
 
   final TextEditingController titleFieldController = TextEditingController();
   final TextEditingController variantFieldController = TextEditingController();
@@ -70,21 +68,18 @@ class _EditProductFormState extends State<EditProductForm> {
     } else {
       product = widget.product!;
       newProduct = false;
-      final productDetails = Provider.of<ProductDetails>(
-        context,
-        listen: false,
-      );
-      if (widget.product!.images != null &&
-          widget.product!.images!.isNotEmpty) {
-        productDetails.initialSelectedImages = widget.product!.images!
-            .map((e) => CustomImage(imgType: ImageType.network, path: e))
-            .toList();
-      }
-      if (product.productType != null) {
-        productDetails.initialProductType = product.productType!;
-      }
-      productDetails.initSearchTags = product.searchTags ?? [];
+      
+      // Initialize form fields with existing product data
+      titleFieldController.text = product.title ?? '';
+      variantFieldController.text = product.variant ?? '';
+      originalPriceFieldController.text = product.originalPrice?.toString() ?? '';
+      discountPriceFieldController.text = product.discountPrice?.toString() ?? '';
+      highlightsFieldController.text = product.highlights ?? '';
+      desciptionFieldController.text = product.description ?? '';
+      sellerFieldController.text = product.seller ?? '';
     }
+    
+    // Note: ProductDetails provider is now initialized in EditProductScreen
   }
 
   @override
@@ -99,7 +94,6 @@ class _EditProductFormState extends State<EditProductForm> {
         SizedBox(height: getProportionateScreenHeight(20)),
         buildProductTypeDropdown(),
         SizedBox(height: getProportionateScreenHeight(20)),
-        buildProductSearchTagsTile(),
         SizedBox(height: getProportionateScreenHeight(80)),
         DefaultButton(
           text: "Save Product",
@@ -120,48 +114,6 @@ class _EditProductFormState extends State<EditProductForm> {
       sellerFieldController.text = product.seller!;
     }
     return column;
-  }
-
-  Widget buildProductSearchTags() {
-    return Consumer<ProductDetails>(
-      builder: (context, productDetails, child) {
-        return Tags(
-          key: _tagStateKey,
-          horizontalScroll: true,
-          heightHorizontalScroll: getProportionateScreenHeight(80),
-          textField: TagsTextField(
-            lowerCase: true,
-            width: getProportionateScreenWidth(120),
-            constraintSuggestion: true,
-            hintText: "Add search tag",
-            keyboardType: TextInputType.name,
-            onSubmitted: (String str) {
-              productDetails.addSearchTag(str.toLowerCase());
-            },
-          ),
-          itemCount: productDetails.searchTags.length,
-          itemBuilder: (index) {
-            final item = productDetails.searchTags[index];
-            return ItemTags(
-              index: index,
-              title: item,
-              active: true,
-              activeColor: kPrimaryColor,
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              alignment: MainAxisAlignment.spaceBetween,
-              removeButton: ItemTagsRemoveButton(
-                backgroundColor: Colors.white,
-                color: kTextColor,
-                onRemoved: () {
-                  productDetails.removeSearchTag(index: index);
-                  return true;
-                },
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 
   Widget buildBasicDetailsTile(BuildContext context) {
@@ -268,21 +220,6 @@ class _EditProductFormState extends State<EditProductForm> {
           );
         },
       ),
-    );
-  }
-
-  Widget buildProductSearchTagsTile() {
-    return ExpansionTile(
-      title: Text("Search Tags", style: Theme.of(context).textTheme.titleLarge),
-      leading: Icon(Icons.check_circle_sharp),
-      childrenPadding: EdgeInsets.symmetric(
-        vertical: getProportionateScreenHeight(20),
-      ),
-      children: [
-        Text("Your product will be searched for this Tags"),
-        SizedBox(height: getProportionateScreenHeight(15)),
-        buildProductSearchTags(),
-      ],
     );
   }
 
@@ -544,17 +481,10 @@ class _EditProductFormState extends State<EditProductForm> {
       ).showSnackBar(SnackBar(content: Text("Please select Product Type")));
       return;
     }
-    if (productDetails.searchTags.length < 3) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Add atleast 3 search tags")));
-      return;
-    }
     String? productId;
     String snackbarMessage = "";
     try {
       product.productType = productDetails.productType;
-      product.searchTags = productDetails.searchTags;
       final productUploadFuture = newProduct
           ? ProductDatabaseHelper().addUsersProduct(product)
           : ProductDatabaseHelper().updateUsersProduct(product);
