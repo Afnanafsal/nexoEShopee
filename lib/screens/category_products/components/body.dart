@@ -16,7 +16,7 @@ import 'package:logger/logger.dart';
 class Body extends StatefulWidget {
   final ProductType productType;
 
-  const Body({Key? key, required this.productType}) : super(key: key);
+  const Body({super.key, required this.productType});
 
   @override
   State<Body> createState() => _BodyState();
@@ -24,15 +24,45 @@ class Body extends StatefulWidget {
 
 class _BodyState extends State<Body> {
   late final CategoryProductsStream categoryProductsStream;
+  List<String> _cachedProductIds = [];
+  bool _isInitialLoad = true;
+  bool _hasError = false;
 
   @override
   void initState() {
     super.initState();
     categoryProductsStream = CategoryProductsStream(widget.productType);
+    _preloadProducts();
+  }
+
+  Future<void> _preloadProducts() async {
+    try {
+      // Use the stream to get initial data instead of a direct method call
+      final streamData = await categoryProductsStream.stream.first;
+      if (mounted) {
+        setState(() {
+          _cachedProductIds = streamData;
+          _isInitialLoad = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _isInitialLoad = false;
+        });
+      }
+      Logger().e('Error preloading products: $e');
+    }
   }
 
   Future<void> refreshPage() async {
+    setState(() {
+      _isInitialLoad = true;
+      _hasError = false;
+    });
     categoryProductsStream.reload();
+    await _preloadProducts();
   }
 
   @override
@@ -44,7 +74,8 @@ class _BodyState extends State<Body> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: getProportionateScreenWidth(screenPadding)),
+              horizontal: getProportionateScreenWidth(screenPadding),
+            ),
             child: Column(
               children: [
                 SizedBox(height: getProportionateScreenHeight(20)),
@@ -55,33 +86,72 @@ class _BodyState extends State<Body> {
                   child: buildCategoryBanner(),
                 ),
                 SizedBox(height: getProportionateScreenHeight(20)),
-                StreamBuilder<List<String>>(
-                  stream: categoryProductsStream.stream as Stream<List<String>>,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      Logger().w(snapshot.error.toString());
-                      return NothingToShowContainer(
-                        iconPath: "assets/icons/network_error.svg",
-                        primaryMessage: "Something went wrong",
-                        secondaryMessage: "Unable to connect to Database",
-                      );
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return NothingToShowContainer(
-                        secondaryMessage:
-                            "No products in ${EnumToString.convertToString(widget.productType)}",
-                      );
-                    }
-                    return buildProductsGrid(snapshot.data!);
-                  },
-                ),
+                _buildProductsSection(),
                 SizedBox(height: getProportionateScreenHeight(20)),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildProductsSection() {
+    if (_isInitialLoad) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_hasError) {
+      return SizedBox(
+        height: 200,
+        child: NothingToShowContainer(
+          iconPath: "assets/icons/network_error.svg",
+          primaryMessage: "Something went wrong",
+          secondaryMessage: "Unable to connect to Database",
+        ),
+      );
+    }
+
+    if (_cachedProductIds.isEmpty) {
+      return SizedBox(
+        height: 200,
+        child: NothingToShowContainer(
+          secondaryMessage:
+              "No products in ${EnumToString.convertToString(widget.productType)}",
+        ),
+      );
+    }
+
+    return StreamBuilder<List<String>>(
+      stream: categoryProductsStream.stream,
+      initialData: _cachedProductIds,
+      builder: (context, snapshot) {
+        List<String> productIds = _cachedProductIds;
+
+        if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+          productIds = snapshot.data!;
+          // Update cache with fresh data
+          _cachedProductIds = productIds;
+        }
+
+        // If no products after stream update, show empty state
+        if (productIds.isEmpty) {
+          return SizedBox(
+            height: 200,
+            child: NothingToShowContainer(
+              secondaryMessage:
+                  "No products in ${EnumToString.convertToString(widget.productType)}",
+            ),
+          );
+        }
+
+        return buildProductsGrid(productIds);
+      },
     );
   }
 
@@ -101,23 +171,32 @@ class _BodyState extends State<Body> {
               if (query.isEmpty) return;
               try {
                 final searchedProductsId = await ProductDatabaseHelper()
-                    .searchInProducts(query.toLowerCase(), productType: widget.productType);
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => SearchResultScreen(
-                      searchQuery: query,
-                      searchResultProductsId: searchedProductsId,
-                      searchIn: EnumToString.convertToString(widget.productType),
+                    .searchInProducts(
+                      query.toLowerCase(),
+                      productType: widget.productType,
+                    );
+                if (mounted) {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SearchResultScreen(
+                        searchQuery: query,
+                        searchResultProductsId: searchedProductsId,
+                        searchIn: EnumToString.convertToString(
+                          widget.productType,
+                        ),
+                      ),
                     ),
-                  ),
-                );
-                await refreshPage();
+                  );
+                  await refreshPage();
+                }
               } catch (e) {
                 Logger().e(e.toString());
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(e.toString())),
-                );
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(e.toString())));
+                }
               }
             },
           ),
@@ -204,8 +283,6 @@ class _BodyState extends State<Body> {
       case ProductType.ReadyToEat:
         return "assets/images/ready_to_eat_banner.jpg";
       case ProductType.Others:
-        return "assets/images/others_banner.jpg";
-      default:
         return "assets/images/others_banner.jpg";
     }
   }
