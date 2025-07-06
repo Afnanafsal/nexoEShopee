@@ -12,12 +12,17 @@ class ProductsSection extends StatelessWidget {
   final DataStream productsStreamController;
   final String emptyListMessage;
   final Function onProductCardTapped;
+  final bool showViewAll;
+  final bool useHorizontalView;
+
   const ProductsSection({
     super.key,
     required this.sectionTitle,
     required this.productsStreamController,
     this.emptyListMessage = "No Products to show here",
     required this.onProductCardTapped,
+    this.showViewAll = true,
+    this.useHorizontalView = false,
   });
 
   @override
@@ -36,7 +41,11 @@ class ProductsSection extends StatelessWidget {
           SectionTile(
             key: Key(sectionTitle),
             title: sectionTitle,
-            press: () {},
+            press: () {
+              if (showViewAll) {
+                // TODO: Implement view all functionality
+              }
+            },
           ),
           SizedBox(height: getProportionateScreenHeight(15)),
           Expanded(
@@ -52,14 +61,16 @@ class ProductsSection extends StatelessWidget {
       stream: productsStreamController.stream as Stream<List<String>>,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          if (snapshot.data!.length == 0) {
+          if (snapshot.data!.isEmpty) {
             return Center(
               child: NothingToShowContainer(
                 secondaryMessage: emptyListMessage,
               ),
             );
           }
-          return buildProductGrid(snapshot.data!);
+          return useHorizontalView
+              ? buildProductHorizontalList(snapshot.data!)
+              : buildProductGrid(snapshot.data!);
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
             child: CircularProgressIndicator(),
@@ -85,9 +96,9 @@ class ProductsSection extends StatelessWidget {
       physics: BouncingScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: 4,
-        mainAxisSpacing: 4,
+        childAspectRatio: 0.75,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: productsId.length,
       itemBuilder: (context, index) {
@@ -96,6 +107,28 @@ class ProductsSection extends StatelessWidget {
           press: () {
             onProductCardTapped.call(productsId[index]);
           },
+        );
+      },
+    );
+  }
+
+  Widget buildProductHorizontalList(List<String> productsId) {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      physics: BouncingScrollPhysics(),
+      itemCount: productsId.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: EdgeInsets.only(right: 10),
+          child: SizedBox(
+            width: getProportionateScreenWidth(150),
+            child: ProductCard(
+              productId: productsId[index],
+              press: () {
+                onProductCardTapped.call(productsId[index]);
+              },
+            ),
+          ),
         );
       },
     );

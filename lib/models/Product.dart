@@ -23,6 +23,7 @@ class Product extends Model {
   static const String OWNER_KEY = "owner";
   static const String PRODUCT_TYPE_KEY = "product_type";
   static const String SEARCH_TAGS_KEY = "search_tags";
+  static const String DATE_ADDED_KEY = "dateAdded";
 
   List<String>? images;
   String? title;
@@ -36,6 +37,7 @@ class Product extends Model {
   String? owner;
   ProductType? productType;
   List<String>? searchTags;
+  DateTime? dateAdded;
 
   Product(
     String id, {
@@ -51,6 +53,7 @@ class Product extends Model {
     this.owner,
     this.productType,
     this.searchTags,
+    this.dateAdded,
   }) : super(id);
 
   int calculatePercentageDiscount() {
@@ -76,16 +79,18 @@ class Product extends Model {
       productType:
           EnumToString.fromString(ProductType.values, map[PRODUCT_TYPE_KEY]),
       searchTags: (map[SEARCH_TAGS_KEY] as List<dynamic>?)?.cast<String>() ?? [],
+      dateAdded: map[DATE_ADDED_KEY] != null
+          ? DateTime.tryParse(map[DATE_ADDED_KEY])
+          : null,
     );
   }
 
   @override
   Map<String, dynamic> toMap() {
-    return {
+    final map = <String, dynamic>{
       IMAGES_KEY: images,
       TITLE_KEY: title,
       VARIANT_KEY: variant,
-      PRODUCT_TYPE_KEY: EnumToString.convertToString(productType),
       DISCOUNT_PRICE_KEY: discountPrice,
       ORIGINAL_PRICE_KEY: originalPrice,
       RATING_KEY: rating,
@@ -93,8 +98,14 @@ class Product extends Model {
       DESCRIPTION_KEY: description,
       SELLER_KEY: seller,
       OWNER_KEY: owner,
+      PRODUCT_TYPE_KEY: productType != null
+          ? EnumToString.convertToString(productType)
+          : null,
       SEARCH_TAGS_KEY: searchTags,
+      DATE_ADDED_KEY: dateAdded?.toIso8601String(),
     };
+
+    return map;
   }
 
   @override
@@ -110,11 +121,12 @@ class Product extends Model {
     if (highlights != null) map[HIGHLIGHTS_KEY] = highlights;
     if (description != null) map[DESCRIPTION_KEY] = description;
     if (seller != null) map[SELLER_KEY] = seller;
+    if (owner != null) map[OWNER_KEY] = owner;
     if (productType != null) {
       map[PRODUCT_TYPE_KEY] = EnumToString.convertToString(productType);
     }
-    if (owner != null) map[OWNER_KEY] = owner;
     if (searchTags != null) map[SEARCH_TAGS_KEY] = searchTags;
+    if (dateAdded != null) map[DATE_ADDED_KEY] = dateAdded?.toIso8601String();
 
     return map;
   }
@@ -133,6 +145,7 @@ class Product extends Model {
     String? owner,
     ProductType? productType,
     List<String>? searchTags,
+    DateTime? dateAdded,
   }) {
     return Product(
       id ?? this.id,
@@ -148,6 +161,7 @@ class Product extends Model {
       owner: owner ?? this.owner,
       productType: productType ?? this.productType,
       searchTags: searchTags ?? this.searchTags,
+      dateAdded: dateAdded ?? this.dateAdded,
     );
   }
 }
