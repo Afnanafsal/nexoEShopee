@@ -7,16 +7,29 @@ import 'components/body.dart';
 class EditProductScreen extends StatelessWidget {
   final Product? productToEdit;
 
-  const EditProductScreen({required Key key, required this.productToEdit}) : super(key: key);
+  const EditProductScreen({Key? key, this.productToEdit}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => ProductDetails(),
+      create: (context) {
+        final details = ProductDetails();
+        // Initialize product details if editing
+        if (productToEdit != null) {
+          details.initialSelectedImages = productToEdit!.images?.map((e) => 
+            CustomImage(imgType: ImageType.network, path: e)).toList() ?? [];
+          details.initialProductType = productToEdit!.productType ?? ProductType.Others;
+          details.initSearchTags = productToEdit!.searchTags ?? [];
+        }
+        return details;
+      },
       child: Scaffold(
-        appBar: AppBar(),
+        appBar: AppBar(
+          title: Text(productToEdit == null ? 'Add Product' : 'Edit Product'),
+        ),
         body: Body(
-          key: key,
-          productToEdit: productToEdit!,
+          key: UniqueKey(),
+          productToEdit: productToEdit,
         ),
       ),
     );
