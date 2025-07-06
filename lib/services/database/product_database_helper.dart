@@ -243,4 +243,30 @@ class ProductDatabaseHelper {
     await docRef.update({Product.IMAGES_KEY: base64Images});
     return true;
   }
+
+  Future<List<String>> getAllProducts() async {
+    try {
+      final querySnapshot = await _firebaseFirestore
+          .collection(PRODUCTS_COLLECTION_NAME)
+          .get();
+      return querySnapshot.docs.map((doc) => doc.id).toList();
+    } catch (e) {
+      print("Error getting all products: $e");
+      throw e;
+    }
+  }
+
+  Future<List<String>> getLatestProducts(int limit) async {
+    try {
+      final querySnapshot = await _firebaseFirestore
+          .collection(PRODUCTS_COLLECTION_NAME)
+          .orderBy(Product.DATE_ADDED_KEY, descending: true)
+          .limit(limit)
+          .get();
+      return querySnapshot.docs.map((doc) => doc.id).toList();
+    } catch (e) {
+      print("Error getting latest products: $e");
+      throw e;
+    }
+  }
 }
