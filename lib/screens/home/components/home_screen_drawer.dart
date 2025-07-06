@@ -3,6 +3,7 @@ import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/screens/about_developer/about_developer_screen.dart';
 import 'package:nexoeshopee/screens/change_display_picture/change_display_picture_screen.dart';
 import 'package:nexoeshopee/screens/change_email/change_email_screen.dart';
+import 'package:nexoeshopee/screens/my_favorites/my_favorites_screen.dart';
 import 'package:nexoeshopee/screens/change_password/change_password_screen.dart';
 import 'package:nexoeshopee/screens/change_phone/change_phone_screen.dart';
 import 'package:nexoeshopee/screens/edit_product/edit_product_screen.dart';
@@ -77,6 +78,42 @@ class HomeScreenDrawer extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) => ManageAddressesScreen(),
                 ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.favorite),
+            title: Text(
+              "My Favorites",
+              style: TextStyle(fontSize: 16, color: Colors.black),
+            ),
+            onTap: () async {
+              bool allowed = AuthentificationService().currentUserVerified;
+              if (!allowed) {
+                final reverify = await showConfirmationDialog(
+                  context,
+                  "You haven't verified your email address. This action is only allowed for verified users.",
+                  positiveResponse: "Resend verification email",
+                  negativeResponse: "Go back",
+                );
+                if (reverify) {
+                  final future = AuthentificationService()
+                      .sendVerificationEmailToCurrentUser();
+                  await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AsyncProgressDialog(
+                        future,
+                        message: Text("Resending verification email"),
+                      );
+                    },
+                  );
+                }
+                return;
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyFavoritesScreen()),
               );
             },
           ),

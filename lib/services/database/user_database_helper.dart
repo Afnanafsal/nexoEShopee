@@ -347,4 +347,23 @@ class UserDatabaseHelper {
         .get();
     return doc.data()?[DP_KEY];
   }
+
+  Future<bool> removeFavoriteProduct(String productId) async {
+    String? uid = AuthentificationService().currentUser?.uid;
+    if (uid != null) {
+      try {
+        final userDoc = await firestore.collection(USERS_COLLECTION_NAME).doc(uid).get();
+        List<dynamic> favList = userDoc.data()?[FAV_PRODUCTS_KEY] ?? [];
+        favList.remove(productId);
+        await firestore.collection(USERS_COLLECTION_NAME).doc(uid).update({
+          FAV_PRODUCTS_KEY: favList,
+        });
+        return true;
+      } catch (e) {
+        print("Error removing favorite product: $e");
+        return false;
+      }
+    }
+    return false;
+  }
 }
