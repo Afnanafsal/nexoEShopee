@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
-//import 'package:flutter/material.dart';
 import 'package:nexoeshopee/exceptions/firebaseauth/credential_actions_exceptions.dart';
-//import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
 import 'package:nexoeshopee/exceptions/firebaseauth/reauth_exceptions.dart';
 import 'package:nexoeshopee/exceptions/firebaseauth/signin_exceptions.dart';
 import 'package:nexoeshopee/exceptions/firebaseauth/signup_exceptions.dart';
