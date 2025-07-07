@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/models/Review.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:enum_to_string/enum_to_string.dart';
 
 class ProductDatabaseHelper {
   static const String PRODUCTS_COLLECTION_NAME = "products";
@@ -18,11 +17,18 @@ class ProductDatabaseHelper {
 
   Future<List<String>> getProductIdsByCategory(ProductType productType) async {
     try {
+      // Use simple enum name that matches how we store it
+      final productTypeStr = productType.toString().split('.').last;
+      print("Getting products for category: $productTypeStr");
+
       final productsQuery = await _firebaseFirestore
           .collection(PRODUCTS_COLLECTION_NAME)
-          .where('productType', isEqualTo: productType.toString())
+          .where(Product.PRODUCT_TYPE_KEY, isEqualTo: productTypeStr)
           .get();
 
+      print(
+        "Found ${productsQuery.docs.length} products for category: $productTypeStr",
+      );
       return productsQuery.docs.map((doc) => doc.id).toList();
     } catch (e) {
       print("Error getting products by category: $e");
@@ -38,7 +44,10 @@ class ProductDatabaseHelper {
     if (productType == null) {
       queryRef = firestore.collection(PRODUCTS_COLLECTION_NAME);
     } else {
-      final productTypeStr = EnumToString.convertToString(productType);
+      // Use simple enum name that matches how we store it
+      final productTypeStr = productType.toString().split('.').last;
+      print("Searching with product type: $productTypeStr");
+
       queryRef = firestore
           .collection(PRODUCTS_COLLECTION_NAME)
           .where(Product.PRODUCT_TYPE_KEY, isEqualTo: productTypeStr);
@@ -207,15 +216,23 @@ class ProductDatabaseHelper {
   }
 
   Future<List<String>> getCategoryProductsList(ProductType productType) async {
-    final queryResult = await firestore
-        .collection(PRODUCTS_COLLECTION_NAME)
-        .where(
-          Product.PRODUCT_TYPE_KEY,
-          isEqualTo: EnumToString.convertToString(productType),
-        )
-        .get();
+    try {
+      final productTypeString = productType.toString().split('.').last;
+      print("Querying for product type: $productTypeString");
 
-    return queryResult.docs.map((doc) => doc.id).toList();
+      final queryResult = await firestore
+          .collection(PRODUCTS_COLLECTION_NAME)
+          .where(Product.PRODUCT_TYPE_KEY, isEqualTo: productTypeString)
+          .get();
+
+      print(
+        "Found ${queryResult.docs.length} products for category: $productTypeString",
+      );
+      return queryResult.docs.map((doc) => doc.id).toList();
+    } catch (e) {
+      print("Error in getCategoryProductsList: $e");
+      return [];
+    }
   }
 
   Future<List<String>> get usersProductsList async {

@@ -33,80 +33,26 @@ class _BodyState extends State<Body> {
     super.initState();
     Logger().d('Initializing category products for: ${widget.productType}');
     categoryProductsStream = CategoryProductsStream(widget.productType);
-    _preloadProducts();
-  }
 
-  Future<void> _preloadProducts() async {
-    try {
-      Logger().d('Preloading products for category: ${widget.productType}');
-
-      // First try to get data from stream
-      final streamData = await categoryProductsStream.stream.first.timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          Logger().w('Stream timeout for category: ${widget.productType}');
-          return <String>[]; // Return empty list on timeout
-        },
-      );
-
-      Logger().d(
-        'Received ${streamData.length} products from stream for category: ${widget.productType}',
-      );
-
-      // If stream returns empty data, try direct database query
-      if (streamData.isEmpty) {
-        Logger().d('Stream returned empty, trying direct database query');
-        try {
-          // Get all product IDs first
-          final allProductIds = await ProductDatabaseHelper().allProductsList;
-          final List<String> filteredProductIds = [];
-
-          // Check each product's type
-          for (String productId in allProductIds) {
-            try {
-              final product = await ProductDatabaseHelper().getProductWithID(
-                productId,
-              );
-              if (product != null &&
-                  product.productType == widget.productType) {
-                filteredProductIds.add(productId);
-              }
-            } catch (e) {
-              Logger().w('Error checking product $productId: $e');
-            }
-          }
-
-          Logger().d(
-            'Direct query found ${filteredProductIds.length} products for category: ${widget.productType}',
-          );
-
-          if (mounted) {
-            setState(() {
-              _cachedProductIds = filteredProductIds;
-              _isInitialLoad = false;
-            });
-          }
-          return;
-        } catch (dbError) {
-          Logger().e('Direct database query failed: $dbError');
+    categoryProductsStream.stream.listen(
+      (data) {
+        if (mounted) {
+          setState(() {
+            _isInitialLoad = false;
+            _hasError = false;
+            _cachedProductIds = data;
+          });
         }
-      }
-
-      if (mounted) {
-        setState(() {
-          _cachedProductIds = streamData;
-          _isInitialLoad = false;
-        });
-      }
-    } catch (e) {
-      Logger().e('Error preloading products: $e');
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-          _isInitialLoad = false;
-        });
-      }
-    }
+      },
+      onError: (error) {
+        if (mounted) {
+          setState(() {
+            _isInitialLoad = false;
+            _hasError = true;
+          });
+        }
+      },
+    );
   }
 
   Future<void> refreshPage() async {
@@ -115,7 +61,12 @@ class _BodyState extends State<Body> {
       _hasError = false;
     });
     categoryProductsStream.reload();
-    await _preloadProducts();
+  }
+
+  @override
+  void dispose() {
+    categoryProductsStream.dispose();
+    super.dispose();
   }
 
   @override
@@ -174,37 +125,18 @@ class _BodyState extends State<Body> {
       );
     }
 
-    return StreamBuilder<List<String>>(
-      stream: categoryProductsStream.stream,
-      initialData: _cachedProductIds,
-      builder: (context, snapshot) {
-        Logger().d(
-          'StreamBuilder - Has data: ${snapshot.hasData}, Data length: ${snapshot.data?.length ?? 0}',
-        );
+    if (_cachedProductIds.isEmpty) {
+      return SizedBox(
+        height: 200,
+        child: NothingToShowContainer(
+          secondaryMessage:
+              "No products in ${EnumToString.convertToString(widget.productType)}",
+        ),
+      );
+    }
 
-        List<String> productIds = _cachedProductIds;
-
-        if (snapshot.hasData) {
-          productIds = snapshot.data!;
-          // Update cache with fresh data
-          _cachedProductIds = productIds;
-        }
-
-        // If no products, show empty state
-        if (productIds.isEmpty) {
-          return SizedBox(
-            height: 200,
-            child: NothingToShowContainer(
-              secondaryMessage:
-                  "No products in ${EnumToString.convertToString(widget.productType)}",
-            ),
-          );
-        }
-
-        Logger().d('Displaying ${productIds.length} products in grid');
-        return buildProductsGrid(productIds);
-      },
-    );
+    Logger().d('Displaying ${_cachedProductIds.length} products in grid');
+    return buildProductsGrid(_cachedProductIds);
   }
 
   Widget buildHeadBar() {
