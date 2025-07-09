@@ -1,81 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/screens/product_details/provider_models/ProductImageSwiper.dart';
+import 'package:nexoeshopee/providers/product_details_providers.dart';
 import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 import 'package:nexoeshopee/size_config.dart';
-import 'package:provider/provider.dart';
 
-class ProductImages extends StatelessWidget {
+class ProductImages extends ConsumerWidget {
   final Product product;
 
   const ProductImages({super.key, required this.product});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ProductImageSwiper(),
-      child: Consumer<ProductImageSwiper>(
-        builder: (context, swiper, _) {
-          return Column(
-            children: [
-              GestureDetector(
-                onHorizontalDragEnd: (details) {
-                  if (details.primaryVelocity != null) {
-                    if (details.primaryVelocity! < 0) {
-                      // Swipe Left
-                      swiper.currentImageIndex =
-                          (swiper.currentImageIndex + 1) %
-                          product.images!.length;
-                    } else if (details.primaryVelocity! > 0) {
-                      // Swipe Right
-                      swiper.currentImageIndex =
-                          (swiper.currentImageIndex -
-                              1 +
-                              product.images!.length) %
-                          product.images!.length;
-                    }
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(30)),
-                  ),
-                  child: SizedBox(
-                    height: SizeConfig.screenHeight * 0.35,
-                    width: SizeConfig.screenWidth * 0.75,
-                    child: Base64ImageService().base64ToImage(
-                      product.images![swiper.currentImageIndex],
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final swiperState = ref.watch(productImageSwiperProvider(product.id));
+
+    return Column(
+      children: [
+        GestureDetector(
+          onHorizontalDragEnd: (details) {
+            if (details.primaryVelocity != null) {
+              if (details.primaryVelocity! < 0) {
+                // Swipe Left
+                ref
+                    .read(productImageSwiperProvider(product.id).notifier)
+                    .nextImage(product.images!.length);
+              } else if (details.primaryVelocity! > 0) {
+                // Swipe Right
+                ref
+                    .read(productImageSwiperProvider(product.id).notifier)
+                    .previousImage(product.images!.length);
+              }
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(30)),
+            ),
+            child: SizedBox(
+              height: SizeConfig.screenHeight * 0.35,
+              width: SizeConfig.screenWidth * 0.75,
+              child: Base64ImageService().base64ToImage(
+                product.images![swiperState.currentImageIndex],
+                fit: BoxFit.contain,
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  product.images!.length,
-                  (index) => buildSmallPreview(context, swiper, index),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            product.images!.length,
+            (index) => buildSmallPreview(context, ref, index),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget buildSmallPreview(
-    BuildContext context,
-    ProductImageSwiper swiper,
-    int index,
-  ) {
+  Widget buildSmallPreview(BuildContext context, WidgetRef ref, int index) {
+    final swiperState = ref.watch(productImageSwiperProvider(product.id));
+
     return GestureDetector(
       onTap: () {
-        swiper.currentImageIndex = index;
+        ref
+            .read(productImageSwiperProvider(product.id).notifier)
+            .setCurrentImageIndex(index);
       },
       child: Container(
         margin: EdgeInsets.symmetric(
@@ -88,7 +81,7 @@ class ProductImages extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: swiper.currentImageIndex == index
+            color: swiperState.currentImageIndex == index
                 ? kPrimaryColor
                 : Colors.transparent,
           ),

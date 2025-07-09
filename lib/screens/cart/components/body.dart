@@ -9,37 +9,23 @@ import 'package:nexoeshopee/models/OrderedProduct.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/screens/cart/components/checkout_card.dart';
 import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
-import 'package:nexoeshopee/services/data_streams/cart_items_stream.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-//import 'package:future_progress_dialog/future_progress_dialog.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:nexoeshopee/providers/user_providers.dart';
 
 import '../../../utils.dart';
 
-class Body extends StatefulWidget {
+class Body extends ConsumerStatefulWidget {
   @override
-  _BodyState createState() => _BodyState();
+  ConsumerState<Body> createState() => _BodyState();
 }
 
-class _BodyState extends State<Body> {
-  final CartItemsStream cartItemsStream = CartItemsStream();
-  PersistentBottomSheetController? bottomSheetHandler;
-  @override
-  void initState() {
-    super.initState();
-    cartItemsStream.init();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    cartItemsStream.dispose();
-  }
-
+class _BodyState extends ConsumerState<Body> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -49,22 +35,18 @@ class _BodyState extends State<Body> {
           physics: AlwaysScrollableScrollPhysics(),
           child: Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: getProportionateScreenWidth(screenPadding)),
+              horizontal: getProportionateScreenWidth(screenPadding),
+            ),
             child: SizedBox(
               width: double.infinity,
               child: Column(
                 children: [
                   SizedBox(height: getProportionateScreenHeight(10)),
-                  Text(
-                    "Your Cart",
-                    style: headingStyle,
-                  ),
+                  Text("Your Cart", style: headingStyle),
                   SizedBox(height: getProportionateScreenHeight(20)),
                   SizedBox(
                     height: SizeConfig.screenHeight * 0.75,
-                    child: Center(
-                      child: buildCartItemsList(),
-                    ),
+                    child: Center(child: buildCartItemsList()),
                   ),
                 ],
               ),
@@ -76,64 +58,54 @@ class _BodyState extends State<Body> {
   }
 
   Future<void> refreshPage() {
-    cartItemsStream.reload();
+    ref.invalidate(cartItemsStreamProvider);
     return Future<void>.value();
   }
 
   Widget buildCartItemsList() {
-    return StreamBuilder<List<String>>(
-      stream: cartItemsStream.stream.cast<List<String>>(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          List<String> cartItemsId = snapshot.data ?? [];
-          if (cartItemsId.length == 0) {
-            return Center(
-              child: NothingToShowContainer(
-                iconPath: "assets/icons/empty_cart.svg",
-                secondaryMessage: "Your cart is empty",
-              ),
-            );
-          }
+    final cartItemsAsync = ref.watch(cartItemsStreamProvider);
 
-          return Column(
-            children: [
-              DefaultButton(
-                text: "Proceed to Payment",
-                press: () {
-                  bottomSheetHandler = Scaffold.of(context).showBottomSheet(
-                    (context) {
-                      return CheckoutCard(
-                        onCheckoutPressed: checkoutButtonCallback,
-                      );
-                    },
+    return cartItemsAsync.when(
+      data: (cartItemsId) {
+        if (cartItemsId.isEmpty) {
+          return Center(
+            child: NothingToShowContainer(
+              iconPath: "assets/icons/empty_cart.svg",
+              secondaryMessage: "Your cart is empty",
+            ),
+          );
+        }
+
+        return Column(
+          children: [
+            DefaultButton(
+              text: "Proceed to Payment",
+              press: showCheckoutBottomSheet,
+            ),
+            SizedBox(height: getProportionateScreenHeight(20)),
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                physics: BouncingScrollPhysics(),
+                itemCount: cartItemsId.length,
+                itemBuilder: (context, index) {
+                  if (index >= cartItemsId.length) {
+                    return SizedBox(height: getProportionateScreenHeight(80));
+                  }
+                  return buildCartItemDismissible(
+                    context,
+                    cartItemsId[index],
+                    index,
                   );
                 },
               ),
-              SizedBox(height: getProportionateScreenHeight(20)),
-              Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  physics: BouncingScrollPhysics(),
-                  itemCount: cartItemsId.length,
-                  itemBuilder: (context, index) {
-                    if (index >= cartItemsId.length) {
-                      return SizedBox(height: getProportionateScreenHeight(80));
-                    }
-                    return buildCartItemDismissible(
-                        context, cartItemsId[index], index);
-                  },
-                ),
-              ),
-            ],
-          );
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        } else if (snapshot.hasError) {
-          final error = snapshot.error;
-          Logger().w(error.toString());
-        }
+            ),
+          ],
+        );
+      },
+      loading: () => Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) {
+        Logger().w(error.toString());
         return Center(
           child: NothingToShowContainer(
             iconPath: "assets/icons/network_error.svg",
@@ -145,14 +117,25 @@ class _BodyState extends State<Body> {
     );
   }
 
+  void showCheckoutBottomSheet() {
+    // Show checkout bottom sheet
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return CheckoutCard(onCheckoutPressed: checkoutButtonCallback);
+      },
+    );
+  }
+
   Widget buildCartItemDismissible(
-      BuildContext context, String cartItemId, int index) {
+    BuildContext context,
+    String cartItemId,
+    int index,
+  ) {
     return Dismissible(
       key: Key(cartItemId),
       direction: DismissDirection.startToEnd,
-      dismissThresholds: {
-        DismissDirection.startToEnd: 0.65,
-      },
+      dismissThresholds: {DismissDirection.startToEnd: 0.65},
       background: buildDismissibleBackground(),
       child: buildCartItem(cartItemId, index),
       confirmDismiss: (direction) async {
@@ -166,8 +149,9 @@ class _BodyState extends State<Body> {
               bool result = false;
               String snackbarMessage = "Something went wrong";
               try {
-                result = await UserDatabaseHelper()
-                    .removeProductFromCart(cartItemId);
+                result = await UserDatabaseHelper().removeProductFromCart(
+                  cartItemId,
+                );
                 if (result == true) {
                   snackbarMessage = "Product removed from cart successfully";
                   await refreshPage();
@@ -182,11 +166,9 @@ class _BodyState extends State<Body> {
                 snackbarMessage = "Something went wrong";
               } finally {
                 Logger().i(snackbarMessage);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(snackbarMessage),
-                  ),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
               }
 
               return result;
@@ -201,11 +183,7 @@ class _BodyState extends State<Body> {
 
   Widget buildCartItem(String cartItemId, int index) {
     return Container(
-      padding: EdgeInsets.only(
-        bottom: 4,
-        top: 4,
-        right: 4,
-      ),
+      padding: EdgeInsets.only(bottom: 4, top: 4, right: 4),
       margin: EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
         border: Border.all(color: kTextColor.withOpacity(0.15)),
@@ -241,10 +219,7 @@ class _BodyState extends State<Body> {
                 Expanded(
                   flex: 1,
                   child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 2,
-                      vertical: 12,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 12),
                     decoration: BoxDecoration(
                       color: kTextColor.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(15),
@@ -253,18 +228,16 @@ class _BodyState extends State<Body> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         InkWell(
-                          child: Icon(
-                            Icons.arrow_drop_up,
-                            color: kTextColor,
-                          ),
+                          child: Icon(Icons.arrow_drop_up, color: kTextColor),
                           onTap: () async {
                             await arrowUpCallback(cartItemId);
                           },
                         ),
                         SizedBox(height: 8),
                         FutureBuilder<CartItem>(
-                          future: UserDatabaseHelper()
-                              .getCartItemFromId(cartItemId),
+                          future: UserDatabaseHelper().getCartItemFromId(
+                            cartItemId,
+                          ),
                           builder: (context, snapshot) {
                             int itemCount = 0;
                             if (snapshot.hasData) {
@@ -288,10 +261,7 @@ class _BodyState extends State<Body> {
                         ),
                         SizedBox(height: 8),
                         InkWell(
-                          child: Icon(
-                            Icons.arrow_drop_down,
-                            color: kTextColor,
-                          ),
+                          child: Icon(Icons.arrow_drop_down, color: kTextColor),
                           onTap: () async {
                             await arrowDownCallback(cartItemId);
                           },
@@ -303,23 +273,13 @@ class _BodyState extends State<Body> {
               ],
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             final error = snapshot.error;
             Logger().w(error.toString());
-            return Center(
-              child: Text(
-                error.toString(),
-              ),
-            );
+            return Center(child: Text(error.toString()));
           } else {
-            return Center(
-              child: Icon(
-                Icons.error,
-              ),
-            );
+            return Center(child: Icon(Icons.error));
           }
         },
       ),
@@ -337,10 +297,7 @@ class _BodyState extends State<Body> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Icon(
-            Icons.delete,
-            color: Colors.white,
-          ),
+          Icon(Icons.delete, color: Colors.white),
           SizedBox(width: 4),
           Text(
             "Delete",
@@ -365,55 +322,58 @@ class _BodyState extends State<Body> {
       return;
     }
     final orderFuture = UserDatabaseHelper().emptyCart();
-    orderFuture.then((orderedProductsUid) async {
-      print(orderedProductsUid);
-      final dateTime = DateTime.now();
-      final formatedDateTime =
-          "${dateTime.day}-${dateTime.month}-${dateTime.year}";
-      List<OrderedProduct> orderedProducts = orderedProductsUid
-          .map((e) => OrderedProduct('',
-              productUid: e, orderDate: formatedDateTime))
-          .toList();
-      bool addedProductsToMyProducts = false;
-      String snackbarmMessage = "Something went wrong";
-      try {
-        addedProductsToMyProducts =
-            await UserDatabaseHelper().addToMyOrders(orderedProducts);
-        if (addedProductsToMyProducts) {
-          snackbarmMessage = "Products ordered Successfully";
-        } else {
-          throw "Could not order products due to unknown issue";
-        }
-      } on FirebaseException catch (e) {
-        Logger().e(e.toString());
-        snackbarmMessage = e.toString();
-      } catch (e) {
-        Logger().e(e.toString());
-        snackbarmMessage = e.toString();
-      } finally {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(snackbarmMessage),
-          ),
-        );
-      }
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AsyncProgressDialog(
-            orderFuture,
-            message: Text("Placing the Order"),
+    orderFuture
+        .then((orderedProductsUid) async {
+          print(orderedProductsUid);
+          final dateTime = DateTime.now();
+          final formatedDateTime =
+              "${dateTime.day}-${dateTime.month}-${dateTime.year}";
+          List<OrderedProduct> orderedProducts = orderedProductsUid
+              .map(
+                (e) => OrderedProduct(
+                  '',
+                  productUid: e,
+                  orderDate: formatedDateTime,
+                ),
+              )
+              .toList();
+          bool addedProductsToMyProducts = false;
+          String snackbarmMessage = "Something went wrong";
+          try {
+            addedProductsToMyProducts = await UserDatabaseHelper()
+                .addToMyOrders(orderedProducts);
+            if (addedProductsToMyProducts) {
+              snackbarmMessage = "Products ordered Successfully";
+            } else {
+              throw "Could not order products due to unknown issue";
+            }
+          } on FirebaseException catch (e) {
+            Logger().e(e.toString());
+            snackbarmMessage = e.toString();
+          } catch (e) {
+            Logger().e(e.toString());
+            snackbarmMessage = e.toString();
+          } finally {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(snackbarmMessage)));
+          }
+          await showDialog(
+            context: context,
+            builder: (context) {
+              return AsyncProgressDialog(
+                orderFuture,
+                message: Text("Placing the Order"),
+              );
+            },
           );
-        },
-      );
-    }).catchError((e) {
-      Logger().e(e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Something went wrong"),
-        ),
-      );
-    });
+        })
+        .catchError((e) {
+          Logger().e(e.toString());
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+        });
     await showDialog(
       context: context,
       builder: (context) {
@@ -427,33 +387,30 @@ class _BodyState extends State<Body> {
   }
 
   void shutBottomSheet() {
-    if (bottomSheetHandler != null) {
-      bottomSheetHandler?.close();
-    }
+    // Remove bottom sheet handler since we're using modal bottom sheet
   }
 
   Future<void> arrowUpCallback(String cartItemId) async {
     shutBottomSheet();
     final future = UserDatabaseHelper().increaseCartItemCount(cartItemId);
-    future.then((status) async {
-      if (status) {
-        await refreshPage();
-      } else {
-        throw "Couldn't perform the operation due to some unknown issue";
-      }
-    }).catchError((e) {
-      Logger().e(e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Something went wrong"),
-      ));
-    });
+    future
+        .then((status) async {
+          if (status) {
+            await refreshPage();
+          } else {
+            throw "Couldn't perform the operation due to some unknown issue";
+          }
+        })
+        .catchError((e) {
+          Logger().e(e.toString());
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+        });
     await showDialog(
       context: context,
       builder: (context) {
-        return AsyncProgressDialog(
-          future,
-          message: Text("Please wait"),
-        );
+        return AsyncProgressDialog(future, message: Text("Please wait"));
       },
     );
   }
@@ -461,25 +418,24 @@ class _BodyState extends State<Body> {
   Future<void> arrowDownCallback(String cartItemId) async {
     shutBottomSheet();
     final future = UserDatabaseHelper().decreaseCartItemCount(cartItemId);
-    future.then((status) async {
-      if (status) {
-        await refreshPage();
-      } else {
-        throw "Couldn't perform the operation due to some unknown issue";
-      }
-    }).catchError((e) {
-      Logger().e(e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Something went wrong"),
-      ));
-    });
+    future
+        .then((status) async {
+          if (status) {
+            await refreshPage();
+          } else {
+            throw "Couldn't perform the operation due to some unknown issue";
+          }
+        })
+        .catchError((e) {
+          Logger().e(e.toString());
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+        });
     await showDialog(
       context: context,
       builder: (context) {
-        return AsyncProgressDialog(
-          future,
-          message: Text("Please wait"),
-        );
+        return AsyncProgressDialog(future, message: Text("Please wait"));
       },
     );
   }

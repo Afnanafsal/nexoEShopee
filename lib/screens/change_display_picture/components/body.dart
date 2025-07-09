@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:nexoeshopee/components/async_progress_dialog.dart';
 import 'package:nexoeshopee/components/default_button.dart';
@@ -10,47 +9,40 @@ import 'package:nexoeshopee/services/local_files_access/local_files_access_servi
 import 'package:nexoeshopee/size_config.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-import 'package:provider/provider.dart';
-import '../provider_models/body_model.dart';
+import 'package:nexoeshopee/providers/image_providers.dart';
 
-class Body extends StatelessWidget {
+class Body extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ChosenImage(),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding),
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              child: Consumer<ChosenImage>(
-                builder: (context, bodyState, child) {
-                  return Column(
-                    children: [
-                      Text("Change Avatar", style: headingStyle),
-                      SizedBox(height: getProportionateScreenHeight(40)),
-                      GestureDetector(
-                        child: buildDisplayPictureAvatar(context, bodyState),
-                        onTap: () {
-                          getImageFromUser(context, bodyState);
-                        },
-                      ),
-                      SizedBox(height: getProportionateScreenHeight(80)),
-                      buildChosePictureButton(context, bodyState),
-                      SizedBox(height: getProportionateScreenHeight(20)),
-                      buildUploadPictureButton(context, bodyState),
-                      SizedBox(height: getProportionateScreenHeight(20)),
-                      buildRemovePictureButton(context, bodyState),
-                      SizedBox(height: getProportionateScreenHeight(80)),
-                    ],
-                  );
-                },
-              ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: getProportionateScreenWidth(screenPadding),
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              children: [
+                Text("Change Avatar", style: headingStyle),
+                SizedBox(height: getProportionateScreenHeight(40)),
+                GestureDetector(
+                  child: buildDisplayPictureAvatar(context, ref),
+                  onTap: () {
+                    getImageFromUser(context, ref);
+                  },
+                ),
+                SizedBox(height: getProportionateScreenHeight(80)),
+                buildChosePictureButton(context, ref),
+                SizedBox(height: getProportionateScreenHeight(20)),
+                buildUploadPictureButton(context, ref),
+                SizedBox(height: getProportionateScreenHeight(20)),
+                buildRemovePictureButton(context, ref),
+                SizedBox(height: getProportionateScreenHeight(80)),
+              ],
             ),
           ),
         ),
@@ -58,10 +50,9 @@ class Body extends StatelessWidget {
     );
   }
 
-  Widget buildDisplayPictureAvatar(
-    BuildContext context,
-    ChosenImage bodyState,
-  ) {
+  Widget buildDisplayPictureAvatar(BuildContext context, WidgetRef ref) {
+    final chosenImageState = ref.watch(chosenImageProvider);
+
     return StreamBuilder(
       stream: UserDatabaseHelper().currentUserDataStream,
       builder: (context, snapshot) {
@@ -71,13 +62,11 @@ class Body extends StatelessWidget {
         }
         ImageProvider? backImage;
 
-        // Handle chosen image (File or XFile)
-        if (bodyState.chosenImage != null) {
-          backImage = FileImage(bodyState.chosenImage!);
-        } else if (bodyState.chosenXFile != null) {
+        // Handle chosen image
+        if (chosenImageState.chosenImage != null) {
           // For web, we need to handle XFile differently
           return FutureBuilder<Uint8List>(
-            future: bodyState.chosenXFile!.readAsBytes(),
+            future: chosenImageState.chosenImage!.readAsBytes(),
             builder: (context, futureSnapshot) {
               if (futureSnapshot.hasData) {
                 return CircleAvatar(
@@ -112,7 +101,7 @@ class Body extends StatelessWidget {
     );
   }
 
-  void getImageFromUser(BuildContext context, ChosenImage bodyState) async {
+  void getImageFromUser(BuildContext context, WidgetRef ref) async {
     ImagePickResult? result;
     String? snackbarMessage;
     try {
@@ -134,26 +123,23 @@ class Body extends StatelessWidget {
     if (result == null) {
       return;
     }
-    bodyState.setChosenXFile = result.xFile;
+    ref.read(chosenImageProvider.notifier).setChosenImage(result.xFile);
   }
 
-  Widget buildChosePictureButton(BuildContext context, ChosenImage bodyState) {
+  Widget buildChosePictureButton(BuildContext context, WidgetRef ref) {
     return DefaultButton(
       text: "Choose Picture",
       press: () {
-        getImageFromUser(context, bodyState);
+        getImageFromUser(context, ref);
       },
     );
   }
 
-  Widget buildUploadPictureButton(BuildContext context, ChosenImage bodyState) {
+  Widget buildUploadPictureButton(BuildContext context, WidgetRef ref) {
     return DefaultButton(
       text: "Upload Picture",
       press: () {
-        final Future uploadFuture = uploadImageToFirestorage(
-          context,
-          bodyState,
-        );
+        final Future uploadFuture = uploadImageToFirestorage(context, ref);
         showDialog(
           context: context,
           builder: (context) {
@@ -172,30 +158,21 @@ class Body extends StatelessWidget {
 
   Future<void> uploadImageToFirestorage(
     BuildContext context,
-    ChosenImage bodyState,
+    WidgetRef ref,
   ) async {
     bool uploadDisplayPictureStatus = false;
     String snackbarMessage = "";
+    final chosenImageState = ref.read(chosenImageProvider);
+
     try {
-      if (bodyState.chosenImage == null && bodyState.chosenXFile == null) {
+      if (chosenImageState.chosenImage == null) {
         throw "No image selected to upload.";
       }
 
       // Convert image to base64
-      String base64String;
-      if (bodyState.chosenXFile != null) {
-        // Use XFile for conversion (works on all platforms)
-        base64String = await Base64ImageService().xFileToBase64(
-          bodyState.chosenXFile!,
-        );
-      } else if (bodyState.chosenImage != null) {
-        // Fallback to File method (mobile only)
-        base64String = await Base64ImageService().fileToBase64(
-          bodyState.chosenImage!,
-        );
-      } else {
-        throw "No valid image available for upload.";
-      }
+      String base64String = await Base64ImageService().xFileToBase64(
+        chosenImageState.chosenImage!,
+      );
 
       uploadDisplayPictureStatus = await UserDatabaseHelper()
           .uploadDisplayPictureForCurrentUser(base64String);
@@ -218,14 +195,11 @@ class Body extends StatelessWidget {
     }
   }
 
-  Widget buildRemovePictureButton(BuildContext context, ChosenImage bodyState) {
+  Widget buildRemovePictureButton(BuildContext context, WidgetRef ref) {
     return DefaultButton(
       text: "Remove Picture",
       press: () async {
-        final Future uploadFuture = removeImageFromFirestore(
-          context,
-          bodyState,
-        );
+        final Future uploadFuture = removeImageFromFirestorage(context, ref);
         await showDialog(
           context: context,
           builder: (context) {
@@ -243,9 +217,9 @@ class Body extends StatelessWidget {
     );
   }
 
-  Future<void> removeImageFromFirestore(
+  Future<void> removeImageFromFirestorage(
     BuildContext context,
-    ChosenImage bodyState,
+    WidgetRef ref,
   ) async {
     bool status = false;
     String snackbarMessage = "";

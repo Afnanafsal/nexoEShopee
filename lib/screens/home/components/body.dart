@@ -5,14 +5,11 @@ import 'package:nexoeshopee/screens/cart/cart_screen.dart';
 import 'package:nexoeshopee/screens/category_products/category_products_screen.dart';
 import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
 import 'package:nexoeshopee/screens/search_result/search_result_screen.dart';
-//import 'package:nexoeshopee/screens/category_products/category_products_screen.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/data_streams/all_products_stream.dart';
-import 'package:nexoeshopee/services/data_streams/favourite_products_stream.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
+import 'package:nexoeshopee/providers/providers.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
-//import 'package:future_progress_dialog/future_progress_dialog.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import '../../../utils.dart';
 import '../components/home_header.dart';
@@ -24,12 +21,7 @@ const String ICON_KEY = "icon";
 const String TITLE_KEY = "title";
 const String PRODUCT_TYPE_KEY = "product_type";
 
-class Body extends StatefulWidget {
-  @override
-  _BodyState createState() => _BodyState();
-}
-
-class _BodyState extends State<Body> {
+class Body extends ConsumerWidget {
   final productCategories = <Map>[
     <String, dynamic>{
       ICON_KEY: "assets/icons/chicken.svg",
@@ -73,29 +65,14 @@ class _BodyState extends State<Body> {
     },
   ];
 
-  final FavouriteProductsStream favouriteProductsStream =
-      FavouriteProductsStream();
-  final AllProductsStream allProductsStream = AllProductsStream();
-
   @override
-  void initState() {
-    super.initState();
-    favouriteProductsStream.init();
-    allProductsStream.init();
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favouriteProductsAsync = ref.watch(latestProductsProvider(20));
+    final allProductsAsync = ref.watch(latestProductsProvider(50));
 
-  @override
-  void dispose() {
-    favouriteProductsStream.dispose();
-    allProductsStream.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return SafeArea(
       child: RefreshIndicator(
-        onRefresh: refreshPage,
+        onRefresh: () => refreshPage(ref),
         child: Column(
           children: [
             DeliveryAddressBar(),
@@ -115,26 +92,23 @@ class _BodyState extends State<Body> {
                         onSearchSubmitted: (value) async {
                           final query = value.toString();
                           if (query.length <= 0) return;
-                          List<String> searchedProductsId;
                           try {
-                            searchedProductsId = await ProductDatabaseHelper()
-                                .searchInProducts(query.toLowerCase());
-                            // ignore: unnecessary_null_comparison
-                            if (searchedProductsId != null) {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SearchResultScreen(
-                                    searchQuery: query,
-                                    searchResultProductsId: searchedProductsId,
-                                    searchIn: "All Products",
-                                  ),
+                            final searchParams = ProductSearchParams(
+                              query: query.toLowerCase(),
+                            );
+                            final searchResults = await ref.read(
+                              productSearchProvider(searchParams).future,
+                            );
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SearchResultScreen(
+                                  searchQuery: query,
+                                  searchResultProductsId: searchResults,
+                                  searchIn: "All Products",
                                 ),
-                              );
-                              await refreshPage();
-                            } else {
-                              throw "Couldn't perform search due to some unknown reason";
-                            }
+                              ),
+                            );
                           } catch (e) {
                             final error = e.toString();
                             Logger().e(error);
@@ -176,7 +150,6 @@ class _BodyState extends State<Body> {
                               builder: (context) => CartScreen(),
                             ),
                           );
-                          await refreshPage();
                         },
                       ),
                       SizedBox(height: getProportionateScreenHeight(15)),
@@ -218,9 +191,10 @@ class _BodyState extends State<Body> {
                         height: SizeConfig.screenHeight * 0.5,
                         child: ProductsSection(
                           sectionTitle: "Today's Fresh Arrivals",
-                          productsStreamController: favouriteProductsStream,
+                          productsAsync: favouriteProductsAsync,
                           emptyListMessage: "No fresh arrivals today",
-                          onProductCardTapped: onProductCardTapped,
+                          onProductCardTapped: (productId) =>
+                              onProductCardTapped(context, productId),
                         ),
                       ),
                       SizedBox(height: getProportionateScreenHeight(20)),
@@ -228,9 +202,11 @@ class _BodyState extends State<Body> {
                         height: SizeConfig.screenHeight * 0.8,
                         child: ProductsSection(
                           sectionTitle: "Explore Our Fresh Meat Selection",
-                          productsStreamController: allProductsStream,
-                          emptyListMessage: "Our butchers are preparing fresh stock",
-                          onProductCardTapped: onProductCardTapped,
+                          productsAsync: allProductsAsync,
+                          emptyListMessage:
+                              "Our butchers are preparing fresh stock",
+                          onProductCardTapped: (productId) =>
+                              onProductCardTapped(context, productId),
                         ),
                       ),
                       SizedBox(height: getProportionateScreenHeight(80)),
@@ -245,21 +221,18 @@ class _BodyState extends State<Body> {
     );
   }
 
-  Future<void> refreshPage() {
-    favouriteProductsStream.reload();
-    allProductsStream.reload();
+  Future<void> refreshPage(WidgetRef ref) {
+    ref.invalidate(latestProductsProvider);
     return Future<void>.value();
   }
 
-  void onProductCardTapped(String productId) {
+  void onProductCardTapped(BuildContext context, String productId) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) =>
             ProductDetailsScreen(key: UniqueKey(), productId: productId),
       ),
-    ).then((_) async {
-      await refreshPage();
-    });
+    );
   }
 }
