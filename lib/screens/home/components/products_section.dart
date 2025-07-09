@@ -1,15 +1,15 @@
 import 'package:nexoeshopee/components/nothingtoshow_container.dart';
 import 'package:nexoeshopee/components/product_card.dart';
 import 'package:nexoeshopee/screens/home/components/section_tile.dart';
-import 'package:nexoeshopee/services/data_streams/data_stream.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 
 import '../../../size_config.dart';
 
-class ProductsSection extends StatelessWidget {
+class ProductsSection extends ConsumerWidget {
   final String sectionTitle;
-  final DataStream productsStreamController;
+  final AsyncValue<List<String>> productsAsync;
   final String emptyListMessage;
   final Function onProductCardTapped;
   final bool showViewAll;
@@ -18,7 +18,7 @@ class ProductsSection extends StatelessWidget {
   const ProductsSection({
     super.key,
     required this.sectionTitle,
-    required this.productsStreamController,
+    required this.productsAsync,
     this.emptyListMessage = "No Products to show here",
     required this.onProductCardTapped,
     this.showViewAll = true,
@@ -26,12 +26,9 @@ class ProductsSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 16,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       decoration: BoxDecoration(
         color: Color(0xFFF5F6F9),
         borderRadius: BorderRadius.circular(15),
@@ -48,37 +45,27 @@ class ProductsSection extends StatelessWidget {
             },
           ),
           SizedBox(height: getProportionateScreenHeight(15)),
-          Expanded(
-            child: buildProductsList(),
-          ),
+          Expanded(child: buildProductsList()),
         ],
       ),
     );
   }
 
   Widget buildProductsList() {
-    return StreamBuilder<List<String>>(
-      stream: productsStreamController.stream as Stream<List<String>>,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          if (snapshot.data!.isEmpty) {
-            return Center(
-              child: NothingToShowContainer(
-                secondaryMessage: emptyListMessage,
-              ),
-            );
-          }
-          return useHorizontalView
-              ? buildProductHorizontalList(snapshot.data!)
-              : buildProductGrid(snapshot.data!);
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
+    return productsAsync.when(
+      data: (productIds) {
+        if (productIds.isEmpty) {
           return Center(
-            child: CircularProgressIndicator(),
+            child: NothingToShowContainer(secondaryMessage: emptyListMessage),
           );
-        } else if (snapshot.hasError) {
-          final error = snapshot.error;
-          Logger().w(error.toString());
         }
+        return useHorizontalView
+            ? buildProductHorizontalList(productIds)
+            : buildProductGrid(productIds);
+      },
+      loading: () => Center(child: CircularProgressIndicator()),
+      error: (error, stack) {
+        Logger().w(error.toString());
         return Center(
           child: NothingToShowContainer(
             iconPath: "assets/icons/network_error.svg",

@@ -1,23 +1,20 @@
 import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:nexoeshopee/providers/user_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../size_config.dart';
 
-class CheckoutCard extends StatelessWidget {
+class CheckoutCard extends ConsumerWidget {
   final VoidCallback onCheckoutPressed;
-  const CheckoutCard({
-    required this.onCheckoutPressed,
-    super.key,
-  });
+  const CheckoutCard({required this.onCheckoutPressed, super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cartTotalAsync = ref.watch(cartTotalProvider);
+
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 30,
-        vertical: 15,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -40,26 +37,24 @@ class CheckoutCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                FutureBuilder<num>(
-                  future: UserDatabaseHelper().cartTotal,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      final cartTotal = snapshot.data;
-                      return Text.rich(
-                        TextSpan(text: "Total\n", children: [
-                          TextSpan(
-                            text: "\₹$cartTotal",
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w700,
-                            ),
+                cartTotalAsync.when(
+                  data: (cartTotal) => Text.rich(
+                    TextSpan(
+                      text: "Total\n",
+                      children: [
+                        TextSpan(
+                          text: "\₹$cartTotal",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700,
                           ),
-                        ]),
-                      );
-                    }
-                    return Center(child: CircularProgressIndicator());
-                  },
+                        ),
+                      ],
+                    ),
+                  ),
+                  loading: () => Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Text("Error: $error"),
                 ),
                 SizedBox(
                   width: getProportionateScreenWidth(190),

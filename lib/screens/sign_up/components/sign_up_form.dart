@@ -3,19 +3,20 @@ import 'package:nexoeshopee/components/custom_suffix_icon.dart';
 import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
 import 'package:nexoeshopee/exceptions/firebaseauth/signup_exceptions.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import '../../../constants.dart';
 import '../../home/home_screen.dart';
+import 'package:nexoeshopee/providers/user_providers.dart' as user_providers;
 
-class SignUpForm extends StatefulWidget {
+class SignUpForm extends ConsumerStatefulWidget {
   @override
-  _SignUpFormState createState() => _SignUpFormState();
+  ConsumerState<SignUpForm> createState() => _SignUpFormState();
 }
 
-class _SignUpFormState extends State<SignUpForm> {
+class _SignUpFormState extends ConsumerState<SignUpForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailFieldController = TextEditingController();
   final TextEditingController passwordFieldController = TextEditingController();
@@ -36,6 +37,8 @@ class _SignUpFormState extends State<SignUpForm> {
 
   @override
   Widget build(BuildContext context) {
+    final formState = ref.watch(user_providers.signUpFormProvider);
+
     return Form(
       key: _formKey,
       child: Padding(
@@ -54,7 +57,10 @@ class _SignUpFormState extends State<SignUpForm> {
             SizedBox(height: getProportionateScreenHeight(30)),
             buildConfirmPasswordFormField(),
             SizedBox(height: getProportionateScreenHeight(40)),
-            DefaultButton(text: "Sign up", press: signUpButtonCallback),
+            DefaultButton(
+              text: "Sign up",
+              press: formState.isLoading ? null : signUpButtonCallback,
+            ),
           ],
         ),
       ),
@@ -70,6 +76,11 @@ class _SignUpFormState extends State<SignUpForm> {
         floatingLabelBehavior: FloatingLabelBehavior.always,
         suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/User.svg"),
       ),
+      onChanged: (value) {
+        ref
+            .read(user_providers.signUpFormDataProvider.notifier)
+            .updateDisplayName(value);
+      },
       validator: (value) {
         if (displayNameController.text.isEmpty) {
           return "Please enter your display name";
@@ -94,6 +105,11 @@ class _SignUpFormState extends State<SignUpForm> {
         floatingLabelBehavior: FloatingLabelBehavior.always,
         suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Phone.svg"),
       ),
+      onChanged: (value) {
+        ref
+            .read(user_providers.signUpFormDataProvider.notifier)
+            .updatePhoneNumber(value);
+      },
       validator: (value) {
         if (phoneNumberController.text.isEmpty) {
           return "Please enter your phone number";
@@ -116,6 +132,11 @@ class _SignUpFormState extends State<SignUpForm> {
         floatingLabelBehavior: FloatingLabelBehavior.always,
         suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Lock.svg"),
       ),
+      onChanged: (value) {
+        ref
+            .read(user_providers.signUpFormDataProvider.notifier)
+            .updateConfirmPassword(value);
+      },
       validator: (value) {
         if (confirmPasswordFieldController.text.isEmpty) {
           return kPassNullError;
@@ -141,6 +162,11 @@ class _SignUpFormState extends State<SignUpForm> {
         floatingLabelBehavior: FloatingLabelBehavior.always,
         suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Mail.svg"),
       ),
+      onChanged: (value) {
+        ref
+            .read(user_providers.signUpFormDataProvider.notifier)
+            .updateEmail(value);
+      },
       validator: (value) {
         if (emailFieldController.text.isEmpty) {
           return kEmailNullError;
@@ -163,6 +189,11 @@ class _SignUpFormState extends State<SignUpForm> {
         floatingLabelBehavior: FloatingLabelBehavior.always,
         suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Lock.svg"),
       ),
+      onChanged: (value) {
+        ref
+            .read(user_providers.signUpFormDataProvider.notifier)
+            .updatePassword(value);
+      },
       validator: (value) {
         if (passwordFieldController.text.isEmpty) {
           return kPassNullError;
@@ -177,16 +208,22 @@ class _SignUpFormState extends State<SignUpForm> {
 
   Future<void> signUpButtonCallback() async {
     if (_formKey.currentState?.validate() ?? false) {
-      final AuthentificationService authService = AuthentificationService();
+      final authService = ref.read(user_providers.authServiceProvider);
+      final formNotifier = ref.read(user_providers.signUpFormProvider.notifier);
+
       bool signUpStatus = false;
       String snackbarMessage = '';
+
       try {
+        formNotifier.setLoading(true);
+
         final signUpFuture = authService.signUpWithCompleteProfile(
           email: emailFieldController.text,
           password: passwordFieldController.text,
           displayName: displayNameController.text,
           phoneNumber: phoneNumberController.text,
         );
+
         signUpFuture.then((value) => signUpStatus = value);
         signUpStatus = await showDialog(
           context: context,
@@ -197,6 +234,7 @@ class _SignUpFormState extends State<SignUpForm> {
             );
           },
         );
+
         if (signUpStatus == true) {
           snackbarMessage =
               "Account created successfully! Please verify your email.";
@@ -220,6 +258,7 @@ class _SignUpFormState extends State<SignUpForm> {
           context,
         ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       } finally {
+        formNotifier.setLoading(false);
         Logger().i(snackbarMessage);
       }
     }

@@ -6,74 +6,29 @@ import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
 import 'package:nexoeshopee/screens/search_result/search_result_screen.dart';
-import 'package:nexoeshopee/services/data_streams/category_products_stream.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
+import 'package:nexoeshopee/providers/providers.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 
-class Body extends StatefulWidget {
+class Body extends ConsumerWidget {
   final ProductType productType;
 
   const Body({super.key, required this.productType});
 
   @override
-  State<Body> createState() => _BodyState();
-}
-
-class _BodyState extends State<Body> {
-  late final CategoryProductsStream categoryProductsStream;
-  List<String> _cachedProductIds = [];
-  bool _isInitialLoad = true;
-  bool _hasError = false;
-
-  @override
-  void initState() {
-    super.initState();
-    Logger().d('Initializing category products for: ${widget.productType}');
-    categoryProductsStream = CategoryProductsStream(widget.productType);
-
-    categoryProductsStream.stream.listen(
-      (data) {
-        if (mounted) {
-          setState(() {
-            _isInitialLoad = false;
-            _hasError = false;
-            _cachedProductIds = data;
-          });
-        }
-      },
-      onError: (error) {
-        if (mounted) {
-          setState(() {
-            _isInitialLoad = false;
-            _hasError = true;
-          });
-        }
-      },
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoryProductsAsync = ref.watch(
+      categoryProductsProvider(productType),
     );
-  }
 
-  Future<void> refreshPage() async {
-    setState(() {
-      _isInitialLoad = true;
-      _hasError = false;
-    });
-    categoryProductsStream.reload();
-  }
-
-  @override
-  void dispose() {
-    categoryProductsStream.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return SafeArea(
       child: RefreshIndicator(
-        onRefresh: refreshPage,
+        onRefresh: () async {
+          ref.invalidate(categoryProductsProvider(productType));
+        },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
@@ -83,14 +38,14 @@ class _BodyState extends State<Body> {
             child: Column(
               children: [
                 SizedBox(height: getProportionateScreenHeight(20)),
-                buildHeadBar(),
+                buildHeadBar(context, ref),
                 SizedBox(height: getProportionateScreenHeight(20)),
                 SizedBox(
                   height: SizeConfig.screenHeight * 0.13,
                   child: buildCategoryBanner(),
                 ),
                 SizedBox(height: getProportionateScreenHeight(20)),
-                _buildProductsSection(),
+                _buildProductsSection(categoryProductsAsync),
                 SizedBox(height: getProportionateScreenHeight(20)),
               ],
             ),
@@ -100,46 +55,44 @@ class _BodyState extends State<Body> {
     );
   }
 
-  Widget _buildProductsSection() {
-    Logger().d(
-      'Building products section - Initial load: $_isInitialLoad, Error: $_hasError, Products: ${_cachedProductIds.length}',
-    );
+  Widget _buildProductsSection(AsyncValue<List<String>> categoryProductsAsync) {
+    return categoryProductsAsync.when(
+      data: (productIds) {
+        Logger().d('Displaying ${productIds.length} products in grid');
 
-    if (_isInitialLoad) {
-      return const Center(
+        if (productIds.isEmpty) {
+          return SizedBox(
+            height: 200,
+            child: NothingToShowContainer(
+              secondaryMessage:
+                  "No products in ${EnumToString.convertToString(productType)}",
+            ),
+          );
+        }
+
+        return buildProductsGrid(productIds);
+      },
+      loading: () => const Center(
         child: Padding(
           padding: EdgeInsets.all(20.0),
           child: CircularProgressIndicator(),
         ),
-      );
-    }
-
-    if (_hasError) {
-      return SizedBox(
-        height: 200,
-        child: NothingToShowContainer(
-          iconPath: "assets/icons/network_error.svg",
-          primaryMessage: "Something went wrong",
-          secondaryMessage: "Unable to connect to Database",
-        ),
-      );
-    }
-
-    if (_cachedProductIds.isEmpty) {
-      return SizedBox(
-        height: 200,
-        child: NothingToShowContainer(
-          secondaryMessage:
-              "No products in ${EnumToString.convertToString(widget.productType)}",
-        ),
-      );
-    }
-
-    Logger().d('Displaying ${_cachedProductIds.length} products in grid');
-    return buildProductsGrid(_cachedProductIds);
+      ),
+      error: (error, stack) {
+        Logger().e('Error loading products: $error');
+        return SizedBox(
+          height: 200,
+          child: NothingToShowContainer(
+            iconPath: "assets/icons/network_error.svg",
+            primaryMessage: "Something went wrong",
+            secondaryMessage: "Unable to connect to Database",
+          ),
+        );
+      },
+    );
   }
 
-  Widget buildHeadBar() {
+  Widget buildHeadBar(BuildContext context, WidgetRef ref) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -154,29 +107,30 @@ class _BodyState extends State<Body> {
               final query = value.toString().trim();
               if (query.isEmpty) return;
               try {
-                final searchedProductsId = await ProductDatabaseHelper()
-                    .searchInProducts(
-                      query.toLowerCase(),
-                      productType: widget.productType,
-                    );
-                if (mounted) {
+                final searchParams = ProductSearchParams(
+                  query: query.toLowerCase(),
+                  productType: productType,
+                );
+                final searchedProductsId = await ref.read(
+                  productSearchProvider(searchParams).future,
+                );
+
+                if (context.mounted) {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => SearchResultScreen(
                         searchQuery: query,
                         searchResultProductsId: searchedProductsId,
-                        searchIn: EnumToString.convertToString(
-                          widget.productType,
-                        ),
+                        searchIn: EnumToString.convertToString(productType),
                       ),
                     ),
                   );
-                  await refreshPage();
+                  ref.invalidate(categoryProductsProvider(productType));
                 }
               } catch (e) {
                 Logger().e(e.toString());
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(
                     context,
                   ).showSnackBar(SnackBar(content: Text(e.toString())));
@@ -208,7 +162,7 @@ class _BodyState extends State<Body> {
           child: Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Text(
-              EnumToString.convertToString(widget.productType),
+              EnumToString.convertToString(productType),
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w900,
@@ -234,24 +188,31 @@ class _BodyState extends State<Body> {
         mainAxisSpacing: 8,
       ),
       itemBuilder: (context, index) {
-        return ProductCard(
-          productId: productIds[index],
-          press: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ProductDetailsScreen(
-                key: UniqueKey(),
-                productId: productIds[index],
-              ),
-            ),
-          ).then((_) => refreshPage()),
+        return Consumer(
+          builder: (context, ref, child) {
+            return ProductCard(
+              productId: productIds[index],
+              press: () =>
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProductDetailsScreen(
+                        key: UniqueKey(),
+                        productId: productIds[index],
+                      ),
+                    ),
+                  ).then((_) {
+                    ref.invalidate(categoryProductsProvider(productType));
+                  }),
+            );
+          },
         );
       },
     );
   }
 
   String bannerFromProductType() {
-    switch (widget.productType) {
+    switch (productType) {
       case ProductType.Chicken:
         return "assets/images/chicken_banner.jpg";
       case ProductType.Mutton:
