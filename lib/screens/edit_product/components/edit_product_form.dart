@@ -14,20 +14,20 @@ import 'package:nexoeshopee/services/local_files_access/local_files_access_servi
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../constants.dart';
 import '../../../size_config.dart';
 
-class EditProductForm extends StatefulWidget {
+class EditProductForm extends ConsumerStatefulWidget {
   final Product? product;
   const EditProductForm({Key? key, this.product}) : super(key: key);
 
   @override
-  State<EditProductForm> createState() => _EditProductFormState();
+  ConsumerState<EditProductForm> createState() => _EditProductFormState();
 }
 
-class _EditProductFormState extends State<EditProductForm> {
+class _EditProductFormState extends ConsumerState<EditProductForm> {
   final _basicDetailsFormKey = GlobalKey<FormState>();
   final _describeProductFormKey = GlobalKey<FormState>();
 
@@ -68,17 +68,19 @@ class _EditProductFormState extends State<EditProductForm> {
     } else {
       product = widget.product!;
       newProduct = false;
-      
+
       // Initialize form fields with existing product data
       titleFieldController.text = product.title ?? '';
       variantFieldController.text = product.variant ?? '';
-      originalPriceFieldController.text = product.originalPrice?.toString() ?? '';
-      discountPriceFieldController.text = product.discountPrice?.toString() ?? '';
+      originalPriceFieldController.text =
+          product.originalPrice?.toString() ?? '';
+      discountPriceFieldController.text =
+          product.discountPrice?.toString() ?? '';
       highlightsFieldController.text = product.highlights ?? '';
       desciptionFieldController.text = product.description ?? '';
       sellerFieldController.text = product.seller ?? '';
     }
-    
+
     // Note: ProductDetails provider is now initialized in EditProductScreen
   }
 
@@ -198,10 +200,14 @@ class _EditProductFormState extends State<EditProductForm> {
         border: Border.all(color: kTextColor, width: 1),
         borderRadius: BorderRadius.all(Radius.circular(28)),
       ),
-      child: Consumer<ProductDetails>(
-        builder: (context, productDetails, child) {
+      child: Consumer(
+        builder: (context, ref, child) {
+          final productDetailsState = ref.watch(productDetailsProvider);
+          final productDetailsNotifier = ref.read(
+            productDetailsProvider.notifier,
+          );
           return DropdownButton(
-            value: productDetails.productType,
+            value: productDetailsState.productType,
             items: ProductType.values
                 .map(
                   (e) => DropdownMenuItem(
@@ -213,7 +219,7 @@ class _EditProductFormState extends State<EditProductForm> {
             hint: Text("Chose Product Type"),
             style: TextStyle(color: kTextColor, fontSize: 16),
             onChanged: (value) {
-              productDetails.productType = value!;
+              productDetailsNotifier.setProductType(value!);
             },
             elevation: 0,
             underline: SizedBox(width: 0, height: 0),
@@ -244,13 +250,14 @@ class _EditProductFormState extends State<EditProductForm> {
             },
           ),
         ),
-        Consumer<ProductDetails>(
-          builder: (context, productDetails, child) {
+        Consumer(
+          builder: (context, ref, child) {
+            final productDetailsState = ref.watch(productDetailsProvider);
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ...List.generate(
-                  productDetails.selectedImages.length,
+                  productDetailsState.selectedImages.length,
                   (index) => SizedBox(
                     width: 80,
                     height: 80,
@@ -261,15 +268,15 @@ class _EditProductFormState extends State<EditProductForm> {
                           addImageButtonCallback(index: index);
                         },
                         child:
-                            productDetails.selectedImages[index].imgType ==
+                            productDetailsState.selectedImages[index].imgType ==
                                 ImageType.local
                             ? kIsWeb
-                                  ? (productDetails
+                                  ? (productDetailsState
                                                 .selectedImages[index]
                                                 .xFile !=
                                             null
                                         ? FutureBuilder<Uint8List>(
-                                            future: productDetails
+                                            future: productDetailsState
                                                 .selectedImages[index]
                                                 .xFile!
                                                 .readAsBytes(),
@@ -298,13 +305,13 @@ class _EditProductFormState extends State<EditProductForm> {
                                           ))
                                   : Image.file(
                                       File(
-                                        productDetails
+                                        productDetailsState
                                             .selectedImages[index]
                                             .path,
                                       ),
                                     )
                             : Base64ImageService().base64ToImage(
-                                productDetails.selectedImages[index].path,
+                                productDetailsState.selectedImages[index].path,
                               ),
                       ),
                     ),
@@ -468,14 +475,15 @@ class _EditProductFormState extends State<EditProductForm> {
       );
       return;
     }
-    final productDetails = Provider.of<ProductDetails>(context, listen: false);
-    if (productDetails.selectedImages.isEmpty) {
+    final productDetailsState = ref.read(productDetailsProvider);
+    final productDetailsNotifier = ref.read(productDetailsProvider.notifier);
+    if (productDetailsState.selectedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Upload atleast One Image of Product")),
       );
       return;
     }
-    if (productDetails.productType == null) {
+    if (productDetailsState.productType == null) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Please select Product Type")));
@@ -484,7 +492,7 @@ class _EditProductFormState extends State<EditProductForm> {
     String? productId;
     String snackbarMessage = "";
     try {
-      product.productType = productDetails.productType;
+      product.productType = productDetailsState.productType;
       final productUploadFuture = newProduct
           ? ProductDatabaseHelper().addUsersProduct(product)
           : ProductDatabaseHelper().updateUsersProduct(product);
@@ -541,7 +549,7 @@ class _EditProductFormState extends State<EditProductForm> {
         ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
-    List<String> base64Images = productDetails.selectedImages
+    List<String> base64Images = productDetailsState.selectedImages
         .map((e) => e.imgType == ImageType.network ? e.path : e.path)
         .toList();
     bool productFinalizeUpdate = false;
@@ -585,19 +593,20 @@ class _EditProductFormState extends State<EditProductForm> {
 
   Future<bool> uploadProductImages(String productId) async {
     bool allImagesUpdated = true;
-    final productDetails = Provider.of<ProductDetails>(context, listen: false);
-    for (int i = 0; i < productDetails.selectedImages.length; i++) {
-      if (productDetails.selectedImages[i].imgType == ImageType.local) {
+    final productDetailsState = ref.read(productDetailsProvider);
+    final productDetailsNotifier = ref.read(productDetailsProvider.notifier);
+    for (int i = 0; i < productDetailsState.selectedImages.length; i++) {
+      if (productDetailsState.selectedImages[i].imgType == ImageType.local) {
         Logger().i(
-          "Image being processed: ${productDetails.selectedImages[i].path}",
+          "Image being processed: ${productDetailsState.selectedImages[i].path}",
         );
         String? base64Image;
         try {
           // Convert image to base64 - use XFile when available
-          if (productDetails.selectedImages[i].xFile != null) {
+          if (productDetailsState.selectedImages[i].xFile != null) {
             // Use XFile for conversion (works on all platforms)
             base64Image = await Base64ImageService().xFileToBase64(
-              productDetails.selectedImages[i].xFile!,
+              productDetailsState.selectedImages[i].xFile!,
             );
           } else {
             // Fallback to file path method
@@ -606,7 +615,7 @@ class _EditProductFormState extends State<EditProductForm> {
               base64Image = null;
             } else {
               // On mobile platforms, use File normally
-              final file = File(productDetails.selectedImages[i].path);
+              final file = File(productDetailsState.selectedImages[i].path);
               base64Image = await Base64ImageService().fileToBase64(file);
             }
           }
@@ -614,9 +623,9 @@ class _EditProductFormState extends State<EditProductForm> {
           Logger().w("Error converting image to base64: $e");
         } finally {
           if (base64Image != null) {
-            productDetails.selectedImages[i] = CustomImage(
-              imgType: ImageType.network,
-              path: base64Image,
+            productDetailsNotifier.setSelectedImageAtIndex(
+              CustomImage(imgType: ImageType.network, path: base64Image),
+              i,
             );
           } else {
             allImagesUpdated = false;
@@ -637,8 +646,9 @@ class _EditProductFormState extends State<EditProductForm> {
   }
 
   Future<void> addImageButtonCallback({int? index}) async {
-    final productDetails = Provider.of<ProductDetails>(context, listen: false);
-    if (index == null && productDetails.selectedImages.length >= 3) {
+    final productDetailsState = ref.read(productDetailsProvider);
+    final productDetailsNotifier = ref.read(productDetailsProvider.notifier);
+    if (index == null && productDetailsState.selectedImages.length >= 3) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -670,7 +680,7 @@ class _EditProductFormState extends State<EditProductForm> {
       return;
     }
     if (index == null) {
-      productDetails.addNewSelectedImage(
+      productDetailsNotifier.addNewSelectedImage(
         CustomImage(
           imgType: ImageType.local,
           path: result.path,
@@ -678,7 +688,7 @@ class _EditProductFormState extends State<EditProductForm> {
         ),
       );
     } else {
-      productDetails.setSelectedImageAtIndex(
+      productDetailsNotifier.setSelectedImageAtIndex(
         CustomImage(
           imgType: ImageType.local,
           path: result.path,

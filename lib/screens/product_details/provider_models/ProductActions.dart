@@ -1,23 +1,31 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProductActions extends ChangeNotifier {
-  bool _productFavStatus = false;
+class ProductActionsNotifier extends StateNotifier<bool> {
+  ProductActionsNotifier() : super(false);
 
-  bool get productFavStatus {
-    return _productFavStatus;
+  void setInitialFavStatus(bool status) {
+    state = status;
   }
 
-  set initialProductFavStatus(bool status) {
-    _productFavStatus = status;
+  void setFavStatus(bool status) {
+    state = status;
   }
 
-  set productFavStatus(bool status) {
-    _productFavStatus = status;
-    notifyListeners();
-  }
-
-  void switchProductFavStatus() {
-    _productFavStatus = !_productFavStatus;
-    notifyListeners();
+  void toggleFavStatus() {
+    state = !state;
   }
 }
+
+final productActionsProvider =
+    StateNotifierProvider<ProductActionsNotifier, bool>((ref) {
+      return ProductActionsNotifier();
+    });
+
+// Family provider for multiple products
+final productActionsFamilyProvider =
+    StateNotifierProvider.family<ProductActionsNotifier, bool, String>((
+      ref,
+      productId,
+    ) {
+      return ProductActionsNotifier();
+    });

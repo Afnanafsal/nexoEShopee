@@ -1,29 +1,43 @@
 import 'dart:io';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ChosenImage extends ChangeNotifier {
-  File? _chosenImage;
-  XFile? _chosenXFile;
+class ChosenImageState {
+  final XFile? chosenImage;
+  final File? chosenFile;
 
-  File? get chosenImage => _chosenImage;
-  XFile? get chosenXFile => _chosenXFile;
+  const ChosenImageState({this.chosenImage, this.chosenFile});
 
-  set setChosenImage(File img) {
-    _chosenImage = img;
-    _chosenXFile = null;
-    notifyListeners();
-  }
-
-  set setChosenXFile(XFile xFile) {
-    _chosenXFile = xFile;
-    if (!kIsWeb) {
-      _chosenImage = File(xFile.path);
-    } else {
-      _chosenImage = null;
-    }
-    notifyListeners();
+  ChosenImageState copyWith({XFile? chosenImage, File? chosenFile}) {
+    return ChosenImageState(
+      chosenImage: chosenImage ?? this.chosenImage,
+      chosenFile: chosenFile ?? this.chosenFile,
+    );
   }
 }
+
+class ChosenImageNotifier extends StateNotifier<ChosenImageState> {
+  ChosenImageNotifier() : super(const ChosenImageState());
+
+  void setChosenImage(XFile xFile) {
+    File? imageFile;
+    if (!kIsWeb) {
+      imageFile = File(xFile.path);
+    }
+    state = ChosenImageState(chosenImage: xFile, chosenFile: imageFile);
+  }
+
+  void setChosenFile(File file) {
+    state = state.copyWith(chosenFile: file);
+  }
+
+  void clear() {
+    state = const ChosenImageState();
+  }
+}
+
+final chosenImageProvider =
+    StateNotifierProvider<ChosenImageNotifier, ChosenImageState>((ref) {
+      return ChosenImageNotifier();
+    });

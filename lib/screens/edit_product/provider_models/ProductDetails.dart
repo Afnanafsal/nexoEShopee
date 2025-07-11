@@ -1,5 +1,5 @@
 import 'package:nexoeshopee/models/Product.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 enum ImageType { local, network }
@@ -17,69 +17,87 @@ class CustomImage {
   }
 }
 
-class ProductDetails extends ChangeNotifier {
-  List<CustomImage> _selectedImages = [];
-  ProductType? _productType;
-  List<String> _searchTags = [];
+class ProductDetailsState {
+  final List<CustomImage> selectedImages;
+  final ProductType? productType;
+  final List<String> searchTags;
 
-  List<CustomImage> get selectedImages {
-    return _selectedImages;
+  const ProductDetailsState({
+    this.selectedImages = const [],
+    this.productType,
+    this.searchTags = const [],
+  });
+
+  ProductDetailsState copyWith({
+    List<CustomImage>? selectedImages,
+    ProductType? productType,
+    List<String>? searchTags,
+  }) {
+    return ProductDetailsState(
+      selectedImages: selectedImages ?? this.selectedImages,
+      productType: productType ?? this.productType,
+      searchTags: searchTags ?? this.searchTags,
+    );
+  }
+}
+
+class ProductDetailsNotifier extends StateNotifier<ProductDetailsState> {
+  ProductDetailsNotifier() : super(const ProductDetailsState());
+
+  void setInitialSelectedImages(List<CustomImage> images) {
+    state = state.copyWith(selectedImages: images);
   }
 
-  set initialSelectedImages(List<CustomImage> images) {
-    _selectedImages = images;
-  }
-
-  set selectedImages(List<CustomImage> images) {
-    _selectedImages = images;
-    notifyListeners();
+  void setSelectedImages(List<CustomImage> images) {
+    state = state.copyWith(selectedImages: images);
   }
 
   void setSelectedImageAtIndex(CustomImage image, int index) {
-    if (index < _selectedImages.length) {
-      _selectedImages[index] = image;
-      notifyListeners();
+    final updatedImages = List<CustomImage>.from(state.selectedImages);
+    if (index < updatedImages.length) {
+      updatedImages[index] = image;
+      state = state.copyWith(selectedImages: updatedImages);
     }
   }
 
   void addNewSelectedImage(CustomImage image) {
-    _selectedImages.add(image);
-    notifyListeners();
+    final updatedImages = List<CustomImage>.from(state.selectedImages);
+    updatedImages.add(image);
+    state = state.copyWith(selectedImages: updatedImages);
   }
 
-  ProductType? get productType {
-    return _productType;
+  void setInitialProductType(ProductType type) {
+    state = state.copyWith(productType: type);
   }
 
-  set initialProductType(ProductType type) {
-    _productType = type;
+  void setProductType(ProductType? type) {
+    state = state.copyWith(productType: type);
   }
 
-  set productType(ProductType? type) {
-    _productType = type;
-    notifyListeners();
+  void setSearchTags(List<String> tags) {
+    state = state.copyWith(searchTags: tags);
   }
 
-  List<String> get searchTags {
-    return _searchTags;
-  }
-
-  set searchTags(List<String> tags) {
-    _searchTags = tags;
-    notifyListeners();
-  }
-
-  set initSearchTags(List<String> tags) {
-    _searchTags = tags;
+  void setInitSearchTags(List<String> tags) {
+    state = state.copyWith(searchTags: tags);
   }
 
   void addSearchTag(String tag) {
-    _searchTags.add(tag);
-    notifyListeners();
+    final updatedTags = List<String>.from(state.searchTags);
+    updatedTags.add(tag);
+    state = state.copyWith(searchTags: updatedTags);
   }
 
   void removeSearchTag({required int index}) {
-    _searchTags.removeAt(index);
-    notifyListeners();
+    final updatedTags = List<String>.from(state.searchTags);
+    if (index < updatedTags.length) {
+      updatedTags.removeAt(index);
+      state = state.copyWith(searchTags: updatedTags);
+    }
   }
 }
+
+final productDetailsProvider =
+    StateNotifierProvider<ProductDetailsNotifier, ProductDetailsState>((ref) {
+      return ProductDetailsNotifier();
+    });

@@ -1,13 +1,19 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ExpandText extends ChangeNotifier {
-  bool _isExpanded = false;
-  bool get isExpanded {
-    return _isExpanded;
+class ExpandTextNotifier extends StateNotifier<bool> {
+  ExpandTextNotifier() : super(false);
+
+  void toggle() {
+    state = !state;
   }
 
-  set isExpanded(bool status) {
-    _isExpanded = status;
-    notifyListeners();
+  void setExpanded(bool isExpanded) {
+    state = isExpanded;
   }
 }
+
+final expandTextProvider = StateNotifierProvider<ExpandTextNotifier, bool>((
+  ref,
+) {
+  return ExpandTextNotifier();
+});

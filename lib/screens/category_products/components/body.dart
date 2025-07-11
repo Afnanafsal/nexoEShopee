@@ -223,9 +223,7 @@ class Body extends ConsumerWidget {
         return "assets/images/fish_banner.jpg";
       case ProductType.Eggs:
         return "assets/images/eggs_banner.jpg";
-      case ProductType.MarinatedItems:
-        return "assets/images/marinated_banner.jpg";
-      case ProductType.ReadyToEat:
+     case ProductType.ReadyToEat:
         return "assets/images/ready_to_eat_banner.jpg";
       case ProductType.Others:
         return "assets/images/others_banner.jpg";

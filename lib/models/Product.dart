@@ -7,7 +7,6 @@ enum ProductType {
   Beef,
   Fish,
   Eggs,
-  MarinatedItems,
   ReadyToEat,
   Others,
 }
