@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
+import 'package:nexoeshopee/providers/cache_providers.dart';
+import 'package:nexoeshopee/models/cached_user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 final userDatabaseHelperProvider = Provider<UserDatabaseHelper>((ref) {
@@ -143,12 +145,70 @@ final signUpFormDataProvider =
 
 final cartItemsProvider = FutureProvider<List<String>>((ref) async {
   final userHelper = ref.watch(userDatabaseHelperProvider);
-  return await userHelper.allCartItemsList;
+  final userCache = ref.watch(userCacheProvider);
+  final authService = ref.watch(authServiceProvider);
+
+  try {
+    final user = authService.currentUser;
+
+    // Try to get from cache first
+    final cachedUser = userCache.getCachedUser(user.uid);
+    if (cachedUser != null && cachedUser.cartItems.isNotEmpty) {
+      return cachedUser.cartItems;
+    }
+
+    // If not in cache, fetch from database
+    final cartItems = await userHelper.allCartItemsList;
+
+    // Cache the cart items
+    final newCachedUser = CachedUser(
+      id: user.uid,
+      displayName: user.displayName,
+      email: user.email,
+      cartItems: cartItems,
+      cachedAt: DateTime.now(),
+    );
+    await userCache.cacheUser(user.uid, newCachedUser);
+
+    return cartItems;
+  } catch (e) {
+    // Fallback to database call if no user or cache error
+    return await userHelper.allCartItemsList;
+  }
 });
 
 final favouriteProductsProvider = FutureProvider<List<String>>((ref) async {
   final userHelper = ref.watch(userDatabaseHelperProvider);
-  return await userHelper.usersFavouriteProductsList;
+  final userCache = ref.watch(userCacheProvider);
+  final authService = ref.watch(authServiceProvider);
+
+  try {
+    final user = authService.currentUser;
+
+    // Try to get from cache first
+    final cachedUser = userCache.getCachedUser(user.uid);
+    if (cachedUser != null && cachedUser.favoriteProducts.isNotEmpty) {
+      return cachedUser.favoriteProducts;
+    }
+
+    // If not in cache, fetch from database
+    final favorites = await userHelper.usersFavouriteProductsList;
+
+    // Cache the favorites
+    final newCachedUser = CachedUser(
+      id: user.uid,
+      displayName: user.displayName,
+      email: user.email,
+      favoriteProducts: favorites,
+      cachedAt: DateTime.now(),
+    );
+    await userCache.cacheUser(user.uid, newCachedUser);
+
+    return favorites;
+  } catch (e) {
+    // Fallback to database call if no user or cache error
+    return await userHelper.usersFavouriteProductsList;
+  }
 });
 
 final orderedProductsProvider = FutureProvider<List<String>>((ref) async {
