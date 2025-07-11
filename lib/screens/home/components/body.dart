@@ -48,11 +48,7 @@ class Body extends ConsumerWidget {
       TITLE_KEY: "Eggs",
       PRODUCT_TYPE_KEY: ProductType.Eggs,
     },
-    <String, dynamic>{
-      ICON_KEY: "assets/icons/marinated.svg",
-      TITLE_KEY: "Marinated",
-      PRODUCT_TYPE_KEY: ProductType.MarinatedItems,
-    },
+    
     <String, dynamic>{
       ICON_KEY: "assets/icons/ready_to_eat.svg",
       TITLE_KEY: "Ready to Eat",

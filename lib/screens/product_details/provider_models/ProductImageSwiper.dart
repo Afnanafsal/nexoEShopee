@@ -1,13 +1,30 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProductImageSwiper extends ChangeNotifier {
-  int _currentImageIndex = 0;
-  int get currentImageIndex {
-    return _currentImageIndex;
+class ProductImageSwiperNotifier extends StateNotifier<int> {
+  ProductImageSwiperNotifier() : super(0);
+
+  void setCurrentImageIndex(int index) {
+    state = index;
   }
 
-  set currentImageIndex(int index) {
-    _currentImageIndex = index;
-    notifyListeners();
+  void nextImage(int maxIndex) {
+    if (state < maxIndex - 1) {
+      state = state + 1;
+    }
+  }
+
+  void previousImage() {
+    if (state > 0) {
+      state = state - 1;
+    }
+  }
+
+  void reset() {
+    state = 0;
   }
 }
+
+final productImageSwiperProvider =
+    StateNotifierProvider<ProductImageSwiperNotifier, int>((ref) {
+      return ProductImageSwiperNotifier();
+    });
