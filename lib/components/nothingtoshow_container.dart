@@ -16,10 +16,11 @@ class NothingToShowContainer extends StatelessWidget {
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: SizeConfig.screenWidth * 0.75,
-      height: SizeConfig.screenHeight * 0.2,
+      padding: EdgeInsets.all(16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           SvgPicture.asset(
             iconPath,
@@ -29,10 +30,7 @@ class NothingToShowContainer extends StatelessWidget {
           SizedBox(height: 16),
           Text(
             "$primaryMessage",
-            style: TextStyle(
-              color: kTextColor,
-              fontSize: 15,
-            ),
+            style: TextStyle(color: kTextColor, fontSize: 15),
           ),
           Text(
             "$secondaryMessage",
