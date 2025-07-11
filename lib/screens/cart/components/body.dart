@@ -29,29 +29,22 @@ class _BodyState extends ConsumerState<Body> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: RefreshIndicator(
-        onRefresh: refreshPage,
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding),
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              child: Column(
-                children: [
-                  SizedBox(height: getProportionateScreenHeight(10)),
-                  Text("Your Cart", style: headingStyle),
-                  SizedBox(height: getProportionateScreenHeight(20)),
-                  SizedBox(
-                    height: SizeConfig.screenHeight * 0.75,
-                    child: Center(child: buildCartItemsList()),
-                  ),
-                ],
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: getProportionateScreenWidth(screenPadding),
+        ),
+        child: Column(
+          children: [
+            SizedBox(height: getProportionateScreenHeight(10)),
+            Text("Your Cart", style: headingStyle),
+            SizedBox(height: getProportionateScreenHeight(20)),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: refreshPage,
+                child: buildCartItemsList(),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -68,10 +61,13 @@ class _BodyState extends ConsumerState<Body> {
     return cartItemsAsync.when(
       data: (cartItemsId) {
         if (cartItemsId.isEmpty) {
-          return Center(
-            child: NothingToShowContainer(
-              iconPath: "assets/icons/empty_cart.svg",
-              secondaryMessage: "Your cart is empty",
+          return SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: Center(
+              child: NothingToShowContainer(
+                iconPath: "assets/icons/empty_cart.svg",
+                secondaryMessage: "Your cart is empty",
+              ),
             ),
           );
         }
@@ -106,11 +102,14 @@ class _BodyState extends ConsumerState<Body> {
       loading: () => Center(child: CircularProgressIndicator()),
       error: (error, stackTrace) {
         Logger().w(error.toString());
-        return Center(
-          child: NothingToShowContainer(
-            iconPath: "assets/icons/network_error.svg",
-            primaryMessage: "Something went wrong",
-            secondaryMessage: "Unable to connect to Database",
+        return SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: Center(
+            child: NothingToShowContainer(
+              iconPath: "assets/icons/network_error.svg",
+              primaryMessage: "Something went wrong",
+              secondaryMessage: "Unable to connect to Database",
+            ),
           ),
         );
       },
