@@ -7,31 +7,105 @@ import 'package:nexoeshopee/models/Review.dart';
 import 'package:nexoeshopee/screens/my_orders/components/product_review_dialog.dart';
 import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/data_streams/ordered_products_stream.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:nexoeshopee/services/cache/hive_service.dart';
 import 'package:nexoeshopee/size_config.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class Body extends StatefulWidget {
+  const Body({super.key});
+
   @override
-  _BodyState createState() => _BodyState();
+  State<Body> createState() => _BodyState();
 }
 
 class _BodyState extends State<Body> {
-  final OrderedProductsStream orderedProductsStream = OrderedProductsStream();
+  late final String currentUserUid;
+  final HiveService _hiveService = HiveService.instance;
+
+  static const int _pageSize = 20;
+  DocumentSnapshot? _lastDocument;
+  bool _isLoadingMore = false;
+  final List<OrderedProduct> _allOrders = [];
 
   @override
   void initState() {
     super.initState();
+    _initializeUser();
+  }
+
+  void _initializeUser() {
+    try {
+      final user = AuthentificationService().currentUser;
+      currentUserUid = user.uid;
+      Logger().i('User authenticated: $currentUserUid');
+      _debugFirestorePath();
+      _testOrdersAccess();
+      _loadMoreOrders();
+    } catch (e) {
+      Logger().e('Error getting current user: $e');
+    }
+  }
+
+  // Test method to manually check orders
+  void _testOrdersAccess() async {
+    try {
+      Logger().i('Testing direct Firestore access...');
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+          .doc(currentUserUid)
+          .collection(UserDatabaseHelper.ORDERED_PRODUCTS_COLLECTION_NAME)
+          .get();
+
+      Logger().i('Direct query result: ${snapshot.docs.length} documents');
+
+      if (snapshot.docs.isNotEmpty) {
+        for (var doc in snapshot.docs.take(3)) {
+          // Show first 3 orders
+          Logger().i('Order ${doc.id}: ${doc.data()}');
+        }
+      }
+
+      // Also test the original method from UserDatabaseHelper
+      final orderIds = await UserDatabaseHelper().orderedProductsList;
+      Logger().i(
+        'UserDatabaseHelper.orderedProductsList: ${orderIds.length} orders',
+      );
+    } catch (e) {
+      Logger().e('Error in _testOrdersAccess: $e');
+    }
+  }
+
+  void _debugFirestorePath() {
+    Logger().i('Debug: Current user UID: $currentUserUid');
+    Logger().i(
+      'Debug: Firestore path: ${UserDatabaseHelper.USERS_COLLECTION_NAME}/$currentUserUid/${UserDatabaseHelper.ORDERED_PRODUCTS_COLLECTION_NAME}',
+    );
+
+    // Test if we can access the user document
+    FirebaseFirestore.instance
+        .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+        .doc(currentUserUid)
+        .get()
+        .then((userDoc) {
+          if (userDoc.exists) {
+            Logger().i('Debug: User document exists: ${userDoc.data()}');
+          } else {
+            Logger().w('Debug: User document does not exist');
+          }
+        })
+        .catchError((error) {
+          Logger().e('Debug: Error accessing user document: $error');
+        });
   }
 
   @override
   void dispose() {
     super.dispose();
-    orderedProductsStream.dispose();
   }
 
   @override
@@ -43,16 +117,14 @@ class _BodyState extends State<Body> {
           physics: AlwaysScrollableScrollPhysics(),
           child: Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: getProportionateScreenWidth(screenPadding)),
+              horizontal: getProportionateScreenWidth(screenPadding),
+            ),
             child: SizedBox(
               width: double.infinity,
               child: Column(
                 children: [
                   SizedBox(height: getProportionateScreenHeight(10)),
-                  Text(
-                    "Your Orders",
-                    style: headingStyle,
-                  ),
+                  Text("Your Orders", style: headingStyle),
                   SizedBox(height: getProportionateScreenHeight(20)),
                   SizedBox(
                     height: SizeConfig.screenHeight * 0.75,
@@ -67,18 +139,70 @@ class _BodyState extends State<Body> {
     );
   }
 
-  Future<void> refreshPage() {
-    orderedProductsStream.reload();
-    return Future<void>.value();
+  Future<void> refreshPage() async {
+    setState(() {
+      _allOrders.clear();
+      _lastDocument = null;
+    });
+    await _loadMoreOrders();
+  }
+
+  Future<List<OrderedProduct>> _loadMoreOrders() async {
+    if (_isLoadingMore) return [];
+
+    _isLoadingMore = true;
+    try {
+      Query query = FirebaseFirestore.instance
+          .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+          .doc(currentUserUid)
+          .collection(UserDatabaseHelper.ORDERED_PRODUCTS_COLLECTION_NAME)
+          .limit(_pageSize);
+
+      if (_lastDocument != null) {
+        query = query.startAfterDocument(_lastDocument!);
+      }
+
+      final querySnapshot = await query.get();
+
+      Logger().i('_loadMoreOrders: Found ${querySnapshot.docs.length} orders');
+
+      if (querySnapshot.docs.isNotEmpty) {
+        _lastDocument = querySnapshot.docs.last;
+        final newOrders = querySnapshot.docs.map((doc) {
+          return OrderedProduct.fromMap(
+            doc.data() as Map<String, dynamic>,
+            id: doc.id,
+          );
+        }).toList();
+
+        _allOrders.addAll(newOrders);
+        return newOrders;
+      }
+    } catch (e) {
+      Logger().e('Error loading more orders: $e');
+    } finally {
+      _isLoadingMore = false;
+    }
+    return [];
   }
 
   Widget buildOrderedProductsList() {
-    return StreamBuilder<List<String>>(
-      stream: orderedProductsStream.stream.cast<List<String>>(),
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+          .doc(currentUserUid)
+          .collection(UserDatabaseHelper.ORDERED_PRODUCTS_COLLECTION_NAME)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          final orderedProductsIds = snapshot.data;
-          if (orderedProductsIds!.length == 0) {
+          final orderedProductsDocs = snapshot.data!.docs;
+
+          // Debug: Print the number of orders found
+          Logger().i(
+            'Found ${orderedProductsDocs.length} orders for user $currentUserUid',
+          );
+
+          if (orderedProductsDocs.isEmpty) {
             return Center(
               child: NothingToShowContainer(
                 iconPath: "assets/icons/empty_bag.svg",
@@ -86,40 +210,77 @@ class _BodyState extends State<Body> {
               ),
             );
           }
+
+          // Sort the orders by date in Dart since Firestore ordering might be causing issues
+          orderedProductsDocs.sort((a, b) {
+            try {
+              final aDate = a.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
+              final bDate = b.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
+
+              if (aDate == null && bDate == null) return 0;
+              if (aDate == null) return 1;
+              if (bDate == null) return -1;
+
+              return bDate.compareTo(aDate); // Descending order (newest first)
+            } catch (e) {
+              Logger().w('Error sorting orders: $e');
+              return 0;
+            }
+          });
+
           return ListView.builder(
             physics: BouncingScrollPhysics(),
-            itemCount: orderedProductsIds!.length,
+            itemCount: orderedProductsDocs.length,
             itemBuilder: (context, index) {
-              return FutureBuilder<OrderedProduct>(
-                future: UserDatabaseHelper()
-                    .getOrderedProductFromId(orderedProductsIds[index]),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final orderedProduct = snapshot.data;
-                    return buildOrderedProductItem(orderedProduct!);
-                  } else if (snapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    final error = snapshot.error.toString();
-                    Logger().e(error);
-                  }
-                  return Icon(
-                    Icons.error,
-                    size: 60,
-                    color: kTextColor,
-                  );
-                },
-              );
+              try {
+                final orderedProductDoc = orderedProductsDocs[index];
+                final orderedProduct = OrderedProduct.fromMap(
+                  orderedProductDoc.data(),
+                  id: orderedProductDoc.id,
+                );
+
+                // Debug: Print order details
+                Logger().i(
+                  'Order ${index + 1}: ${orderedProduct.productUid} - ${orderedProduct.orderDate}',
+                );
+
+                return buildOrderedProductItem(orderedProduct);
+              } catch (e) {
+                Logger().e('Error building ordered product item: $e');
+                return Container(
+                  margin: EdgeInsets.symmetric(vertical: 8),
+                  child: Card(
+                    child: ListTile(
+                      leading: Icon(Icons.error, color: Colors.red),
+                      title: Text('Error loading order'),
+                      subtitle: Text('Unable to load order data'),
+                    ),
+                  ),
+                );
+              }
             },
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
-            child: CircularProgressIndicator(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading your orders...'),
+              ],
+            ),
           );
         } else if (snapshot.hasError) {
           final error = snapshot.error;
-          Logger().w(error.toString());
+          Logger().w('Firestore error: ${error.toString()}');
+          return Center(
+            child: NothingToShowContainer(
+              iconPath: "assets/icons/network_error.svg",
+              primaryMessage: "Something went wrong",
+              secondaryMessage: "Unable to load orders. Please try again.",
+            ),
+          );
         }
         return Center(
           child: NothingToShowContainer(
@@ -134,8 +295,7 @@ class _BodyState extends State<Body> {
 
   Widget buildOrderedProductItem(OrderedProduct orderedProduct) {
     return FutureBuilder<Product?>(
-      future:
-          ProductDatabaseHelper().getProductWithID(orderedProduct.productUid!),
+      future: _getProductWithCaching(orderedProduct.productUid!),
       builder: (context, snapshot) {
         if (snapshot.hasData && snapshot.data != null) {
           final product = snapshot.data!;
@@ -144,10 +304,7 @@ class _BodyState extends State<Body> {
             child: Column(
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 16,
-                  ),
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: kTextColor.withOpacity(0.12),
@@ -159,31 +316,21 @@ class _BodyState extends State<Body> {
                   child: Text.rich(
                     TextSpan(
                       text: "Ordered on:  ",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.black, fontSize: 12),
                       children: [
                         TextSpan(
                           text: orderedProduct.orderDate,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 8,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                   decoration: BoxDecoration(
                     border: Border.symmetric(
-                      vertical: BorderSide(
-                        color: kTextColor.withOpacity(0.15),
-                      ),
+                      vertical: BorderSide(color: kTextColor.withOpacity(0.15)),
                     ),
                   ),
                   child: ProductShortDetailCard(
@@ -205,10 +352,7 @@ class _BodyState extends State<Body> {
                 ),
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: kPrimaryColor,
                     borderRadius: BorderRadius.only(
@@ -266,9 +410,7 @@ class _BodyState extends State<Body> {
                         } finally {
                           Logger().i(snackbarMessage);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(snackbarMessage),
-                            ),
+                            SnackBar(content: Text(snackbarMessage)),
                           );
                         }
                       }
@@ -293,12 +435,29 @@ class _BodyState extends State<Body> {
           final error = snapshot.error.toString();
           Logger().e(error);
         }
-        return Icon(
-          Icons.error,
-          size: 60,
-          color: kTextColor,
-        );
+        return Icon(Icons.error, size: 60, color: kTextColor);
       },
     );
+  }
+
+  Future<Product?> _getProductWithCaching(String productId) async {
+    // First try to get from cache
+    final cachedProduct = _hiveService.getCachedProduct(productId);
+    if (cachedProduct != null) {
+      return cachedProduct;
+    }
+
+    // If not in cache, fetch from Firestore
+    try {
+      final product = await ProductDatabaseHelper().getProductWithID(productId);
+      if (product != null) {
+        // Cache the product for future use
+        await _hiveService.cacheProduct(product);
+        return product;
+      }
+    } catch (e) {
+      Logger().e('Error fetching product $productId: $e');
+    }
+    return null;
   }
 }
