@@ -10,7 +10,6 @@ import 'package:nexoeshopee/screens/edit_product/edit_product_screen.dart';
 import 'package:nexoeshopee/screens/manage_addresses/manage_addresses_screen.dart';
 import 'package:nexoeshopee/screens/my_orders/my_orders_screen.dart';
 import 'package:nexoeshopee/screens/my_products/my_products_screen.dart';
-import 'package:nexoeshopee/screens/cache_management/cache_management_screen.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
@@ -155,22 +154,6 @@ class HomeScreenDrawer extends StatelessWidget {
             },
           ),
           buildSellerExpansionTile(context),
-
-          ListTile(
-            leading: Icon(Icons.storage),
-            title: Text(
-              "Cache Management",
-              style: TextStyle(fontSize: 16, color: Colors.black),
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CacheManagementScreen(),
-                ),
-              );
-            },
-          ),
 
           ListTile(
             leading: Icon(Icons.logout),
