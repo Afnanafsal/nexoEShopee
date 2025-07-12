@@ -86,13 +86,6 @@ class _SplashScreenState extends State<SplashScreen>
                   color: Color(
                     0xFF4A6B7C,
                   ), // Dark teal/blue-grey color like the fish icon
-                  shadows: [
-                    Shadow(
-                      blurRadius: 10.0,
-                      color: Colors.black.withOpacity(0.3),
-                      offset: Offset(2.0, 2.0),
-                    ),
-                  ],
                 ),
                 textAlign: TextAlign.center,
               ),
