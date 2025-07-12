@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'package:hive/hive.dart';
+import 'dart:convert';
 import 'package:nexoeshopee/components/async_progress_dialog.dart';
 import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/constants.dart';
@@ -13,9 +15,46 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:nexoeshopee/providers/image_providers.dart';
 
-class Body extends ConsumerWidget {
+class Body extends ConsumerStatefulWidget {
+  const Body({Key? key}) : super(key: key);
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<Body> createState() => _BodyState();
+}
+
+class _BodyState extends ConsumerState<Body> {
+  Uint8List? _chosenImageBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    final userBox = Hive.box('user_box');
+    String cachedBase64 = userBox.get('profile_picture') ?? '';
+    if (cachedBase64.isNotEmpty) {
+      _chosenImageBytes = Base64ImageService().base64ToBytes(cachedBase64);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget avatar;
+    if (_chosenImageBytes != null) {
+      avatar = CircleAvatar(
+        radius: SizeConfig.screenWidth * 0.3,
+        backgroundColor: kTextColor.withOpacity(0.5),
+        backgroundImage: MemoryImage(_chosenImageBytes!),
+      );
+    } else {
+      avatar = CircleAvatar(
+        radius: SizeConfig.screenWidth * 0.3,
+        backgroundColor: kTextColor.withOpacity(0.5),
+        child: Icon(
+          Icons.person,
+          size: SizeConfig.screenWidth * 0.2,
+          color: kTextColor.withOpacity(0.5),
+        ),
+      );
+    }
+
     return SafeArea(
       child: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
@@ -30,7 +69,7 @@ class Body extends ConsumerWidget {
                 Text("Change Avatar", style: headingStyle),
                 SizedBox(height: getProportionateScreenHeight(40)),
                 GestureDetector(
-                  child: buildDisplayPictureAvatar(context, ref),
+                  child: avatar,
                   onTap: () {
                     getImageFromUser(context, ref);
                   },
@@ -47,57 +86,6 @@ class Body extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget buildDisplayPictureAvatar(BuildContext context, WidgetRef ref) {
-    final chosenImageState = ref.watch(chosenImageProvider);
-
-    return StreamBuilder(
-      stream: UserDatabaseHelper().currentUserDataStream,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          final error = snapshot.error;
-          Logger().w(error.toString());
-        }
-        ImageProvider? backImage;
-
-        // Handle chosen image
-        if (chosenImageState.chosenImage != null) {
-          // For web, we need to handle XFile differently
-          return FutureBuilder<Uint8List>(
-            future: chosenImageState.chosenImage!.readAsBytes(),
-            builder: (context, futureSnapshot) {
-              if (futureSnapshot.hasData) {
-                return CircleAvatar(
-                  radius: SizeConfig.screenWidth * 0.3,
-                  backgroundColor: kTextColor.withOpacity(0.5),
-                  backgroundImage: MemoryImage(futureSnapshot.data!),
-                );
-              } else {
-                return CircleAvatar(
-                  radius: SizeConfig.screenWidth * 0.3,
-                  backgroundColor: kTextColor.withOpacity(0.5),
-                  child: CircularProgressIndicator(),
-                );
-              }
-            },
-          );
-        } else if (snapshot.hasData && snapshot.data != null) {
-          final data = snapshot.data!.data();
-          final base64String = data?[UserDatabaseHelper.DP_KEY] as String?;
-          if (base64String != null && base64String.isNotEmpty) {
-            backImage = Base64ImageService().base64ToImageProvider(
-              base64String,
-            );
-          }
-        }
-        return CircleAvatar(
-          radius: SizeConfig.screenWidth * 0.3,
-          backgroundColor: kTextColor.withOpacity(0.5),
-          backgroundImage: backImage,
-        );
-      },
     );
   }
 
@@ -123,6 +111,11 @@ class Body extends ConsumerWidget {
     if (result == null) {
       return;
     }
+    final bytes = await result.xFile.readAsBytes();
+    setState(() {
+      _chosenImageBytes = bytes;
+    });
+    Hive.box('user_box').put('profile_picture', base64Encode(bytes));
     ref.read(chosenImageProvider.notifier).setChosenImage(result.xFile);
   }
 
