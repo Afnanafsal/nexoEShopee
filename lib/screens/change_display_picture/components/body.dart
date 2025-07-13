@@ -70,7 +70,8 @@ class _BodyState extends ConsumerState<Body> {
     return SafeArea(
       child: Container(
         width: double.infinity,
-        color: const Color(0xFFF7F8FA),
+        color: Color.fromARGB(255, 236, 237, 237),
+
         child: Column(
           children: [
             const SizedBox(height: 80),
@@ -149,7 +150,7 @@ class _BodyState extends ConsumerState<Body> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
-                                side: BorderSide(color: Colors.transparent),
+                                side: BorderSide(color: const Color.fromARGB(255, 0, 0, 0)),
                               ),
                               onPressed: () {
                                 getImageFromUser(context, ref);
@@ -169,8 +170,8 @@ class _BodyState extends ConsumerState<Body> {
                             height: 56,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black,
+                                backgroundColor: const Color(0xFF29465B),
+                                foregroundColor: Colors.white,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
@@ -212,8 +213,8 @@ class _BodyState extends ConsumerState<Body> {
                             height: 56,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.red,
+                                backgroundColor: Colors.redAccent,
+                                foregroundColor: Colors.white,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
