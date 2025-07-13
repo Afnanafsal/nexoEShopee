@@ -14,19 +14,30 @@ class Body extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: SizeConfig.screenHeight * 0.08),
+              SizedBox(height: SizeConfig.screenHeight * 0.03),
               // FishKart logo/text
-              Text(
-                "FishKart",
-                style: TextStyle(
-                  fontFamily: 'Shadows Into Light Two',
-                  fontSize: 36,
-                  color: Color(0xFF2B344F),
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.5,
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: TextStyle(
+                    fontFamily: 'Shadows Into Light Two',
+                    fontSize: 36,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.5,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: 'Fish',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    TextSpan(
+                      text: 'Kart',
+                      style: TextStyle(color: Color(0xFF29465B)),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: SizeConfig.screenHeight * 0.06),
+              SizedBox(height: SizeConfig.screenHeight * 0.03),
               // Card with form
               Container(
                 width: 370,
@@ -59,7 +70,7 @@ class Body extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: 32),
+              SizedBox(height: 20),
             ],
           ),
         ),

@@ -21,14 +21,25 @@ class Body extends StatelessWidget {
             children: [
               SizedBox(height: SizeConfig.screenHeight * 0.05),
               // FishKart logo/text
-              Text(
-                "FishKart",
-                style: TextStyle(
-                  fontFamily: 'Shadows Into Light Two',
-                  fontSize: 36,
-                  color: Color(0xFF2B344F),
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.5,
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: TextStyle(
+                    fontFamily: 'Shadows Into Light Two',
+                    fontSize: 36,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.5,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: 'Fish',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    TextSpan(
+                      text: 'Kart',
+                      style: TextStyle(color: Color(0xFF29465B)),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(height: SizeConfig.screenHeight * 0.035),
