@@ -113,10 +113,6 @@ class _SignInCardContentState extends State<_SignInCardContent> {
         );
         snackbarMessage = "Signed In Successfully";
         Navigator.of(context).pop();
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-          (route) => false,
-        );
       } on MessagedFirebaseAuthException catch (e) {
         snackbarMessage = e.message;
         Navigator.of(context).pop();
