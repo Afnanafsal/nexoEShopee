@@ -10,20 +10,8 @@ class Body extends StatelessWidget {
     return SafeArea(
       child: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding)),
-          child: Column(
-            children: [
-              SizedBox(height: SizeConfig.screenHeight * 0.04),
-              Text(
-                "Change Phone Number",
-                style: headingStyle,
-              ),
-              ChangePhoneNumberForm(key: UniqueKey()),
-            ],
-          ),
-        ),
+
+        child: Column(children: [ChangePhoneNumberForm(key: UniqueKey())]),
       ),
     );
   }
