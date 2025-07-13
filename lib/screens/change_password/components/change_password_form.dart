@@ -32,34 +32,230 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: getProportionateScreenWidth(screenPadding),
-        ),
+    return SafeArea(
+      child: Container(
+        width: double.infinity,
+        color: const Color(0xFFF7F8FA),
         child: Column(
           children: [
-            buildCurrentPasswordFormField(),
-            SizedBox(height: getProportionateScreenHeight(30)),
-            buildNewPasswordFormField(),
-            SizedBox(height: getProportionateScreenHeight(30)),
-            buildConfirmNewPasswordFormField(),
-            SizedBox(height: getProportionateScreenHeight(40)),
-            DefaultButton(
-              text: "Change Password",
-              press: () {
-                final updateFuture = changePasswordButtonCallback();
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AsyncProgressDialog(
-                      updateFuture,
-                      message: Text("Updating Password"),
-                    );
-                  },
-                );
-              },
+            const SizedBox(height: 80),
+            // Logo
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: const TextStyle(
+                  fontFamily: 'Shadows Into Light Two',
+                  fontSize: 36,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.5,
+                ),
+                children: const [
+                  TextSpan(
+                    text: 'Fish',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: 'Kart',
+                    style: TextStyle(color: Color(0xFF29465B)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 80),
+            Center(
+              child: Container(
+                width: 380,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 32,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.15),
+                      blurRadius: 32,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Current Password",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: currentPasswordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF7F8FA),
+                          hintText: 'Enter current password',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.blue.shade200),
+                          ),
+                          suffixIcon: Icon(Icons.lock),
+                        ),
+                        style: const TextStyle(fontSize: 16),
+                        autovalidateMode: AutovalidateMode.disabled,
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        "New Password",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: newPasswordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF7F8FA),
+                          hintText: 'Enter new password',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.blue.shade200),
+                          ),
+                          suffixIcon: Icon(Icons.lock),
+                        ),
+                        style: const TextStyle(fontSize: 16),
+                        validator: (value) {
+                          if (newPasswordController.text.isEmpty) {
+                            return "Password cannot be empty";
+                          } else if (newPasswordController.text.length < 8) {
+                            return "Password too short";
+                          }
+                          return null;
+                        },
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        "Confirm New Password",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: confirmNewPasswordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF7F8FA),
+                          hintText: 'Confirm new password',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.blue.shade200),
+                          ),
+                          suffixIcon: Icon(Icons.lock),
+                        ),
+                        style: const TextStyle(fontSize: 16),
+                        validator: (value) {
+                          if (confirmNewPasswordController.text != newPasswordController.text) {
+                            return "Not matching with Password";
+                          }
+                          return null;
+                        },
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                      ),
+                      const SizedBox(height: 32),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: SizedBox(
+                          width: 220,
+                          height: 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF34495E),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () {
+                              final updateFuture = changePasswordButtonCallback();
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AsyncProgressDialog(
+                                    updateFuture,
+                                    message: const Text("Updating Password"),
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text(
+                              "Update",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),

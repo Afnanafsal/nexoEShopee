@@ -12,17 +12,9 @@ class Body extends StatelessWidget {
       physics: BouncingScrollPhysics(),
       child: Padding(
         padding: EdgeInsets.symmetric(
-            horizontal: getProportionateScreenWidth(screenPadding)),
-        child: Column(
-          children: [
-            SizedBox(height: SizeConfig.screenHeight * 0.04),
-            Text(
-              "Change Display Name",
-              style: headingStyle,
-            ),
-            ChangeDisplayNameForm(key: UniqueKey()),
-          ],
+          horizontal: getProportionateScreenWidth(screenPadding),
         ),
+        child: Column(children: [ChangeDisplayNameForm(key: UniqueKey())]),
       ),
     );
   }
