@@ -10,6 +10,8 @@ import 'package:nexoeshopee/services/base64_image_service/base64_image_service.d
 import 'package:nexoeshopee/services/local_files_access/local_files_access_service.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
@@ -23,6 +25,7 @@ class Body extends ConsumerStatefulWidget {
 
 class _BodyState extends ConsumerState<Body> {
   Uint8List? _chosenImageBytes;
+  String displayName = '';
 
   @override
   void initState() {
@@ -32,58 +35,229 @@ class _BodyState extends ConsumerState<Body> {
     if (cachedBase64.isNotEmpty) {
       _chosenImageBytes = Base64ImageService().base64ToBytes(cachedBase64);
     }
+    // Fetch display name from FirebaseAuth
+    final user = FirebaseAuth.instance.currentUser;
+    setState(() {
+      displayName = user?.displayName ?? 'No Name';
+    });
+  }
+
+  Future<void> _fetchAndStoreDisplayName(Box userBox) async {
+    // No longer needed; fetching from FirebaseAuth
+    return;
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget avatar;
-    if (_chosenImageBytes != null) {
-      avatar = CircleAvatar(
-        radius: SizeConfig.screenWidth * 0.3,
-        backgroundColor: kTextColor.withOpacity(0.5),
-        backgroundImage: MemoryImage(_chosenImageBytes!),
-      );
-    } else {
-      avatar = CircleAvatar(
-        radius: SizeConfig.screenWidth * 0.3,
-        backgroundColor: kTextColor.withOpacity(0.5),
-        child: Icon(
-          Icons.person,
-          size: SizeConfig.screenWidth * 0.2,
-          color: kTextColor.withOpacity(0.5),
-        ),
-      );
-    }
+    final userBox = Hive.box('user_box');
+
+    Widget avatar = _chosenImageBytes != null
+        ? CircleAvatar(
+            radius: 80,
+            backgroundColor: Colors.grey.shade200,
+            backgroundImage: MemoryImage(_chosenImageBytes!),
+          )
+        : CircleAvatar(
+            radius: 80,
+            backgroundColor: Colors.grey.shade200,
+            child: Icon(
+              Icons.person,
+              size: 80,
+              color: kTextColor.withOpacity(0.3),
+            ),
+          );
 
     return SafeArea(
-      child: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: getProportionateScreenWidth(screenPadding),
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            child: Column(
-              children: [
-                Text("Change Avatar", style: headingStyle),
-                SizedBox(height: getProportionateScreenHeight(40)),
-                GestureDetector(
-                  child: avatar,
-                  onTap: () {
-                    getImageFromUser(context, ref);
-                  },
+      child: Container(
+        width: double.infinity,
+        color: const Color(0xFFF7F8FA),
+        child: Column(
+          children: [
+            const SizedBox(height: 80),
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: TextStyle(
+                  fontFamily: 'Shadows Into Light Two',
+                  fontSize: 36,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.5,
                 ),
-                SizedBox(height: getProportionateScreenHeight(80)),
-                buildChosePictureButton(context, ref),
-                SizedBox(height: getProportionateScreenHeight(20)),
-                buildUploadPictureButton(context, ref),
-                SizedBox(height: getProportionateScreenHeight(20)),
-                buildRemovePictureButton(context, ref),
-                SizedBox(height: getProportionateScreenHeight(80)),
-              ],
+                children: [
+                  TextSpan(
+                    text: 'Fish',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: 'Kart',
+                    style: TextStyle(color: Color(0xFF29465B)),
+                  ),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(height: 48),
+            Center(
+              child: Container(
+                width: 380,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 0,
+                  vertical: 40,
+                ),
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(255, 249, 250, 251),
+                  borderRadius: BorderRadius.circular(40),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.15),
+                      blurRadius: 32,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      child: avatar,
+                      onTap: () {
+                        getImageFromUser(context, ref);
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      displayName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                        color: const Color(0xFF527085),
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                side: BorderSide(color: Colors.transparent),
+                              ),
+                              onPressed: () {
+                                getImageFromUser(context, ref);
+                              },
+                              child: const Text(
+                                "Choose Picture",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                side: BorderSide(color: Colors.transparent),
+                              ),
+                              onPressed: () {
+                                final Future uploadFuture =
+                                    uploadImageToFirestorage(context, ref);
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AsyncProgressDialog(
+                                      uploadFuture,
+                                      message: const Text(
+                                        "Updating Display Picture",
+                                      ),
+                                    );
+                                  },
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Display Picture updated"),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                "Upload Picture",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.red,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                side: BorderSide(color: Colors.transparent),
+                              ),
+                              onPressed: () async {
+                                final Future uploadFuture =
+                                    removeImageFromFirestorage(context, ref);
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AsyncProgressDialog(
+                                      uploadFuture,
+                                      message: const Text(
+                                        "Deleting Display Picture",
+                                      ),
+                                    );
+                                  },
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Display Picture removed"),
+                                  ),
+                                );
+                                Navigator.pop(context);
+                              },
+                              child: const Text(
+                                "Remove Picture",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
