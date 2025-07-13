@@ -33,41 +33,235 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
 
   @override
   Widget build(BuildContext context) {
-    final form = Form(
-      key: _formKey,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: getProportionateScreenWidth(screenPadding),
-        ),
+    return SafeArea(
+      child: Container(
+        width: double.infinity,
+        color: const Color(0xFFF7F8FA),
         child: Column(
           children: [
-            buildCurrentEmailFormField(),
-            SizedBox(height: getProportionateScreenHeight(30)),
-            buildNewEmailFormField(),
-            SizedBox(height: getProportionateScreenHeight(30)),
-            buildPasswordFormField(),
-            SizedBox(height: getProportionateScreenHeight(40)),
-            DefaultButton(
-              text: "Change Email",
-              press: () {
-                final updateFuture = changeEmailButtonCallback();
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AsyncProgressDialog(
-                      updateFuture,
-                      message: Text("Updating Email"),
-                    );
-                  },
-                );
-              },
+            const SizedBox(height: 80),
+            // Logo
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: const TextStyle(
+                  fontFamily: 'Shadows Into Light Two',
+                  fontSize: 36,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.5,
+                ),
+                children: const [
+                  TextSpan(
+                    text: 'Fish',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: 'Kart',
+                    style: TextStyle(color: Color(0xFF29465B)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 80),
+            Center(
+              child: Container(
+                width: 380,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 32,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.15),
+                      blurRadius: 32,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Current Email",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Current email (no masking)
+                      StreamBuilder<User?>(
+                        stream: AuthentificationService().userChanges,
+                        builder: (context, snapshot) {
+                          String currentEmail = '';
+                          if (snapshot.hasData && snapshot.data != null) {
+                            currentEmail = snapshot.data!.email ?? '';
+                          }
+                          return Container(
+                            width: double.infinity,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF7F8FA),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              currentEmail.isNotEmpty ? currentEmail : "No email available",
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        "New Email",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: newEmailController,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF7F8FA),
+                          hintText: 'Enter new email',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.blue.shade200),
+                          ),
+                          suffixIcon: Icon(Icons.mail),
+                        ),
+                        style: const TextStyle(fontSize: 16),
+                        validator: (value) {
+                          if (newEmailController.text.isEmpty) {
+                            return kEmailNullError;
+                          } else if (!emailValidatorRegExp.hasMatch(newEmailController.text)) {
+                            return kInvalidEmailError;
+                          } else if (newEmailController.text == currentEmailController.text) {
+                            return "Email is already linked to account";
+                          }
+                          return null;
+                        },
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        "Password",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: passwordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF7F8FA),
+                          hintText: 'Enter password',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.blue.shade200),
+                          ),
+                          suffixIcon: Icon(Icons.lock),
+                        ),
+                        style: const TextStyle(fontSize: 16),
+                        validator: (value) {
+                          if (passwordController.text.isEmpty) {
+                            return "Password cannot be empty";
+                          }
+                          return null;
+                        },
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                      ),
+                      const SizedBox(height: 32),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: SizedBox(
+                          width: 220,
+                          height: 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF34495E),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () {
+                              final updateFuture = changeEmailButtonCallback();
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AsyncProgressDialog(
+                                    updateFuture,
+                                    message: const Text("Updating Email"),
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text(
+                              "Update",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
-
-    return form;
   }
 
   Widget buildPasswordFormField() {

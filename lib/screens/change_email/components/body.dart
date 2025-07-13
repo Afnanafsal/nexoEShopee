@@ -16,12 +16,7 @@ class Body extends StatelessWidget {
             width: double.infinity,
             child: Column(
               children: [
-                SizedBox(height: SizeConfig.screenHeight * 0.04),
-                Text(
-                  "Change Email",
-                  style: headingStyle,
-                ),
-                SizedBox(height: SizeConfig.screenHeight * 0.1),
+                
                 ChangeEmailForm(),
               ],
             ),
