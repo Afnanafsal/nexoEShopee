@@ -30,7 +30,7 @@ class Body extends StatelessWidget {
                     ),
                     TextSpan(
                       text: 'Kart',
-                      style: TextStyle(color: Color(0xFF4A6B7C)),
+                      style: TextStyle(color: Color(0xFF29465B)),
                     ),
                   ],
                 ),

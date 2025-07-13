@@ -77,17 +77,26 @@ class _SplashScreenState extends State<SplashScreen>
             // FishKart text with animation
             FadeTransition(
               opacity: _fadeAnimation,
-              child: Text(
-                'FishKart',
-                style: TextStyle(
-                  fontFamily: 'Shadows Into Light Two',
-                  fontSize: getProportionateScreenWidth(48),
-                  fontWeight: FontWeight.bold,
-                  color: Color(
-                    0xFF4A6B7C,
-                  ), // Dark teal/blue-grey color like the fish icon
-                ),
+              child: RichText(
                 textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: TextStyle(
+                    fontFamily: 'Shadows Into Light Two',
+                    fontSize: 36,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.5,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: 'Fish',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    TextSpan(
+                      text: 'Kart',
+                      style: TextStyle(color: Color(0xFF29465B)),
+                    ),
+                  ],
+                ),
               ),
             ),
 

@@ -47,6 +47,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         ),
         child: Column(
           children: [
+            SizedBox(height: getProportionateScreenHeight(10)),
             buildDisplayNameFormField(),
             SizedBox(height: getProportionateScreenHeight(30)),
             buildEmailFormField(),
