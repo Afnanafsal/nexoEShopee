@@ -75,7 +75,7 @@ class _SignInCardContent extends StatefulWidget {
 }
 
 class _SignInCardContentState extends State<_SignInCardContent> {
-  bool keepLoggedIn = false;
+  bool keepLoggedIn = true;
   bool passwordVisible = false;
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -214,7 +214,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
               ),
               onChanged: (val) {
                 setState(() {
-                  keepLoggedIn = val ?? false;
+                  keepLoggedIn = val ?? true;
                 });
               },
             ),
