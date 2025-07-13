@@ -5,7 +5,7 @@ class ManageAddressesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      backgroundColor: const Color.fromARGB(255, 250, 247, 247),
       body: Body(),
     );
   }
