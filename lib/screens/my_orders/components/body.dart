@@ -390,7 +390,9 @@ class _BodyState extends State<Body> {
           } else if (_selectedTabIndex == 2) {
             orderedProductsDocs = [];
           }
-          Logger().i('Found ${orderedProductsDocs.length} orders for user $currentUserUid and address $_selectedAddressId');
+          Logger().i(
+            'Found ${orderedProductsDocs.length} orders for user $currentUserUid and address $_selectedAddressId',
+          );
           if (orderedProductsDocs.isEmpty) {
             return Center(
               child: NothingToShowContainer(
@@ -409,9 +411,11 @@ class _BodyState extends State<Body> {
             return bDate.compareTo(aDate);
           });
           // Group by date
-          Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>> grouped = {};
+          Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+          grouped = {};
           for (var doc in orderedProductsDocs) {
-            final date = doc.data()[OrderedProduct.ORDER_DATE_KEY] as String? ?? '';
+            final date =
+                doc.data()[OrderedProduct.ORDER_DATE_KEY] as String? ?? '';
             grouped.putIfAbsent(date, () => []).add(doc);
           }
           return ListView(
@@ -419,9 +423,11 @@ class _BodyState extends State<Body> {
             children: grouped.entries.map((entry) {
               // Group products by productUid and count
               Map<String, int> productCounts = {};
-              Map<String, QueryDocumentSnapshot<Map<String, dynamic>>> productDocs = {};
+              Map<String, QueryDocumentSnapshot<Map<String, dynamic>>>
+              productDocs = {};
               for (var doc in entry.value) {
-                final pid = doc.data()[OrderedProduct.PRODUCT_UID_KEY] as String?;
+                final pid =
+                    doc.data()[OrderedProduct.PRODUCT_UID_KEY] as String?;
                 if (pid != null) {
                   productCounts[pid] = (productCounts[pid] ?? 0) + 1;
                   productDocs[pid] = doc;
@@ -431,7 +437,10 @@ class _BodyState extends State<Body> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 4.0,
+                    ),
                     child: Text(
                       'Ordered on: ${entry.key}',
                       style: TextStyle(
@@ -453,14 +462,18 @@ class _BodyState extends State<Body> {
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
                         children: productCounts.keys.map((pid) {
-                          final doc = productDocs[pid]!;
-                          final orderedProduct = OrderedProduct.fromMap(doc.data(), id: doc.id);
                           final count = productCounts[pid] ?? 1;
                           return FutureBuilder<Product?>(
                             future: _getProductWithCaching(pid),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return SizedBox(height: 90, child: Center(child: CircularProgressIndicator()));
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return SizedBox(
+                                  height: 90,
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
                               }
                               if (!snapshot.hasData || snapshot.data == null) {
                                 return SizedBox.shrink();
@@ -472,7 +485,8 @@ class _BodyState extends State<Body> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
                                           child: ProductShortDetailCard(
@@ -481,10 +495,11 @@ class _BodyState extends State<Body> {
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
-                                                  builder: (context) => ProductDetailsScreen(
-                                                    key: UniqueKey(),
-                                                    productId: product.id,
-                                                  ),
+                                                  builder: (context) =>
+                                                      ProductDetailsScreen(
+                                                        key: UniqueKey(),
+                                                        productId: product.id,
+                                                      ),
                                                 ),
                                               ).then((_) async {
                                                 await refreshPage();
@@ -494,10 +509,15 @@ class _BodyState extends State<Body> {
                                         ),
                                         SizedBox(width: 12),
                                         Container(
-                                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: Color(0xFFEDF2FA),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Text(
                                             '${count}X',
@@ -517,17 +537,32 @@ class _BodyState extends State<Body> {
                                         style: TextButton.styleFrom(
                                           backgroundColor: Color(0xFFF2F6FF),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
-                                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 2,
+                                          ),
                                         ),
                                         onPressed: () async {
-                                          String currentUserUid = AuthentificationService().currentUser.uid;
+                                          String currentUserUid =
+                                              AuthentificationService()
+                                                  .currentUser
+                                                  .uid;
                                           Review? prevReview;
                                           try {
-                                            prevReview = await ProductDatabaseHelper().getProductReviewWithID(product.id, currentUserUid);
+                                            prevReview =
+                                                await ProductDatabaseHelper()
+                                                    .getProductReviewWithID(
+                                                      product.id,
+                                                      currentUserUid,
+                                                    );
                                           } on FirebaseException catch (e) {
-                                            Logger().w("Firebase Exception: $e");
+                                            Logger().w(
+                                              "Firebase Exception: $e",
+                                            );
                                           } catch (e) {
                                             Logger().w("Unknown Exception: $e");
                                           }
@@ -548,30 +583,51 @@ class _BodyState extends State<Body> {
                                           );
                                           if (result is Review) {
                                             bool reviewAdded = false;
-                                            String snackbarMessage = "Unknown error occurred";
+                                            String snackbarMessage =
+                                                "Unknown error occurred";
                                             try {
-                                              reviewAdded = await ProductDatabaseHelper().addProductReview(product.id, result);
+                                              reviewAdded =
+                                                  await ProductDatabaseHelper()
+                                                      .addProductReview(
+                                                        product.id,
+                                                        result,
+                                                      );
                                               if (reviewAdded == true) {
-                                                snackbarMessage = "Product review added successfully";
+                                                snackbarMessage =
+                                                    "Product review added successfully";
                                               } else {
                                                 throw "Coulnd't add product review due to unknown reason";
                                               }
                                             } on FirebaseException catch (e) {
-                                              Logger().w("Firebase Exception: $e");
+                                              Logger().w(
+                                                "Firebase Exception: $e",
+                                              );
                                               snackbarMessage = e.toString();
                                             } catch (e) {
-                                              Logger().w("Unknown Exception: $e");
+                                              Logger().w(
+                                                "Unknown Exception: $e",
+                                              );
                                               snackbarMessage = e.toString();
                                             } finally {
                                               Logger().i(snackbarMessage);
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text(snackbarMessage)),
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    snackbarMessage,
+                                                  ),
+                                                ),
                                               );
                                             }
                                           }
                                           await refreshPage();
                                         },
-                                        icon: Icon(Icons.edit, color: Color(0xFF3D8BEA), size: 18),
+                                        icon: Icon(
+                                          Icons.edit,
+                                          color: Color(0xFF3D8BEA),
+                                          size: 18,
+                                        ),
                                         label: Text(
                                           'Write a Review',
                                           style: TextStyle(
