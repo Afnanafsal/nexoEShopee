@@ -15,8 +15,6 @@ class ProductDetailsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Color(0xFFF5F6F9),
       body: Body(key: key!, productId: productId),
-      floatingActionButton: AddToCartFAB(productId: productId, key: key!),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

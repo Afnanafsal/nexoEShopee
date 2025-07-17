@@ -61,9 +61,30 @@ class ProductReviewsSection extends ConsumerWidget {
                         physics: BouncingScrollPhysics(),
                         itemCount: reviewsList.length,
                         itemBuilder: (context, index) {
-                          return ReviewBox(
-                            key: ValueKey(reviewsList[index].id),
-                            review: reviewsList[index],
+                          final isFirst = index == 0;
+                          return Container(
+                            margin: EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              border: isFirst
+                                  ? Border.all(color: Colors.blue, width: 2)
+                                  : null,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ReviewBox(
+                              key: ValueKey(reviewsList[index].id),
+                              review: reviewsList[index],
+                            ),
                           );
                         },
                       );

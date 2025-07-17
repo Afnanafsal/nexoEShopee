@@ -101,33 +101,7 @@ class ProductReviewsSection extends ConsumerWidget {
           ),
           Align(
             alignment: Alignment.topCenter,
-            child: buildProductRatingWidget(product.rating),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildProductRatingWidget(num rating) {
-    return Container(
-      width: getProportionateScreenWidth(80),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.amber,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "$rating",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: getProportionateScreenWidth(18),
-            ),
-          ),
-          Icon(Icons.star, color: Colors.white),
         ],
       ),
     );

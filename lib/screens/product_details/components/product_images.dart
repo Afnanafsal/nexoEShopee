@@ -14,71 +14,18 @@ class ProductImages extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final swiperState = ref.watch(productImageSwiperProvider(product.id));
-
-    return Column(
-      children: [
-        Stack(
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(28),
-                bottomRight: Radius.circular(28),
-              ),
-              child: GestureDetector(
-                onHorizontalDragEnd: (details) {
-                  if (details.primaryVelocity != null) {
-                    if (details.primaryVelocity! < 0) {
-                      // Swipe Left
-                      ref
-                          .read(productImageSwiperProvider(product.id).notifier)
-                          .nextImage(product.images!.length);
-                    } else if (details.primaryVelocity! > 0) {
-                      // Swipe Right
-                      ref
-                          .read(productImageSwiperProvider(product.id).notifier)
-                          .previousImage(product.images!.length);
-                    }
-                  }
-                },
-                child: SizedBox(
-                  height: SizeConfig.screenHeight * 0.35,
-                  width: MediaQuery.of(context).size.width,
-                  child: Base64ImageService().base64ToImage(
-                    product.images![swiperState.currentImageIndex],
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 12,
-              left: 12,
-              child: CircleAvatar(
-                backgroundColor: Colors.white.withOpacity(0.7),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed: () => Navigator.of(context).pop(),
-                  tooltip: 'Back',
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            product.images!.length,
-            (index) => buildSmallPreview(context, ref, index),
-          ),
-        ),
-      ],
+    return Container(
+      color: const Color(0xFFF6F7FA),
+      child: _ProductDetailsContent(
+        product: product,
+        swiperState: swiperState,
+        ref: ref,
+      ),
     );
   }
 
   Widget buildSmallPreview(BuildContext context, WidgetRef ref, int index) {
     final swiperState = ref.watch(productImageSwiperProvider(product.id));
-
     return GestureDetector(
       onTap: () {
         ref
@@ -103,6 +50,127 @@ class ProductImages extends ConsumerWidget {
         ),
         child: Base64ImageService().base64ToImage(product.images![index]),
       ),
+    );
+  }
+}
+
+class _ProductDetailsContent extends StatefulWidget {
+  final Product product;
+  final dynamic swiperState;
+  final WidgetRef ref;
+
+  const _ProductDetailsContent({
+    Key? key,
+    required this.product,
+    required this.swiperState,
+    required this.ref,
+  }) : super(key: key);
+
+  @override
+  State<_ProductDetailsContent> createState() => _ProductDetailsContentState();
+}
+
+class _ProductDetailsContentState extends State<_ProductDetailsContent> {
+  int cartCount = 0;
+  bool isFavorite = false;
+
+  void _toggleFavorite() {
+    setState(() {
+      isFavorite = !isFavorite;
+    });
+  }
+
+  void _incrementCounter() {
+    setState(() {
+      cartCount++;
+    });
+  }
+
+  void _decrementCounter() {
+    if (cartCount > 0) {
+      setState(() {
+        cartCount--;
+      });
+    }
+  }
+
+  void _addToCart() {
+    if (cartCount < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select at least 1 item to add to cart.'),
+        ),
+      );
+      return;
+    }
+    // Add to cart logic here
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Added $cartCount item(s) to cart.')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final product = widget.product;
+    final swiperState = widget.swiperState;
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Base64ImageService().base64ToImage(
+            product.images![swiperState.currentImageIndex],
+          ),
+        ),
+        Positioned(
+          top: 16,
+          left: 16,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+              ),
+              padding: EdgeInsets.all(8),
+              child: Icon(Icons.arrow_back, color: Colors.black),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 16,
+          right: 16,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                isFavorite = !isFavorite;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isFavorite
+                        ? 'Added to favorites'
+                        : 'Removed from favorites',
+                  ),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+              ),
+              padding: EdgeInsets.all(8),
+              child: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? Colors.red : Colors.black,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
