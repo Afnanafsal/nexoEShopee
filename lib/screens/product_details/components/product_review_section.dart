@@ -64,6 +64,7 @@ class ProductReviewsSection extends ConsumerWidget {
                           return ReviewBox(
                             key: ValueKey(reviewsList[index].id),
                             review: reviewsList[index],
+                            productId: product.id,
                           );
                         },
                       );
