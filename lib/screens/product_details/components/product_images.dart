@@ -17,37 +17,52 @@ class ProductImages extends ConsumerWidget {
 
     return Column(
       children: [
-        GestureDetector(
-          onHorizontalDragEnd: (details) {
-            if (details.primaryVelocity != null) {
-              if (details.primaryVelocity! < 0) {
-                // Swipe Left
-                ref
-                    .read(productImageSwiperProvider(product.id).notifier)
-                    .nextImage(product.images!.length);
-              } else if (details.primaryVelocity! > 0) {
-                // Swipe Right
-                ref
-                    .read(productImageSwiperProvider(product.id).notifier)
-                    .previousImage(product.images!.length);
-              }
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(30)),
-            ),
-            child: SizedBox(
-              height: SizeConfig.screenHeight * 0.35,
-              width: SizeConfig.screenWidth * 0.75,
-              child: Base64ImageService().base64ToImage(
-                product.images![swiperState.currentImageIndex],
-                fit: BoxFit.contain,
+        Stack(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+              child: GestureDetector(
+                onHorizontalDragEnd: (details) {
+                  if (details.primaryVelocity != null) {
+                    if (details.primaryVelocity! < 0) {
+                      // Swipe Left
+                      ref
+                          .read(productImageSwiperProvider(product.id).notifier)
+                          .nextImage(product.images!.length);
+                    } else if (details.primaryVelocity! > 0) {
+                      // Swipe Right
+                      ref
+                          .read(productImageSwiperProvider(product.id).notifier)
+                          .previousImage(product.images!.length);
+                    }
+                  }
+                },
+                child: SizedBox(
+                  height: SizeConfig.screenHeight * 0.35,
+                  width: MediaQuery.of(context).size.width,
+                  child: Base64ImageService().base64ToImage(
+                    product.images![swiperState.currentImageIndex],
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             ),
-          ),
+            Positioned(
+              top: 12,
+              left: 12,
+              child: CircleAvatar(
+                backgroundColor: Colors.white.withOpacity(0.7),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () => Navigator.of(context).pop(),
+                  tooltip: 'Back',
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Row(

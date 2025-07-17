@@ -11,54 +11,53 @@ import 'product_review_section.dart';
 class Body extends StatelessWidget {
   final String productId;
 
-  const Body({
-    required Key key,
-    required this.productId,
-  }) : super(key: key);
+  const Body({required Key key, required this.productId}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding)),
-          child: FutureBuilder<Product?>(
-            future: ProductDatabaseHelper().getProductWithID(productId),
-            builder: (context, snapshot) {
-              if (snapshot.hasData && snapshot.data != null) {
-                final product = snapshot.data;
-                return Column(
-                  children: [
-                    ProductImages(product: product!),
-                    SizedBox(height: getProportionateScreenHeight(20)),
-                    ProductActionsSection(
-                      key: Key('ProductActionsSection_${product.id}'),
-                      product: product,
+        child: FutureBuilder<Product?>(
+          future: ProductDatabaseHelper().getProductWithID(productId),
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data != null) {
+              final product = snapshot.data;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ProductImages(product: product!),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: getProportionateScreenWidth(screenPadding),
                     ),
-                    SizedBox(height: getProportionateScreenHeight(20)),
-                    ProductReviewsSection(
-                      key: Key('ProductReviewsSection_${product.id}'),
-                      product: product,
+                    child: Column(
+                      children: [
+                        SizedBox(height: getProportionateScreenHeight(20)),
+                        ProductActionsSection(
+                          key: Key('ProductActionsSection_${product.id}'),
+                          product: product,
+                        ),
+                        SizedBox(height: getProportionateScreenHeight(20)),
+                        ProductReviewsSection(
+                          key: Key('ProductReviewsSection_${product.id}'),
+                          product: product,
+                        ),
+                        SizedBox(height: getProportionateScreenHeight(100)),
+                      ],
                     ),
-                    SizedBox(height: getProportionateScreenHeight(100)),
-                  ],
-                );
-              } else if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                final error = snapshot.error.toString();
-                Logger().e(error);
-              }
-              return Center(
-                child: Icon(
-                  Icons.error,
-                  color: kTextColor,
-                  size: 60,
-                ),
+                  ),
+                ],
               );
-            },
-          ),
+            } else if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              final error = snapshot.error.toString();
+              Logger().e(error);
+            }
+            return Center(
+              child: Icon(Icons.error, color: kTextColor, size: 60),
+            );
+          },
         ),
       ),
     );

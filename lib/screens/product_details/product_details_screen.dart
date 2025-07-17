@@ -14,7 +14,6 @@ class ProductDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Color(0xFFF5F6F9),
-      appBar: AppBar(backgroundColor: Color(0xFFF5F6F9)),
       body: Body(key: key!, productId: productId),
       floatingActionButton: AddToCartFAB(productId: productId, key: key!),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
