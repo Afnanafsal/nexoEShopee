@@ -2,12 +2,16 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nexoeshopee/models/cached_product.dart';
 import 'package:nexoeshopee/models/cached_user.dart';
 import 'package:nexoeshopee/models/Product.dart';
+import 'package:nexoeshopee/services/cache/duration_adapter.dart';
 
 class HiveService {
   static const String _productsBoxName = 'products';
   static const String _usersBoxName = 'users';
   static const String _settingsBoxName = 'settings';
   static const String _categoriesBoxName = 'categories';
+  static const String _ordersBoxName = 'orders';
+  static const String _addressesBoxName = 'addresses';
+  static const String _reviewsBoxName = 'reviews';
 
   static HiveService? _instance;
   static HiveService get instance => _instance ??= HiveService._();
@@ -17,6 +21,9 @@ class HiveService {
   Box<CachedUser>? _usersBox;
   Box<dynamic>? _settingsBox;
   Box<List<String>>? _categoriesBox;
+  Box<dynamic>? _ordersBox;
+  Box<dynamic>? _addressesBox;
+  Box<dynamic>? _reviewsBox;
 
   Future<void> init() async {
     await Hive.initFlutter();
@@ -27,11 +34,99 @@ class HiveService {
     if (!Hive.isAdapterRegistered(1)) {
       Hive.registerAdapter(CachedUserAdapter());
     }
+    // Register DurationAdapter
+    if (!Hive.isAdapterRegistered(99)) {
+      Hive.registerAdapter(DurationAdapter());
+    }
 
     _productsBox = await Hive.openBox<CachedProduct>(_productsBoxName);
     _usersBox = await Hive.openBox<CachedUser>(_usersBoxName);
     _settingsBox = await Hive.openBox(_settingsBoxName);
     _categoriesBox = await Hive.openBox<List<String>>(_categoriesBoxName);
+    _ordersBox = await Hive.openBox(_ordersBoxName);
+    _addressesBox = await Hive.openBox(_addressesBoxName);
+    _reviewsBox = await Hive.openBox(_reviewsBoxName);
+    // Orders caching
+    Future<void> cacheOrder(
+      String orderId,
+      Map<String, dynamic> orderData,
+    ) async {
+      await _ordersBox?.put(orderId, orderData);
+    }
+
+    Future<void> cacheOrders(List<Map<String, dynamic>> orders) async {
+      final Map<String, Map<String, dynamic>> ordersMap = {
+        for (var order in orders) order['id'] as String: order,
+      };
+      await _ordersBox?.putAll(ordersMap);
+    }
+
+    Map<String, dynamic>? getCachedOrder(String orderId) {
+      return _ordersBox?.get(orderId) as Map<String, dynamic>?;
+    }
+
+    List<Map<String, dynamic>> getCachedOrders() {
+      return (_ordersBox?.values.toList() ?? []).cast<Map<String, dynamic>>();
+    }
+
+    Future<void> clearOrderCache() async {
+      await _ordersBox?.clear();
+    }
+
+    // Addresses caching
+    Future<void> cacheAddress(
+      String addressId,
+      Map<String, dynamic> addressData,
+    ) async {
+      await _addressesBox?.put(addressId, addressData);
+    }
+
+    Future<void> cacheAddresses(List<Map<String, dynamic>> addresses) async {
+      final Map<String, Map<String, dynamic>> addressesMap = {
+        for (var address in addresses) address['id'] as String: address,
+      };
+      await _addressesBox?.putAll(addressesMap);
+    }
+
+    Map<String, dynamic>? getCachedAddress(String addressId) {
+      return _addressesBox?.get(addressId) as Map<String, dynamic>?;
+    }
+
+    List<Map<String, dynamic>> getCachedAddresses() {
+      return (_addressesBox?.values.toList() ?? [])
+          .cast<Map<String, dynamic>>();
+    }
+
+    Future<void> clearAddressCache() async {
+      await _addressesBox?.clear();
+    }
+
+    // Reviews caching
+    Future<void> cacheReview(
+      String reviewId,
+      Map<String, dynamic> reviewData,
+    ) async {
+      await _reviewsBox?.put(reviewId, reviewData);
+    }
+
+    Future<void> cacheReviews(List<Map<String, dynamic>> reviews) async {
+      final Map<String, Map<String, dynamic>> reviewsMap = {
+        for (var review in reviews) review['id'] as String: review,
+      };
+      await _reviewsBox?.putAll(reviewsMap);
+    }
+
+    Map<String, dynamic>? getCachedReview(String reviewId) {
+      return _reviewsBox?.get(reviewId) as Map<String, dynamic>?;
+    }
+
+    List<Map<String, dynamic>> getCachedReviews() {
+      return (_reviewsBox?.values.toList() ?? []).cast<Map<String, dynamic>>();
+    }
+
+    Future<void> clearReviewCache() async {
+      await _reviewsBox?.clear();
+    }
   }
 
   Future<void> cacheProduct(Product product) async {

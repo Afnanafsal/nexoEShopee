@@ -2,7 +2,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nexoeshopee/models/cached_product.dart';
 import 'package:nexoeshopee/models/cached_user.dart';
 
-class HiveService {
+class LegacyHiveService {
   /// Removes all unwanted files/keys from all Hive boxes, keeping only essential data.
   static Future<void> removeUnwantedFiles() async {
     // User box: keep only 'profile_picture' and essential user keys
