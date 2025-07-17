@@ -469,7 +469,7 @@ class _BodyState extends State<Body> {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
                                 return SizedBox(
-                                  height: 90,
+                                  height: 70,
                                   child: Center(
                                     child: CircularProgressIndicator(),
                                   ),
@@ -484,55 +484,8 @@ class _BodyState extends State<Body> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: ProductShortDetailCard(
-                                            productId: product.id,
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      ProductDetailsScreen(
-                                                        key: UniqueKey(),
-                                                        productId: product.id,
-                                                      ),
-                                                ),
-                                              ).then((_) async {
-                                                await refreshPage();
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                        SizedBox(width: 12),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Color(0xFFEDF2FA),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '${count}X',
-                                            style: TextStyle(
-                                              color: Color(0xFF3D8BEA),
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 4),
                                     Align(
-                                      alignment: Alignment.centerRight,
+                                      alignment: Alignment.topRight,
                                       child: TextButton.icon(
                                         style: TextButton.styleFrom(
                                           backgroundColor: Color(0xFFF2F6FF),
@@ -637,6 +590,44 @@ class _BodyState extends State<Body> {
                                           ),
                                         ),
                                       ),
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: ProductShortDetailCard(
+                                            productId: product.id,
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ProductDetailsScreen(
+                                                        key: UniqueKey(),
+                                                        productId: product.id,
+                                                      ),
+                                                ),
+                                              ).then((_) async {
+                                                await refreshPage();
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                        SizedBox(width: 12),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Color(0xFFEDF2FA),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
