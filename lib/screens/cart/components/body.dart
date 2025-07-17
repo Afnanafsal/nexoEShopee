@@ -49,6 +49,7 @@ class _BodyState extends ConsumerState<Body> {
       Logger().e('Error fetching addresses: $e');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -85,13 +86,23 @@ class _BodyState extends ConsumerState<Body> {
                       return DropdownMenuItem<String>(
                         value: addressId,
                         child: FutureBuilder<Address>(
-                          future: UserDatabaseHelper().getAddressFromId(addressId),
+                          future: UserDatabaseHelper().getAddressFromId(
+                            addressId,
+                          ),
                           builder: (context, snapshot) {
                             if (snapshot.hasData && snapshot.data != null) {
                               final address = snapshot.data!;
-                              return Text(address.title ?? address.addressLine1 ?? addressId, overflow: TextOverflow.ellipsis);
+                              return Text(
+                                address.title ??
+                                    address.addressLine1 ??
+                                    addressId,
+                                overflow: TextOverflow.ellipsis,
+                              );
                             }
-                            return Text(addressId, overflow: TextOverflow.ellipsis);
+                            return Text(
+                              addressId,
+                              overflow: TextOverflow.ellipsis,
+                            );
                           },
                         ),
                       );
@@ -122,8 +133,16 @@ class _BodyState extends ConsumerState<Body> {
                           ),
                         ],
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      child: Text(address.title ?? address.addressLine1 ?? _addresses.first, style: TextStyle(fontWeight: FontWeight.bold)),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        address.title ??
+                            address.addressLine1 ??
+                            _addresses.first,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     );
                   }
                   return SizedBox.shrink();
