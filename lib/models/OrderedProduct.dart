@@ -9,14 +9,13 @@ class OrderedProduct extends Model {
   String? orderDate;
   String? addressId;
 
-  OrderedProduct(
-    String id, {
-    this.productUid,
-    this.orderDate,
-    this.addressId,
-  }) : super(id);
+  OrderedProduct(String id, {this.productUid, this.orderDate, this.addressId})
+    : super(id);
 
-  factory OrderedProduct.fromMap(Map<String, dynamic> map, {required String id}) {
+  factory OrderedProduct.fromMap(
+    Map<String, dynamic> map, {
+    required String id,
+  }) {
     return OrderedProduct(
       id,
       productUid: map[PRODUCT_UID_KEY],

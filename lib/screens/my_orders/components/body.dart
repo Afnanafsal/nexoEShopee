@@ -26,6 +26,8 @@ class Body extends StatefulWidget {
 }
 
 class _BodyState extends State<Body> {
+  int _selectedTabIndex = 0;
+  final List<String> _orderTabs = ['Completed', 'Pending', 'Cancelled'];
   List<String> _addresses = [];
   String? _selectedAddressId;
   late final String currentUserUid;
@@ -145,77 +147,168 @@ class _BodyState extends State<Body> {
               child: Column(
                 children: [
                   SizedBox(height: getProportionateScreenHeight(10)),
-                  // Address selector
-                  if (_addresses.length > 1)
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+                  // Back button and address selector in same row
+                  Row(
+                    children: [
+                      // iOS style back button
+                      IconButton(
+                        icon: Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).maybePop();
+                        },
+                        tooltip: 'Back',
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedAddressId,
-                          icon: Icon(Icons.keyboard_arrow_down, color: Colors.black),
-                          isExpanded: true,
-                          items: _addresses.map((addressId) {
-                            return DropdownMenuItem<String>(
-                              value: addressId,
-                              child: FutureBuilder<Address>(
-                                future: UserDatabaseHelper().getAddressFromId(addressId),
-                                builder: (context, snapshot) {
-                                  if (snapshot.hasData && snapshot.data != null) {
-                                    final address = snapshot.data!;
-                                    return Text(address.title ?? address.addressLine1 ?? addressId, overflow: TextOverflow.ellipsis);
-                                  }
-                                  return Text(addressId, overflow: TextOverflow.ellipsis);
-                                },
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedAddressId = value;
-                            });
-                          },
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: _addresses.length > 1
+                              ? Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 8,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 2,
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: _selectedAddressId,
+                                      icon: Icon(
+                                        Icons.keyboard_arrow_down,
+                                        color: Colors.black,
+                                      ),
+                                      isExpanded: true,
+                                      items: _addresses.map((addressId) {
+                                        return DropdownMenuItem<String>(
+                                          value: addressId,
+                                          child: FutureBuilder<Address>(
+                                            future: UserDatabaseHelper()
+                                                .getAddressFromId(addressId),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.hasData &&
+                                                  snapshot.data != null) {
+                                                final address = snapshot.data!;
+                                                return Text(
+                                                  address.title ??
+                                                      address.addressLine1 ??
+                                                      addressId,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                );
+                                              }
+                                              return Text(
+                                                addressId,
+                                                overflow: TextOverflow.ellipsis,
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _selectedAddressId = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                )
+                              : (_addresses.length == 1
+                                    ? FutureBuilder<Address>(
+                                        future: UserDatabaseHelper()
+                                            .getAddressFromId(_addresses.first),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.hasData &&
+                                              snapshot.data != null) {
+                                            final address = snapshot.data!;
+                                            return Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black12,
+                                                    blurRadius: 8,
+                                                    offset: Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 8,
+                                              ),
+                                              child: Text(
+                                                address.title ??
+                                                    address.addressLine1 ??
+                                                    _addresses.first,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                          return SizedBox.shrink();
+                                        },
+                                      )
+                                    : SizedBox.shrink()),
                         ),
                       ),
-                    )
-                  else if (_addresses.length == 1)
-                    FutureBuilder<Address>(
-                      future: UserDatabaseHelper().getAddressFromId(_addresses.first),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData && snapshot.data != null) {
-                          final address = snapshot.data!;
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 8,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            child: Text(address.title ?? address.addressLine1 ?? _addresses.first, style: TextStyle(fontWeight: FontWeight.bold)),
-                          );
-                        }
-                        return SizedBox.shrink();
-                      },
-                    ),
+                    ],
+                  ),
                   SizedBox(height: getProportionateScreenHeight(10)),
-                  Text("Your Orders", style: headingStyle),
-                  SizedBox(height: getProportionateScreenHeight(20)),
+                  // Tab bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      ...List.generate(_orderTabs.length, (i) {
+                        final selected = _selectedTabIndex == i;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedTabIndex = i;
+                            });
+                          },
+                          child: Container(
+                            margin: EdgeInsets.only(right: 24),
+                            padding: EdgeInsets.symmetric(vertical: 4),
+                            decoration: BoxDecoration(
+                              border: selected
+                                  ? Border(
+                                      bottom: BorderSide(
+                                        color: kPrimaryColor,
+                                        width: 2,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                            child: Text(
+                              _orderTabs[i],
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: selected
+                                    ? kPrimaryColor
+                                    : Colors.black54,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                  SizedBox(height: getProportionateScreenHeight(10)),
+                  // ...existing code...
                   SizedBox(
                     height: SizeConfig.screenHeight * 0.75,
                     child: buildOrderedProductsList(),
@@ -286,19 +379,18 @@ class _BodyState extends State<Body> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           var orderedProductsDocs = snapshot.data!.docs;
-
-          // Filter by selected address
           if (_selectedAddressId != null) {
             orderedProductsDocs = orderedProductsDocs.where((doc) {
               final addressId = doc.data()['address_id'] as String?;
               return addressId == _selectedAddressId;
             }).toList();
           }
-
-          Logger().i(
-            'Found ${orderedProductsDocs.length} orders for user $currentUserUid and address $_selectedAddressId',
-          );
-
+          if (_selectedTabIndex == 1) {
+            orderedProductsDocs = [];
+          } else if (_selectedTabIndex == 2) {
+            orderedProductsDocs = [];
+          }
+          Logger().i('Found ${orderedProductsDocs.length} orders for user $currentUserUid and address $_selectedAddressId');
           if (orderedProductsDocs.isEmpty) {
             return Center(
               child: NothingToShowContainer(
@@ -307,54 +399,201 @@ class _BodyState extends State<Body> {
               ),
             );
           }
-
-          // Sort the orders by date in Dart since Firestore ordering might be causing issues
+          // Sort by date descending
           orderedProductsDocs.sort((a, b) {
-            try {
-              final aDate = a.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
-              final bDate = b.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
-
-              if (aDate == null && bDate == null) return 0;
-              if (aDate == null) return 1;
-              if (bDate == null) return -1;
-
-              return bDate.compareTo(aDate); // Descending order (newest first)
-            } catch (e) {
-              Logger().w('Error sorting orders: $e');
-              return 0;
-            }
+            final aDate = a.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
+            final bDate = b.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
+            if (aDate == null && bDate == null) return 0;
+            if (aDate == null) return 1;
+            if (bDate == null) return -1;
+            return bDate.compareTo(aDate);
           });
-
-          return ListView.builder(
+          // Group by date
+          Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>> grouped = {};
+          for (var doc in orderedProductsDocs) {
+            final date = doc.data()[OrderedProduct.ORDER_DATE_KEY] as String? ?? '';
+            grouped.putIfAbsent(date, () => []).add(doc);
+          }
+          return ListView(
             physics: BouncingScrollPhysics(),
-            itemCount: orderedProductsDocs.length,
-            itemBuilder: (context, index) {
-              try {
-                final orderedProductDoc = orderedProductsDocs[index];
-                final orderedProduct = OrderedProduct.fromMap(
-                  orderedProductDoc.data(),
-                  id: orderedProductDoc.id,
-                );
-
-                Logger().i(
-                  'Order ${index + 1}: ${orderedProduct.productUid} - ${orderedProduct.orderDate}',
-                );
-
-                return buildOrderedProductItem(orderedProduct);
-              } catch (e) {
-                Logger().e('Error building ordered product item: $e');
-                return Container(
-                  margin: EdgeInsets.symmetric(vertical: 8),
-                  child: Card(
-                    child: ListTile(
-                      leading: Icon(Icons.error, color: Colors.red),
-                      title: Text('Error loading order'),
-                      subtitle: Text('Unable to load order data'),
+            children: grouped.entries.map((entry) {
+              // Group products by productUid and count
+              Map<String, int> productCounts = {};
+              Map<String, QueryDocumentSnapshot<Map<String, dynamic>>> productDocs = {};
+              for (var doc in entry.value) {
+                final pid = doc.data()[OrderedProduct.PRODUCT_UID_KEY] as String?;
+                if (pid != null) {
+                  productCounts[pid] = (productCounts[pid] ?? 0) + 1;
+                  productDocs[pid] = doc;
+                }
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                    child: Text(
+                      'Ordered on: ${entry.key}',
+                      style: TextStyle(
+                        color: kPrimaryColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
-                );
-              }
-            },
+                  Card(
+                    elevation: 4,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    margin: EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+                    shadowColor: Colors.black.withOpacity(0.12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: productCounts.keys.map((pid) {
+                          final doc = productDocs[pid]!;
+                          final orderedProduct = OrderedProduct.fromMap(doc.data(), id: doc.id);
+                          final count = productCounts[pid] ?? 1;
+                          return FutureBuilder<Product?>(
+                            future: _getProductWithCaching(pid),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return SizedBox(height: 90, child: Center(child: CircularProgressIndicator()));
+                              }
+                              if (!snapshot.hasData || snapshot.data == null) {
+                                return SizedBox.shrink();
+                              }
+                              final product = snapshot.data!;
+                              return Container(
+                                margin: EdgeInsets.only(bottom: 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: ProductShortDetailCard(
+                                            productId: product.id,
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => ProductDetailsScreen(
+                                                    key: UniqueKey(),
+                                                    productId: product.id,
+                                                  ),
+                                                ),
+                                              ).then((_) async {
+                                                await refreshPage();
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                        SizedBox(width: 12),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Color(0xFFEDF2FA),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            '${count}X',
+                                            style: TextStyle(
+                                              color: Color(0xFF3D8BEA),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 4),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton.icon(
+                                        style: TextButton.styleFrom(
+                                          backgroundColor: Color(0xFFF2F6FF),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                                        ),
+                                        onPressed: () async {
+                                          String currentUserUid = AuthentificationService().currentUser.uid;
+                                          Review? prevReview;
+                                          try {
+                                            prevReview = await ProductDatabaseHelper().getProductReviewWithID(product.id, currentUserUid);
+                                          } on FirebaseException catch (e) {
+                                            Logger().w("Firebase Exception: $e");
+                                          } catch (e) {
+                                            Logger().w("Unknown Exception: $e");
+                                          }
+                                          if (prevReview == null) {
+                                            prevReview = Review(
+                                              currentUserUid,
+                                              reviewerUid: currentUserUid,
+                                            );
+                                          }
+                                          final result = await showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return ProductReviewDialog(
+                                                key: UniqueKey(),
+                                                review: prevReview!,
+                                              );
+                                            },
+                                          );
+                                          if (result is Review) {
+                                            bool reviewAdded = false;
+                                            String snackbarMessage = "Unknown error occurred";
+                                            try {
+                                              reviewAdded = await ProductDatabaseHelper().addProductReview(product.id, result);
+                                              if (reviewAdded == true) {
+                                                snackbarMessage = "Product review added successfully";
+                                              } else {
+                                                throw "Coulnd't add product review due to unknown reason";
+                                              }
+                                            } on FirebaseException catch (e) {
+                                              Logger().w("Firebase Exception: $e");
+                                              snackbarMessage = e.toString();
+                                            } catch (e) {
+                                              Logger().w("Unknown Exception: $e");
+                                              snackbarMessage = e.toString();
+                                            } finally {
+                                              Logger().i(snackbarMessage);
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text(snackbarMessage)),
+                                              );
+                                            }
+                                          }
+                                          await refreshPage();
+                                        },
+                                        icon: Icon(Icons.edit, color: Color(0xFF3D8BEA), size: 18),
+                                        label: Text(
+                                          'Write a Review',
+                                          style: TextStyle(
+                                            color: Color(0xFF3D8BEA),
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -513,7 +752,7 @@ class _BodyState extends State<Body> {
                       await refreshPage();
                     },
                     child: Text(
-                      "Give Product Review",
+                      "Write a Review",
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
