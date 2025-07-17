@@ -27,12 +27,15 @@ class ProductReviewsSection extends ConsumerWidget {
             key: const Key('top_rounded_container'),
             child: Column(
               children: [
-                Text(
-                  "Product Reviews",
-                  style: TextStyle(
-                    fontSize: 21,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Product Reviews",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 SizedBox(height: getProportionateScreenHeight(20)),
@@ -100,9 +103,7 @@ class ProductReviewsSection extends ConsumerWidget {
               ],
             ),
           ),
-          Align(
-            alignment: Alignment.topCenter,
-          ),
+          Align(alignment: Alignment.topCenter),
         ],
       ),
     );
