@@ -37,7 +37,10 @@ class _ReviewBoxState extends State<ReviewBox> {
     String? avatar;
     String? name;
     // Fetch user avatar and name from Firestore
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserId)
+        .get();
     final userData = userDoc.data();
     if (userData != null) {
       avatar = userData['display_picture'] ?? null;
@@ -256,11 +259,18 @@ class _ReviewBoxState extends State<ReviewBox> {
                       children: [
                         CircleAvatar(
                           radius: 14,
-                          backgroundImage: (reply['userAvatar'] == null || reply['userAvatar'].isEmpty)
+                          backgroundImage:
+                              (reply['userAvatar'] == null ||
+                                  reply['userAvatar'].isEmpty)
                               ? AssetImage('assets/images/default_avatar.png')
-                              : (reply['userAvatar'].toString().startsWith('http')
-                                  ? NetworkImage(reply['userAvatar'])
-                                  : AssetImage('assets/images/default_avatar.png')) as ImageProvider,
+                              : (reply['userAvatar'].toString().startsWith(
+                                          'http',
+                                        )
+                                        ? NetworkImage(reply['userAvatar'])
+                                        : AssetImage(
+                                            'assets/images/default_avatar.png',
+                                          ))
+                                    as ImageProvider,
                         ),
                         SizedBox(width: 8),
                         Expanded(
@@ -269,13 +279,19 @@ class _ReviewBoxState extends State<ReviewBox> {
                               color: Colors.grey[100],
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   reply['userName'] ?? 'User',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
                                 ),
                                 SizedBox(height: 2),
                                 Text(
