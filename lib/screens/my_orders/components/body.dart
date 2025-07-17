@@ -4,6 +4,7 @@ import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/models/OrderedProduct.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/models/Review.dart';
+import 'package:nexoeshopee/models/Address.dart';
 import 'package:nexoeshopee/screens/my_orders/components/product_review_dialog.dart';
 import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
@@ -15,6 +16,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
+// ...existing code...
+
 class Body extends StatefulWidget {
   const Body({super.key});
 
@@ -23,6 +26,8 @@ class Body extends StatefulWidget {
 }
 
 class _BodyState extends State<Body> {
+  List<String> _addresses = [];
+  String? _selectedAddressId;
   late final String currentUserUid;
   final HiveService _hiveService = HiveService.instance;
 
@@ -32,9 +37,25 @@ class _BodyState extends State<Body> {
   final List<OrderedProduct> _allOrders = [];
 
   @override
+  @override
   void initState() {
     super.initState();
     _initializeUser();
+    _fetchAddresses();
+  }
+
+  Future<void> _fetchAddresses() async {
+    try {
+      final addresses = await UserDatabaseHelper().addressesList;
+      setState(() {
+        _addresses = addresses;
+        if (_addresses.isNotEmpty) {
+          _selectedAddressId = _addresses.first;
+        }
+      });
+    } catch (e) {
+      Logger().e('Error fetching addresses: $e');
+    }
   }
 
   void _initializeUser() {
@@ -124,6 +145,75 @@ class _BodyState extends State<Body> {
               child: Column(
                 children: [
                   SizedBox(height: getProportionateScreenHeight(10)),
+                  // Address selector
+                  if (_addresses.length > 1)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedAddressId,
+                          icon: Icon(Icons.keyboard_arrow_down, color: Colors.black),
+                          isExpanded: true,
+                          items: _addresses.map((addressId) {
+                            return DropdownMenuItem<String>(
+                              value: addressId,
+                              child: FutureBuilder<Address>(
+                                future: UserDatabaseHelper().getAddressFromId(addressId),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData && snapshot.data != null) {
+                                    final address = snapshot.data!;
+                                    return Text(address.title ?? address.addressLine1 ?? addressId, overflow: TextOverflow.ellipsis);
+                                  }
+                                  return Text(addressId, overflow: TextOverflow.ellipsis);
+                                },
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedAddressId = value;
+                            });
+                          },
+                        ),
+                      ),
+                    )
+                  else if (_addresses.length == 1)
+                    FutureBuilder<Address>(
+                      future: UserDatabaseHelper().getAddressFromId(_addresses.first),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData && snapshot.data != null) {
+                          final address = snapshot.data!;
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            child: Text(address.title ?? address.addressLine1 ?? _addresses.first, style: TextStyle(fontWeight: FontWeight.bold)),
+                          );
+                        }
+                        return SizedBox.shrink();
+                      },
+                    ),
+                  SizedBox(height: getProportionateScreenHeight(10)),
                   Text("Your Orders", style: headingStyle),
                   SizedBox(height: getProportionateScreenHeight(20)),
                   SizedBox(
@@ -195,11 +285,18 @@ class _BodyState extends State<Body> {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          final orderedProductsDocs = snapshot.data!.docs;
+          var orderedProductsDocs = snapshot.data!.docs;
 
-          // Debug: Print the number of orders found
+          // Filter by selected address
+          if (_selectedAddressId != null) {
+            orderedProductsDocs = orderedProductsDocs.where((doc) {
+              final addressId = doc.data()['address_id'] as String?;
+              return addressId == _selectedAddressId;
+            }).toList();
+          }
+
           Logger().i(
-            'Found ${orderedProductsDocs.length} orders for user $currentUserUid',
+            'Found ${orderedProductsDocs.length} orders for user $currentUserUid and address $_selectedAddressId',
           );
 
           if (orderedProductsDocs.isEmpty) {
@@ -239,7 +336,6 @@ class _BodyState extends State<Body> {
                   id: orderedProductDoc.id,
                 );
 
-                // Debug: Print order details
                 Logger().i(
                   'Order ${index + 1}: ${orderedProduct.productUid} - ${orderedProduct.orderDate}',
                 );
