@@ -10,6 +10,7 @@ import 'package:nexoeshopee/models/Address.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/screens/cart/components/checkout_card.dart';
 import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
+import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/size_config.dart';
@@ -431,65 +432,62 @@ class _BodyState extends ConsumerState<Body> {
     if (confirmation == false) {
       return;
     }
-    final orderFuture = UserDatabaseHelper().emptyCart();
-    orderFuture
-        .then((orderedProductsUid) async {
-          print(orderedProductsUid);
-          final dateTime = DateTime.now();
-          final formatedDateTime =
-              "${dateTime.day}-${dateTime.month}-${dateTime.year}";
-          List<OrderedProduct> orderedProducts = orderedProductsUid
-              .map(
-                (e) => OrderedProduct(
-                  '',
-                  productUid: e,
-                  orderDate: formatedDateTime,
-                  addressId: _selectedAddressId,
-                ),
-              )
-              .toList();
-          bool addedProductsToMyProducts = false;
-          String snackbarmMessage = "Something went wrong";
-          try {
-            addedProductsToMyProducts = await UserDatabaseHelper()
-                .addToMyOrders(orderedProducts);
-            if (addedProductsToMyProducts) {
-              snackbarmMessage = "Products ordered Successfully";
-            } else {
-              throw "Could not order products due to unknown issue";
-            }
-          } on FirebaseException catch (e) {
-            Logger().e(e.toString());
-            snackbarmMessage = e.toString();
-          } catch (e) {
-            Logger().e(e.toString());
-            snackbarmMessage = e.toString();
-          } finally {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(snackbarmMessage)));
-          }
-          await showDialog(
-            context: context,
-            builder: (context) {
-              return AsyncProgressDialog(
-                orderFuture,
-                message: Text("Placing the Order"),
-              );
-            },
-          );
-        })
-        .catchError((e) {
-          Logger().e(e.toString());
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Something went wrong")));
-        });
+
+    // Fetch all cart items with their quantity BEFORE deleting
+    String uid = AuthentificationService().currentUser.uid;
+    final cartSnapshot = await FirebaseFirestore.instance
+        .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+        .doc(uid)
+        .collection(UserDatabaseHelper.CART_COLLECTION_NAME)
+        .get();
+
+    final dateTime = DateTime.now();
+    final isoDateTime = dateTime.toIso8601String();
+    List<OrderedProduct> orderedProducts = [];
+    for (final doc in cartSnapshot.docs) {
+      final productId = doc.id;
+      final data = doc.data();
+      final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
+      orderedProducts.add(
+        OrderedProduct(
+          '',
+          productUid: productId,
+          orderDate: isoDateTime,
+          addressId: _selectedAddressId,
+          quantity: quantity,
+        ),
+      );
+    }
+
+    // Now delete all cart items
+    for (final doc in cartSnapshot.docs) {
+      await doc.reference.delete();
+    }
+
+    String snackbarmMessage = "Something went wrong";
+    try {
+      final addedProductsToMyProducts = await UserDatabaseHelper()
+          .addToMyOrders(orderedProducts);
+      if (addedProductsToMyProducts) {
+        snackbarmMessage = "Products ordered Successfully";
+      } else {
+        throw "Could not order products due to unknown issue";
+      }
+    } on FirebaseException catch (e) {
+      Logger().e(e.toString());
+      snackbarmMessage = e.toString();
+    } catch (e) {
+      Logger().e(e.toString());
+      snackbarmMessage = e.toString();
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(snackbarmMessage)));
     await showDialog(
       context: context,
       builder: (context) {
         return AsyncProgressDialog(
-          orderFuture,
+          Future.value(true),
           message: Text("Placing the Order"),
         );
       },
