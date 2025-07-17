@@ -6,6 +6,7 @@ import 'package:nexoeshopee/components/product_short_detail_card.dart';
 import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/models/CartItem.dart';
 import 'package:nexoeshopee/models/OrderedProduct.dart';
+import 'package:nexoeshopee/models/Address.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/screens/cart/components/checkout_card.dart';
 import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
@@ -26,6 +27,28 @@ class Body extends ConsumerStatefulWidget {
 }
 
 class _BodyState extends ConsumerState<Body> {
+  List<String> _addresses = [];
+  String? _selectedAddressId;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAddresses();
+  }
+
+  Future<void> _fetchAddresses() async {
+    try {
+      final addresses = await UserDatabaseHelper().addressesList;
+      setState(() {
+        _addresses = addresses;
+        if (_addresses.isNotEmpty) {
+          _selectedAddressId = _addresses.first;
+        }
+      });
+    } catch (e) {
+      Logger().e('Error fetching addresses: $e');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -38,6 +61,75 @@ class _BodyState extends ConsumerState<Body> {
             SizedBox(height: getProportionateScreenHeight(10)),
             Text("Your Cart", style: headingStyle),
             SizedBox(height: getProportionateScreenHeight(20)),
+            // Address selector
+            if (_addresses.length > 1)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedAddressId,
+                    icon: Icon(Icons.keyboard_arrow_down, color: Colors.black),
+                    isExpanded: true,
+                    items: _addresses.map((addressId) {
+                      return DropdownMenuItem<String>(
+                        value: addressId,
+                        child: FutureBuilder<Address>(
+                          future: UserDatabaseHelper().getAddressFromId(addressId),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData && snapshot.data != null) {
+                              final address = snapshot.data!;
+                              return Text(address.title ?? address.addressLine1 ?? addressId, overflow: TextOverflow.ellipsis);
+                            }
+                            return Text(addressId, overflow: TextOverflow.ellipsis);
+                          },
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedAddressId = value;
+                      });
+                    },
+                  ),
+                ),
+              )
+            else if (_addresses.length == 1)
+              FutureBuilder<Address>(
+                future: UserDatabaseHelper().getAddressFromId(_addresses.first),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data != null) {
+                    final address = snapshot.data!;
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Text(address.title ?? address.addressLine1 ?? _addresses.first, style: TextStyle(fontWeight: FontWeight.bold)),
+                    );
+                  }
+                  return SizedBox.shrink();
+                },
+              ),
+            SizedBox(height: getProportionateScreenHeight(10)),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: refreshPage,
@@ -333,6 +425,7 @@ class _BodyState extends ConsumerState<Body> {
                   '',
                   productUid: e,
                   orderDate: formatedDateTime,
+                  addressId: _selectedAddressId,
                 ),
               )
               .toList();
