@@ -29,6 +29,211 @@ class Body extends ConsumerStatefulWidget {
 }
 
 class _BodyState extends ConsumerState<Body> {
+  List<Map<String, String>> savedCards = [];
+  String? selectedUpiApp;
+  bool showQrDialog = false;
+
+  void showAddCardDialog(BuildContext context) {
+    final cardNumberController = TextEditingController();
+    final expiryController = TextEditingController();
+    final cvvController = TextEditingController();
+    final nameController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Add Card',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                    color: kPrimaryColor,
+                  ),
+                ),
+                SizedBox(height: 24),
+                TextField(
+                  controller: cardNumberController,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.credit_card, color: kPrimaryColor),
+                    labelText: 'Card Number',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                  ),
+                  keyboardType: TextInputType.number,
+                  maxLength: 16,
+                ),
+                SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: expiryController,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.calendar_today,
+                            color: kPrimaryColor,
+                          ),
+                          labelText: 'Expiry (MM/YY)',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                        ),
+                        keyboardType: TextInputType.datetime,
+                        maxLength: 5,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: cvvController,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(Icons.lock, color: kPrimaryColor),
+                          labelText: 'CVV',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                        ),
+                        keyboardType: TextInputType.number,
+                        maxLength: 3,
+                        obscureText: true,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.person, color: kPrimaryColor),
+                    labelText: 'Name on Card',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                  ),
+                ),
+                SizedBox(height: 28),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: kPrimaryColor),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: kPrimaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 14,
+                        ),
+                      ),
+                      child: Text(
+                        'Save',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          savedCards.add({
+                            'number': cardNumberController.text,
+                            'expiry': expiryController.text,
+                            'cvv': cvvController.text,
+                            'name': nameController.text,
+                          });
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void showQrPaymentDialog(BuildContext context) {
+    int secondsLeft = 300;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            if (secondsLeft > 0) {
+              Future.delayed(Duration(seconds: 1), () {
+                setState(() {
+                  secondsLeft--;
+                });
+              });
+            }
+            return AlertDialog(
+              title: Text('Scan & Pay'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Placeholder for QR code
+                  Container(
+                    width: 180,
+                    height: 180,
+                    color: Colors.grey[200],
+                    child: Center(
+                      child: Text('QR Code Here'),
+                    ), // Replace with actual QR code widget
+                  ),
+                  SizedBox(height: 16),
+                  Text('Scan this QR code with your UPI app to pay.'),
+                  SizedBox(height: 8),
+                  Text(
+                    'Expires in: ${Duration(seconds: secondsLeft).inMinutes}:${(secondsLeft % 60).toString().padLeft(2, '0')}',
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   List<String> _addresses = [];
   String? _selectedAddressId;
 
@@ -404,22 +609,97 @@ class _BodyState extends ConsumerState<Body> {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   SizedBox(height: 10),
-                  paymentMethodTile(
-                    Icons.credit_card,
-                    "Visa",
-                    "xxxx xxxx xxxx xxxx",
+                  // Card Payment
+                  ...savedCards.map(
+                    (card) => paymentMethodTile(
+                      Icons.credit_card,
+                      "${card['name'] ?? 'Card'}",
+                      "**** **** **** ${card['number']?.substring(card['number']!.length - 4)}",
+                    ),
                   ),
-                  paymentMethodTile(
-                    Icons.credit_card,
-                    "Mastercard",
-                    "xxxx xxxx xxxx xxxx",
+                  InkWell(
+                    onTap: () => showAddCardDialog(context),
+                    child: paymentMethodTile(Icons.add_card, "Add Card", null),
                   ),
-                  paymentMethodTile(
-                    Icons.account_balance_wallet,
-                    "UPI Pay",
-                    null,
+                  // UPI Apps
+                  Text(
+                    "UPI Apps",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
-                  paymentMethodTile(Icons.qr_code, "Scan & Pay", null),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      InkWell(
+                        onTap: () => setState(() => selectedUpiApp = 'gpay'),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: selectedUpiApp == 'gpay'
+                                  ? kPrimaryColor
+                                  : Colors.grey[300]!,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Image.asset(
+                            'assets/icons/gpay.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      InkWell(
+                        onTap: () => setState(() => selectedUpiApp = 'phonepe'),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: selectedUpiApp == 'phonepe'
+                                  ? kPrimaryColor
+                                  : Colors.grey[300]!,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Image.asset(
+                            'assets/icons/phonepe.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      InkWell(
+                        onTap: () => setState(() => selectedUpiApp = 'paytm'),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: selectedUpiApp == 'paytm'
+                                  ? kPrimaryColor
+                                  : Colors.grey[300]!,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Image.asset(
+                            'assets/icons/paytm.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  // Scan & Pay
+                  InkWell(
+                    onTap: () => showQrPaymentDialog(context),
+                    child: paymentMethodTile(
+                      Icons.qr_code,
+                      "Scan & Pay",
+                      "Generate QR for payment",
+                    ),
+                  ),
                   SizedBox(height: 20),
                   // Total Amount & Checkout
                   Row(
