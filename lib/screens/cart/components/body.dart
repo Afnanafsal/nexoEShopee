@@ -9,7 +9,7 @@ import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/components/default_button.dart';
+
 import 'package:nexoeshopee/components/nothingtoshow_container.dart';
 import 'package:nexoeshopee/components/product_short_detail_card.dart';
 import 'package:nexoeshopee/constants.dart';
@@ -245,7 +245,7 @@ class _BodyState extends ConsumerState<Body> {
     double totalAmount = 0;
     final cartItemsAsync = ref.read(cartItemsStreamProvider);
     if (cartItemsAsync.hasValue) {
-      final cartItemsId = cartItemsAsync.value ?? [];
+
       // Fetch product prices synchronously is not possible, so pass total from UI
       // Instead, get the total from the last buildCartItemsList calculation
       // We'll use a workaround: store the last total in a variable
@@ -512,16 +512,16 @@ class _BodyState extends ConsumerState<Body> {
             Future.wait(
               cartItemsId.map(
                 (id) {
-                  Logger().i('Fetching product for cart item: $id');
-                  return ProductDatabaseHelper().getProductWithID(id);
+                  Logger().i('Fetching cart item details for: $id');
+                  return UserDatabaseHelper().getCartItemFromId(id);
                 },
               ),
             ),
             Future.wait(
               cartItemsId.map(
                 (id) {
-                  Logger().i('Fetching cart item details for: $id');
-                  return UserDatabaseHelper().getCartItemFromId(id);
+                  Logger().i('Fetching product for cart item: $id');
+                  return ProductDatabaseHelper().getProductWithID(id);
                 },
               ),
             ),
@@ -530,14 +530,15 @@ class _BodyState extends ConsumerState<Body> {
             double totalPrice = 0;
             List<Widget> cartCards = [];
             if (snapshot.hasData) {
-              final products = snapshot.data![0] as List<Product?>;
-              final cartItems = snapshot.data![1] as List<CartItem?>;
-              Logger().i('Fetched products: $products');
+              final cartItems = snapshot.data![0] as List<CartItem?>;
+              final products = snapshot.data![1] as List<Product?>;
               Logger().i('Fetched cartItems: $cartItems');
+              Logger().i('Fetched products: $products');
               for (int i = 0; i < cartItemsId.length; i++) {
-                final product = products[i];
                 final cartItem = cartItems[i];
-                if (product != null && cartItem != null) {
+                final product = products[i];
+                // Show cart items for selected address, and also items with no addressId (legacy)
+                if (cartItem != null && product != null && (cartItem.addressId == _selectedAddressId || cartItem.addressId == null)) {
                   final price = product.discountPrice ?? product.originalPrice ?? 0;
                   totalPrice += price * (cartItem.itemCount);
                   cartCards.add(
@@ -674,8 +675,6 @@ class _BodyState extends ConsumerState<Body> {
                       ),
                     ),
                   );
-                } else {
-                  Logger().w('Product or cartItem is null for index $i: product=$product, cartItem=$cartItem');
                 }
               }
             } else {
@@ -1138,12 +1137,13 @@ class _BodyState extends ConsumerState<Body> {
       return;
     }
 
-    // Fetch all cart items with their quantity BEFORE deleting
+    // Fetch only cart items for the selected address BEFORE deleting
     String uid = AuthentificationService().currentUser.uid;
     final cartSnapshot = await FirebaseFirestore.instance
         .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
         .doc(uid)
         .collection(UserDatabaseHelper.CART_COLLECTION_NAME)
+        .where('address_id', isEqualTo: _selectedAddressId)
         .get();
 
     final dateTime = DateTime.now();
@@ -1164,7 +1164,7 @@ class _BodyState extends ConsumerState<Body> {
       );
     }
 
-    // Now delete all cart items
+    // Now delete only cart items for the selected address
     for (final doc in cartSnapshot.docs) {
       await doc.reference.delete();
     }

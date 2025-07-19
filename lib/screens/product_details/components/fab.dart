@@ -1,4 +1,6 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexoeshopee/components/async_progress_dialog.dart';
+import 'package:nexoeshopee/providers/user_providers.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -8,16 +10,17 @@ import 'package:logger/logger.dart';
 
 import '../../../utils.dart';
 
-class AddToCartFAB extends StatelessWidget {
+class AddToCartFAB extends ConsumerWidget {
   const AddToCartFAB({
-    required Key key,
+    required this.key,
     required this.productId,
   }) : super(key: key);
 
+  final Key key;
   final String productId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return FloatingActionButton.extended(
       onPressed: () async {
         bool allowed = AuthentificationService().currentUserVerified;
@@ -44,10 +47,17 @@ class AddToCartFAB extends StatelessWidget {
         bool addedSuccessfully = false;
         String snackbarMessage = "";
         try {
+          final selectedAddressId = ref.read(selectedAddressIdProvider);
           addedSuccessfully =
-              await UserDatabaseHelper().addProductToCart(productId);
+              await UserDatabaseHelper().addProductToCart(productId, addressId: selectedAddressId);
           if (addedSuccessfully == true) {
-            snackbarMessage = "Product added successfully";
+            String addressMsg = "";
+            if (selectedAddressId != null) {
+              addressMsg = " for address: $selectedAddressId";
+            } else {
+              addressMsg = " (no address selected)";
+            }
+            snackbarMessage = "Product added successfully" + addressMsg;
           } else {
             throw "Coulnd't add product due to unknown reason";
           }
@@ -68,12 +78,12 @@ class AddToCartFAB extends StatelessWidget {
       },
       label: Text(
         "Add to Cart",
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 16,
         ),
       ),
-      icon: Icon(
+      icon: const Icon(
         Icons.shopping_cart,
       ),
     );

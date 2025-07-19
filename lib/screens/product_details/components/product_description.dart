@@ -73,7 +73,10 @@ class _ProductDescriptionState extends State<ProductDescription> {
     }
     String snackbarMessage = "";
     // Prepare all add requests before dialog for speed
-    final addFutures = List.generate(cartCount, (_) => UserDatabaseHelper().addProductToCart(widget.product.id));
+    // TODO: Get selected addressId from context or state
+    String? selectedAddressId;
+    // Example: selectedAddressId = ...; // Get from address selector or provider
+    final addFutures = List.generate(cartCount, (_) => UserDatabaseHelper().addProductToCart(widget.product.id, addressId: selectedAddressId));
     Logger().i('Attempting to add product to cart: id=${widget.product.id}, count=$cartCount');
     bool allAdded = true;
     await showDialog(
