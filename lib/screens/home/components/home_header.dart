@@ -3,6 +3,8 @@ import 'package:nexoeshopee/components/search_field.dart';
 import 'package:flutter/material.dart';
 
 import '../../../components/icon_button_with_counter.dart';
+import 'package:nexoeshopee/screens/home/components/delivery_address_bar.dart';
+import 'package:nexoeshopee/screens/search/search_screen.dart';
 
 class HomeHeader extends StatelessWidget {
   final ValueChanged<String> onSearchSubmitted;
@@ -15,27 +17,29 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        RoundedIconButton(
-            iconData: Icons.menu,
-            press: () {
-              Scaffold.of(context).openDrawer();
-            }),
-        Expanded(
-          child: SearchField(
-            onSubmit: onSearchSubmitted,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(child: DeliveryAddressBar()),
+          SizedBox(width: 8),
+          Material(
+            color: Colors.white,
+            shape: const CircleBorder(),
+            elevation: 2,
+            child: IconButton(
+              icon: Icon(Icons.search, color: Colors.black),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SearchScreen()),
+                );
+              },
+            ),
           ),
-        ),
-        SizedBox(width: 5),
-        IconButtonWithCounter(
-          key: const Key('cart_button'),
-          svgSrc: "assets/icons/Cart Icon.svg",
-          numOfItems: 0,
-          press: onCartButtonPressed,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

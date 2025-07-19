@@ -72,7 +72,6 @@ class Body extends ConsumerWidget {
         onRefresh: () => refreshPage(ref),
         child: Column(
           children: [
-            DeliveryAddressBar(),
             Expanded(
               child: SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),
