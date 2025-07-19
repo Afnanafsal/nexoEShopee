@@ -71,16 +71,24 @@ class _ProductDescriptionState extends State<ProductDescription> {
       }
       return;
     }
-    bool addedSuccessfully = false;
     String snackbarMessage = "";
+    // Prepare all add requests before dialog for speed
+    final addFutures = List.generate(cartCount, (_) => UserDatabaseHelper().addProductToCart(widget.product.id));
+    Logger().i('Attempting to add product to cart: id=${widget.product.id}, count=$cartCount');
+    bool allAdded = true;
+    await showDialog(
+      context: context,
+      builder: (context) => AsyncProgressDialog(
+        Future.wait(addFutures),
+        message: const Text("Adding product(s) to cart..."),
+      ),
+    );
     try {
-      for (int i = 0; i < cartCount; i++) {
-        addedSuccessfully = await UserDatabaseHelper().addProductToCart(
-          widget.product.id,
-        );
-        if (!addedSuccessfully) {
-          throw "Couldn't add product due to unknown reason";
-        }
+      final results = await Future.wait(addFutures);
+      Logger().i('Cart add results: $results');
+      allAdded = results.every((r) => r);
+      if (!allAdded) {
+        throw "Couldn't add product due to unknown reason";
       }
       snackbarMessage = "Product added successfully";
     } on FirebaseException catch (e) {
@@ -91,9 +99,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
       snackbarMessage = "Something went wrong";
     } finally {
       Logger().i(snackbarMessage);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(snackbarMessage)));
     }
   }
 
