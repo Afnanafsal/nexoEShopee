@@ -21,6 +21,7 @@ import 'package:logger/logger.dart';
 import 'package:nexoeshopee/providers/user_providers.dart';
 
 import '../../../utils.dart';
+import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 
 class Body extends ConsumerStatefulWidget {
   @override
@@ -40,12 +41,14 @@ class _BodyState extends ConsumerState<Body> {
   Future<void> _fetchAddresses() async {
     try {
       final addresses = await UserDatabaseHelper().addressesList;
-      setState(() {
-        _addresses = addresses;
-        if (_addresses.isNotEmpty) {
-          _selectedAddressId = _addresses.first;
-        }
-      });
+      if (mounted) {
+        setState(() {
+          _addresses = addresses;
+          if (_addresses.isNotEmpty) {
+            _selectedAddressId = _addresses.first;
+          }
+        });
+      }
     } catch (e) {
       Logger().e('Error fetching addresses: $e');
     }
@@ -167,6 +170,44 @@ class _BodyState extends ConsumerState<Body> {
     return Future<void>.value();
   }
 
+  // Move paymentMethodTile above buildCartItemsList
+  Widget paymentMethodTile(IconData icon, String title, String? subtitle) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 1)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: kPrimaryColor, size: 28),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                  ),
+              ],
+            ),
+          ),
+          Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
+        ],
+      ),
+    );
+  }
+
   Widget buildCartItemsList() {
     final cartItemsAsync = ref.watch(cartItemsStreamProvider);
 
@@ -184,31 +225,344 @@ class _BodyState extends ConsumerState<Body> {
           );
         }
 
-        return Column(
-          children: [
-            DefaultButton(
-              text: "Proceed to Payment",
-              press: showCheckoutBottomSheet,
-            ),
-            SizedBox(height: getProportionateScreenHeight(20)),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                physics: BouncingScrollPhysics(),
-                itemCount: cartItemsId.length,
-                itemBuilder: (context, index) {
-                  if (index >= cartItemsId.length) {
-                    return SizedBox(height: getProportionateScreenHeight(80));
-                  }
-                  return buildCartItemDismissible(
-                    context,
-                    cartItemsId[index],
-                    index,
-                  );
-                },
+        // Calculate total price using both Product and CartItem
+        return FutureBuilder<List<dynamic>>(
+          future: Future.wait([
+            Future.wait(
+              cartItemsId.map(
+                (id) => ProductDatabaseHelper().getProductWithID(id),
               ),
             ),
-          ],
+            Future.wait(
+              cartItemsId.map(
+                (id) => UserDatabaseHelper().getCartItemFromId(id),
+              ),
+            ),
+          ]),
+          builder: (context, snapshot) {
+            double totalPrice = 0;
+            List<Widget> cartCards = [];
+            if (snapshot.hasData) {
+              final products = snapshot.data![0] as List<Product?>;
+              final cartItems = snapshot.data![1] as List<CartItem?>;
+              for (int i = 0; i < cartItemsId.length; i++) {
+                final product = products[i];
+                final cartItem = cartItems[i];
+                if (product != null && cartItem != null) {
+                  final price =
+                      product.discountPrice ?? product.originalPrice ?? 0;
+                  totalPrice += price * (cartItem.itemCount);
+                  cartCards.add(
+                    Container(
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            clipBehavior: Clip.hardEdge,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child:
+                                (product.images != null &&
+                                    product.images!.isNotEmpty)
+                                ? Base64ImageService().base64ToImage(
+                                    product.images!.first,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Icon(
+                                    Icons.image_not_supported,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  ),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product.title ?? "Product",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                if (product.description != null)
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      product.description!,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[700],
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Text(
+                                      "₹${price.toStringAsFixed(2)}",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: kPrimaryColor,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    if (product.originalPrice != null &&
+                                        product.discountPrice != null &&
+                                        product.originalPrice !=
+                                            product.discountPrice)
+                                      Text(
+                                        "₹${product.originalPrice}",
+                                        style: TextStyle(
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Column(
+                            children: [
+                              InkWell(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: kPrimaryColor.withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(Icons.add, color: kPrimaryColor),
+                                ),
+                                onTap: () async {
+                                  await arrowUpCallback(cartItemsId[i]);
+                                },
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "${cartItem.itemCount}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: kPrimaryColor,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              InkWell(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: kPrimaryColor.withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.remove,
+                                    color: kPrimaryColor,
+                                  ),
+                                ),
+                                onTap: () async {
+                                  await arrowDownCallback(cartItemsId[i]);
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+              }
+            }
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...cartCards,
+                  SizedBox(height: 20),
+                  // Payment Methods Section
+                  Text(
+                    "Payment Methods",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  SizedBox(height: 10),
+                  paymentMethodTile(
+                    Icons.credit_card,
+                    "Visa",
+                    "xxxx xxxx xxxx xxxx",
+                  ),
+                  paymentMethodTile(
+                    Icons.credit_card,
+                    "Mastercard",
+                    "xxxx xxxx xxxx xxxx",
+                  ),
+                  paymentMethodTile(
+                    Icons.account_balance_wallet,
+                    "UPI Pay",
+                    null,
+                  ),
+                  paymentMethodTile(Icons.qr_code, "Scan & Pay", null),
+                  SizedBox(height: 20),
+                  // Total Amount & Checkout
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Total Amount",
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                "₹${totalPrice.toStringAsFixed(0)}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24,
+                                  color: kPrimaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPrimaryColor,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 18,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: showCheckoutBottomSheet,
+                        child: Text(
+                          "Checkout",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  // Address Card
+                  FutureBuilder<Address?>(
+                    future: _selectedAddressId != null
+                        ? UserDatabaseHelper().getAddressFromId(
+                            _selectedAddressId!,
+                          )
+                        : null,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data != null) {
+                        final address = snapshot.data!;
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          padding: EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Delivery to",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      "${address.title ?? ''}, ${address.addressLine1 ?? ''}\n${address.addressLine2 ?? ''}\n${address.city ?? ''}, ${address.state ?? ''}\nPhone: ${address.phone ?? ''}",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.map,
+                                  color: kPrimaryColor,
+                                  size: 32,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        return SizedBox.shrink();
+                      }
+                    },
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
         );
       },
       loading: () => Center(child: CircularProgressIndicator()),
@@ -309,8 +663,9 @@ class _BodyState extends ConsumerState<Body> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Show product image from Firestore
                 Expanded(
-                  flex: 8,
+                  flex: 7,
                   child: ProductShortDetailCard(
                     productId: product.id,
                     onPressed: () {
