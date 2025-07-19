@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/components/product_card.dart';
 import 'package:nexoeshopee/components/search_field.dart';
 import 'package:nexoeshopee/components/nothingtoshow_container.dart';
+import 'package:nexoeshopee/providers/providers.dart';
+import 'package:nexoeshopee/providers/providers.dart'; // Ensure cartProvider is imported
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -29,9 +34,23 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       isLoading = true;
     });
-    final orderedIds = await UserDatabaseHelper().orderedProductsList;
+    // Fetch ordered product documents from Firestore
+    final uid = UserDatabaseHelper().firestore
+        .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+        .doc(AuthentificationService().currentUser.uid);
+    final snapshot = await uid
+        .collection(UserDatabaseHelper.ORDERED_PRODUCTS_COLLECTION_NAME)
+        .get();
+    // Extract product_uid from each order
+    final List<String> productUids = [];
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      if (data.containsKey('product_uid') && data['product_uid'] != null) {
+        productUids.add(data['product_uid'] as String);
+      }
+    }
     final Map<String, int> countMap = {};
-    for (final id in orderedIds) {
+    for (final id in productUids) {
       countMap[id] = (countMap[id] ?? 0) + 1;
     }
     // Sort by count descending
@@ -63,6 +82,21 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       searchResults = products;
       isLoading = false;
+    });
+  }
+
+  void addToCart(BuildContext context, String productId) {
+    String? selectedAddressId;
+    try {
+      final container = ProviderScope.containerOf(context);
+      selectedAddressId = container.read(selectedAddressIdProvider);
+    } catch (_) {}
+    UserDatabaseHelper().addProductToCart(productId, addressId: selectedAddressId).then((success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? 'Added to cart' : 'Failed to add to cart'),
+        ),
+      );
     });
   }
 
@@ -99,11 +133,42 @@ class _SearchScreenState extends State<SearchScreen> {
                         itemCount: frequentlyBoughtProducts.length,
                         itemBuilder: (context, index) {
                           final product = frequentlyBoughtProducts[index];
-                          return ProductCard(
-                            productId: product.id,
-                            press: () {
-                              // Navigate to product details
-                            },
+                          return Stack(
+                            children: [
+                              ProductCard(
+                                productId: product.id,
+                                press: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => ProductDetailsScreen(key: Key(product.id), productId: product.id),
+                                    ),
+                                  );
+                                },
+                              ),
+                              Positioned(
+                                bottom: 16,
+                                right: 16,
+                                child: Material(
+                                  color: Colors.white,
+                                  shape: const CircleBorder(),
+                                  elevation: 2,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(24),
+                                    onTap: () {
+                                      addToCart(context, product.id);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Icon(
+                                        Icons.add,
+                                        size: 24,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           );
                         },
                       ),
@@ -124,11 +189,42 @@ class _SearchScreenState extends State<SearchScreen> {
                         itemCount: searchResults.length,
                         itemBuilder: (context, index) {
                           final product = searchResults[index];
-                          return ProductCard(
-                            productId: product.id,
-                            press: () {
-                              // Navigate to product details
-                            },
+                          return Stack(
+                            children: [
+                              ProductCard(
+                                productId: product.id,
+                                press: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => ProductDetailsScreen(key: Key(product.id), productId: product.id),
+                                    ),
+                                  );
+                                },
+                              ),
+                              Positioned(
+                                bottom: 16,
+                                right: 16,
+                                child: Material(
+                                  color: Colors.white,
+                                  shape: const CircleBorder(),
+                                  elevation: 2,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(24),
+                                    onTap: () {
+                                      addToCart(context, product.id);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Icon(
+                                        Icons.add,
+                                        size: 24,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           );
                         },
                       ),
