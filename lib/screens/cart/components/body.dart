@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:nexoeshopee/components/async_progress_dialog.dart';
 import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/components/nothingtoshow_container.dart';
@@ -709,7 +710,10 @@ class _BodyState extends ConsumerState<Body> {
                             value: idx,
                             groupValue: selectedCardIndex,
                             onChanged: (val) {
-                              setState(() { selectedCardIndex = val; });
+                              setState(() {
+                                selectedCardIndex = val;
+                                selectedUpiApp = null;
+                              });
                             },
                             activeColor: kPrimaryColor,
                           ),
@@ -747,7 +751,10 @@ class _BodyState extends ConsumerState<Body> {
                   Row(
                     children: [
                       InkWell(
-                        onTap: () => setState(() => selectedUpiApp = 'gpay'),
+                        onTap: () => setState(() {
+                          selectedUpiApp = 'gpay';
+                          selectedCardIndex = null;
+                        }),
                         child: Container(
                           width: 48,
                           height: 48,
@@ -760,7 +767,10 @@ class _BodyState extends ConsumerState<Body> {
                       ),
                       SizedBox(width: 12),
                       InkWell(
-                        onTap: () => setState(() => selectedUpiApp = 'phonepe'),
+                        onTap: () => setState(() {
+                          selectedUpiApp = 'phonepe';
+                          selectedCardIndex = null;
+                        }),
                         child: Container(
                           width: 48,
                           height: 48,
@@ -773,7 +783,10 @@ class _BodyState extends ConsumerState<Body> {
                       ),
                       SizedBox(width: 12),
                       InkWell(
-                        onTap: () => setState(() => selectedUpiApp = 'paytm'),
+                        onTap: () => setState(() {
+                          selectedUpiApp = 'paytm';
+                          selectedCardIndex = null;
+                        }),
                         child: Container(
                           width: 48,
                           height: 48,
@@ -1101,6 +1114,22 @@ class _BodyState extends ConsumerState<Body> {
 
   Future<void> checkoutButtonCallback() async {
     shutBottomSheet();
+    // If UPI app is selected, launch UPI intent
+    if (selectedUpiApp != null) {
+      double amount = _lastCartTotal ?? 0;
+      String upiUrl = 'upi://pay?pa=afnnafsal@oksbi&pn=Afnan Afsal&am=${amount.toStringAsFixed(2)}&cu=INR';
+      // Use url_launcher to launch UPI intent
+      if (await canLaunchUrl(Uri.parse(upiUrl))) {
+        await launchUrl(Uri.parse(upiUrl), mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch UPI app')),
+        );
+      }
+      return;
+    }
+
+    // If card is selected, proceed with mock order
     final confirmation = await showConfirmationDialog(
       context,
       "This is just a Project Testing App so, no actual Payment Interface is available.\nDo you want to proceed for Mock Ordering of Products?",
