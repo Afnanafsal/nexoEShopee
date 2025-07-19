@@ -7,6 +7,7 @@ import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:nexoeshopee/components/async_progress_dialog.dart';
+import 'package:shimmer/shimmer.dart';
 
 import 'package:nexoeshopee/components/nothingtoshow_container.dart';
 import 'package:nexoeshopee/components/product_short_detail_card.dart';
@@ -438,21 +439,18 @@ class _BodyState extends ConsumerState<Body> {
                       return DropdownMenuItem<String>(
                         value: addressId,
                         child: FutureBuilder<Address>(
-                          future: UserDatabaseHelper().getAddressFromId(
-                            addressId,
-                          ),
+                          future: UserDatabaseHelper().getAddressFromId(addressId),
                           builder: (context, snapshot) {
                             if (snapshot.hasData && snapshot.data != null) {
                               final address = snapshot.data!;
                               return Text(
-                                address.title ??
-                                    address.addressLine1 ??
-                                    addressId,
+                                address.title ?? address.addressLine1 ?? '',
                                 overflow: TextOverflow.ellipsis,
                               );
                             }
+                            // While loading, show empty or loading text
                             return Text(
-                              addressId,
+                              '',
                               overflow: TextOverflow.ellipsis,
                             );
                           },
@@ -592,6 +590,63 @@ class _BodyState extends ConsumerState<Body> {
           builder: (context, snapshot) {
             double totalPrice = 0;
             List<Widget> cartCards = [];
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Show shimmer loading for cart items
+              return ListView.builder(
+                itemCount: 3,
+                itemBuilder: (context, index) {
+                  return Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 120,
+                                  height: 16,
+                                  color: Colors.grey[300],
+                                ),
+                                SizedBox(height: 8),
+                                Container(
+                                  width: 80,
+                                  height: 14,
+                                  color: Colors.grey[300],
+                                ),
+                                SizedBox(height: 8),
+                                Container(
+                                  width: 60,
+                                  height: 16,
+                                  color: Colors.grey[300],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }
             if (snapshot.hasData) {
               final cartItems = snapshot.data![0] as List<CartItem?>;
               final products = snapshot.data![1] as List<Product?>;

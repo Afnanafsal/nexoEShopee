@@ -52,6 +52,7 @@ dependencies:
   firebase_storage_web: ^3.10.16
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
