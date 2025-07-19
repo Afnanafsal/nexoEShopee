@@ -10,6 +10,7 @@ import 'package:nexoeshopee/providers/providers.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:logger/logger.dart';
 import '../../../utils.dart';
 import '../components/home_header.dart';
@@ -153,32 +154,27 @@ class Body extends ConsumerWidget {
                         height: SizeConfig.screenHeight * 0.1,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: ListView(
+                          child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             physics: BouncingScrollPhysics(),
-                            children: [
-                              ...List.generate(productCategories.length, (
-                                index,
-                              ) {
-                                return ProductTypeBox(
-                                  icon: productCategories[index][ICON_KEY],
-                                  title: productCategories[index][TITLE_KEY],
-                                  onPress: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            CategoryProductsScreen(
-                                              key: UniqueKey(),
-                                              productType:
-                                                  productCategories[index][PRODUCT_TYPE_KEY],
-                                            ),
+                            itemCount: productCategories.length,
+                            itemBuilder: (context, index) {
+                              return ProductTypeBox(
+                                icon: productCategories[index][ICON_KEY],
+                                title: productCategories[index][TITLE_KEY],
+                                onPress: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CategoryProductsScreen(
+                                        key: UniqueKey(),
+                                        productType: productCategories[index][PRODUCT_TYPE_KEY],
                                       ),
-                                    );
-                                  },
-                                );
-                              }),
-                            ],
+                                    ),
+                                  );
+                                },
+                              );
+                            },
                           ),
                         ),
                       ),
