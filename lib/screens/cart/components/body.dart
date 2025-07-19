@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:nexoeshopee/components/async_progress_dialog.dart';
 import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/components/nothingtoshow_container.dart';
@@ -54,15 +55,16 @@ class Body extends ConsumerStatefulWidget {
 }
 
 class _BodyState extends ConsumerState<Body> {
-  List<Map<String, String>> savedCards = [];
+  List<Map<String, dynamic>> savedCards = [];
   String? selectedUpiApp;
   bool showQrDialog = false;
+  int? selectedCardIndex;
 
-  void showAddCardDialog(BuildContext context) {
-    final cardNumberController = TextEditingController();
-    final expiryController = TextEditingController();
-    final cvvController = TextEditingController();
-    final nameController = TextEditingController();
+  void showAddCardDialog(BuildContext context, {Map<String, dynamic>? card, int? editIndex}) {
+    final cardNumberController = TextEditingController(text: card?['number'] ?? '');
+    final expiryController = TextEditingController(text: card?['expiry'] ?? '');
+    final cvvController = TextEditingController(text: card?['cvv'] ?? '');
+    final nameController = TextEditingController(text: card?['name'] ?? '');
     showDialog(
       context: context,
       builder: (context) {
@@ -77,7 +79,7 @@ class _BodyState extends ConsumerState<Body> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Add Card', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: kPrimaryColor)),
+                Text(editIndex == null ? 'Add Card' : 'Edit Card', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: kPrimaryColor)),
                 SizedBox(height: 24),
                 TextField(
                   controller: cardNumberController,
@@ -155,8 +157,8 @@ class _BodyState extends ConsumerState<Body> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                       ),
-                      child: Text('Save', style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white, fontSize: 16)),
-                      onPressed: () {
+                      child: Text(editIndex == null ? 'Save' : 'Update', style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white, fontSize: 16)),
+                      onPressed: () async {
                         final expiry = expiryController.text;
                         final valid = RegExp(r'^(0[1-9]|1[0-2])\/\d{2}$').hasMatch(expiry);
                         if (!valid) {
@@ -165,14 +167,13 @@ class _BodyState extends ConsumerState<Body> {
                           );
                           return;
                         }
-                        setState(() {
-                          savedCards.add({
-                            'number': cardNumberController.text,
-                            'expiry': expiryController.text,
-                            'cvv': cvvController.text,
-                            'name': nameController.text,
-                          });
-                        });
+                        final cardData = {
+                          'number': cardNumberController.text,
+                          'expiry': expiryController.text,
+                          'cvv': cvvController.text,
+                          'name': nameController.text,
+                        };
+                        await saveCardToFirestore(cardData, editIndex: editIndex);
                         Navigator.pop(context);
                       },
                     ),
@@ -186,8 +187,71 @@ class _BodyState extends ConsumerState<Body> {
     );
   }
 
+  Future<void> saveCardToFirestore(Map<String, dynamic> card, {int? editIndex}) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final cardsRef = FirebaseFirestore.instance.collection('users').doc(uid).collection('cards');
+    try {
+      if (editIndex == null) {
+        await cardsRef.add(card);
+      } else {
+        final cardId = savedCards[editIndex]['id'];
+        await cardsRef.doc(cardId).set(card);
+      }
+      await fetchCardsFromFirestore();
+    } catch (e) {
+      Logger().e('Error saving card: $e');
+    }
+  }
+
+  Future<void> fetchCardsFromFirestore() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final cardsRef = FirebaseFirestore.instance.collection('users').doc(uid).collection('cards');
+    try {
+      final snapshot = await cardsRef.get();
+      final cards = snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+      setState(() {
+        savedCards = cards;
+        if (savedCards.isNotEmpty) selectedCardIndex ??= 0;
+      });
+    } catch (e) {
+      Logger().e('Error fetching cards: $e');
+    }
+  }
+
+  Future<void> deleteCardFromFirestore(int index) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final cardId = savedCards[index]['id'];
+    final cardsRef = FirebaseFirestore.instance.collection('users').doc(uid).collection('cards');
+    try {
+      await cardsRef.doc(cardId).delete();
+      await fetchCardsFromFirestore();
+      if (selectedCardIndex == index) selectedCardIndex = null;
+    } catch (e) {
+      Logger().e('Error deleting card: $e');
+    }
+  }
+
   void showQrPaymentDialog(BuildContext context) {
     int secondsLeft = 300;
+    // Get the actual total from the UI (buildCartItemsList)
+    double totalAmount = 0;
+    final cartItemsAsync = ref.read(cartItemsStreamProvider);
+    if (cartItemsAsync.hasValue) {
+      final cartItemsId = cartItemsAsync.value ?? [];
+      // Fetch product prices synchronously is not possible, so pass total from UI
+      // Instead, get the total from the last buildCartItemsList calculation
+      // We'll use a workaround: store the last total in a variable
+      if (_lastCartTotal != null) {
+        totalAmount = _lastCartTotal!;
+      }
+    }
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -201,19 +265,22 @@ class _BodyState extends ConsumerState<Body> {
                 });
               });
             }
+            String upiUrl = 'upi://pay?pa=afnnafsal@oksbi&pn=Afnan Afsal&am=${totalAmount.toStringAsFixed(2)}&cu=INR';
             return AlertDialog(
               title: Text('Scan & Pay'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Placeholder for QR code
                   Container(
                     width: 180,
                     height: 180,
                     color: Colors.grey[200],
                     child: Center(
-                      child: Text('QR Code Here'),
-                    ), // Replace with actual QR code widget
+                      child: QrImageView(
+                        data: upiUrl,
+                        size: 160.0,
+                      ),
+                    ),
                   ),
                   SizedBox(height: 16),
                   Text('Scan this QR code with your UPI app to pay.'),
@@ -221,6 +288,9 @@ class _BodyState extends ConsumerState<Body> {
                   Text(
                     'Expires in: ${Duration(seconds: secondsLeft).inMinutes}:${(secondsLeft % 60).toString().padLeft(2, '0')}',
                   ),
+                  SizedBox(height: 8),
+                  Text('Pay to: afnnafsal@oksbi', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Amount: ₹${totalAmount.toStringAsFixed(2)}'),
                 ],
               ),
               actions: [
@@ -236,6 +306,8 @@ class _BodyState extends ConsumerState<Body> {
     );
   }
 
+  double? _lastCartTotal;
+
   List<String> _addresses = [];
   String? _selectedAddressId;
 
@@ -243,6 +315,7 @@ class _BodyState extends ConsumerState<Body> {
   void initState() {
     super.initState();
     _fetchAddresses();
+    fetchCardsFromFirestore();
   }
 
   Future<void> _fetchAddresses() async {
@@ -607,6 +680,8 @@ class _BodyState extends ConsumerState<Body> {
             } else {
               Logger().w('Snapshot has no data: $snapshot');
             }
+            // Store the last total for QR code
+            _lastCartTotal = totalPrice;
             return SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,11 +691,53 @@ class _BodyState extends ConsumerState<Body> {
                   // Payment Methods Section
                   Text("Payment Methods", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   SizedBox(height: 10),
-                  ...savedCards.map((card) => paymentMethodTile(
-                        Icons.credit_card,
-                        "${card['name'] ?? 'Card'}",
-                        "**** **** **** ${card['number']?.substring(card['number']!.length - 4)}",
-                      )),
+                  // Cards Section
+                  ...savedCards.asMap().entries.map((entry) {
+                    final idx = entry.key;
+                    final card = entry.value;
+                    return Container(
+                      margin: EdgeInsets.symmetric(vertical: 4),
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 1))],
+                      ),
+                      child: Row(
+                        children: [
+                          Radio<int>(
+                            value: idx,
+                            groupValue: selectedCardIndex,
+                            onChanged: (val) {
+                              setState(() { selectedCardIndex = val; });
+                            },
+                            activeColor: kPrimaryColor,
+                          ),
+                          Icon(Icons.credit_card, color: kPrimaryColor, size: 28),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(card['name'] ?? 'Card', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                Text("**** **** **** ${card['number']?.substring(card['number'].length - 4)}", style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.edit, color: kPrimaryColor),
+                            onPressed: () => showAddCardDialog(context, card: card, editIndex: idx),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () async {
+                              await deleteCardFromFirestore(idx);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
                   InkWell(
                     onTap: () => showAddCardDialog(context),
                     child: paymentMethodTile(Icons.add_card, "Add Card", null),
