@@ -1,7 +1,9 @@
+// Provider for selected address ID (for cart filtering)
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+final selectedAddressIdProvider = StateProvider<String?>((ref) => null);
 
 final userDatabaseHelperProvider = Provider<UserDatabaseHelper>((ref) {
   return UserDatabaseHelper();
@@ -172,5 +174,16 @@ final isProductFavouriteProvider = FutureProvider.family<bool, String>((
 // Cart stream provider
 final cartItemsStreamProvider = StreamProvider<List<String>>((ref) {
   final userHelper = ref.watch(userDatabaseHelperProvider);
-  return Stream.fromFuture(userHelper.allCartItemsList);
+  final selectedAddressId = ref.watch(selectedAddressIdProvider);
+  return Stream.fromFuture(userHelper.allCartItemsList.then((ids) async {
+    final filteredIds = <String>[];
+    for (final id in ids) {
+      final cartItem = await userHelper.getCartItemFromId(id);
+      // Show items for selected address, and legacy items with no addressId
+      if (cartItem != null && (selectedAddressId == null ? true : (cartItem.addressId == selectedAddressId || cartItem.addressId == null))) {
+        filteredIds.add(id);
+      }
+    }
+    return filteredIds;
+  }));
 });

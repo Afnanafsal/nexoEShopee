@@ -52,13 +52,11 @@ class UserDatabaseHelper {
 
   Future<void> deleteCurrentUserData() async {
     final uid = AuthentificationService().currentUser.uid;
-    final docRef = firestore.collection(USERS_COLLECTION_NAME).doc(uid);
+    final userDocRef = firestore.collection(USERS_COLLECTION_NAME).doc(uid);
 
-    final cartCollectionRef = docRef.collection(CART_COLLECTION_NAME);
-    final addressCollectionRef = docRef.collection(ADDRESSES_COLLECTION_NAME);
-    final ordersCollectionRef = docRef.collection(
-      ORDERED_PRODUCTS_COLLECTION_NAME,
-    );
+    final cartCollectionRef = userDocRef.collection(CART_COLLECTION_NAME);
+    final addressCollectionRef = userDocRef.collection(ADDRESSES_COLLECTION_NAME);
+    final ordersCollectionRef = userDocRef.collection(ORDERED_PRODUCTS_COLLECTION_NAME);
 
     for (final collection in [
       cartCollectionRef,
@@ -71,7 +69,7 @@ class UserDatabaseHelper {
       }
     }
 
-    await docRef.delete();
+    await userDocRef.delete();
   }
 
   Future<bool> isProductFavourite(String productId) async {
@@ -179,7 +177,7 @@ class UserDatabaseHelper {
     return CartItem.fromMap(data, id: doc.id);
   }
 
-  Future<bool> addProductToCart(String productId) async {
+  Future<bool> addProductToCart(String productId, {String? addressId}) async {
     String uid = AuthentificationService().currentUser.uid;
     final docRef = firestore
         .collection(USERS_COLLECTION_NAME)
@@ -187,10 +185,18 @@ class UserDatabaseHelper {
         .collection(CART_COLLECTION_NAME)
         .doc(productId);
     final snapshot = await docRef.get();
+    // If addressId is not provided, use default address
+    String? effectiveAddressId = addressId;
+    if (effectiveAddressId == null) {
+      final addresses = await UserDatabaseHelper().addressesList;
+      if (addresses.isNotEmpty) {
+        effectiveAddressId = addresses.first;
+      }
+    }
     if (snapshot.exists) {
       await docRef.update({CartItem.ITEM_COUNT_KEY: FieldValue.increment(1)});
     } else {
-      await docRef.set(CartItem(itemCount: 1).toMap());
+      await docRef.set(CartItem(itemCount: 1, addressId: effectiveAddressId).toMap());
     }
     return true;
   }
@@ -349,21 +355,18 @@ class UserDatabaseHelper {
   }
 
   Future<bool> removeFavoriteProduct(String productId) async {
-    String? uid = AuthentificationService().currentUser?.uid;
-    if (uid != null) {
-      try {
-        final userDoc = await firestore.collection(USERS_COLLECTION_NAME).doc(uid).get();
-        List<dynamic> favList = userDoc.data()?[FAV_PRODUCTS_KEY] ?? [];
-        favList.remove(productId);
-        await firestore.collection(USERS_COLLECTION_NAME).doc(uid).update({
-          FAV_PRODUCTS_KEY: favList,
-        });
-        return true;
-      } catch (e) {
-        print("Error removing favorite product: $e");
-        return false;
-      }
+    String uid = AuthentificationService().currentUser.uid;
+    try {
+      final userDoc = await firestore.collection(USERS_COLLECTION_NAME).doc(uid).get();
+      List<dynamic> favList = userDoc.data()?[FAV_PRODUCTS_KEY] ?? [];
+      favList.remove(productId);
+      await firestore.collection(USERS_COLLECTION_NAME).doc(uid).update({
+        FAV_PRODUCTS_KEY: favList,
+      });
+      return true;
+    } catch (e) {
+      print("Error removing favorite product: $e");
+      return false;
     }
-    return false;
   }
 }
