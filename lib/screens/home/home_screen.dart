@@ -40,12 +40,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _checkAndPromptAddress() async {
     final selectedAddressId = ref.read(selectedAddressIdProvider);
+    final localContext = context;
     if (selectedAddressId == null) {
       final addressIds = await UserDatabaseHelper().addressesList;
       if (addressIds.isEmpty) {
         // No addresses, prompt to add
+        if (!mounted) return;
         showDialog(
-          context: context,
+          context: localContext,
           builder: (context) => AlertDialog(
             title: Text('No delivery address found'),
             content: Text('Please add a delivery address to continue.'),
@@ -62,67 +64,139 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         );
       } else {
         String? selectedId;
+        if (!mounted) return;
         await showDialog(
-          context: context,
+          context: localContext,
           barrierDismissible: false,
           builder: (context) {
             return StatefulBuilder(
               builder: (context, setState) {
-                return AlertDialog(
-                  title: Text('Select Delivery Address'),
-                  content: SingleChildScrollView(
+                final theme = Theme.of(context);
+                return Dialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  backgroundColor: theme.scaffoldBackgroundColor,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.primaryColor.withOpacity(0.08),
+                          blurRadius: 16,
+                        ),
+                      ],
+                    ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: addressIds
-                          .map(
-                            (id) => FutureBuilder(
-                              future: UserDatabaseHelper().getAddressFromId(id),
-                              builder: (context, snapshot) {
-                                if (!snapshot.hasData) {
-                                  return ListTile(title: Text('Loading...'));
-                                }
-                                final address = snapshot.data;
-                                String display = id;
-                                if (address != null) {
-                                  display =
-                                      [
-                                            address.addressLine1,
-                                            address.city,
-                                            address.state,
-                                            address.pincode,
-                                          ]
-                                          .whereType<String>()
-                                          .where((e) => e.isNotEmpty)
-                                          .join(', ');
-                                }
-                                return RadioListTile<String>(
-                                  title: Text(display),
-                                  value: id,
-                                  groupValue: selectedId,
-                                  onChanged: (val) {
-                                    setState(() => selectedId = val);
-                                  },
-                                );
-                              },
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: theme.primaryColor.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: EdgeInsets.all(8),
+                              child: Icon(Icons.location_on, color: theme.primaryColor, size: 28),
                             ),
-                          )
-                          .toList(),
+                            SizedBox(width: 12),
+                            Text('Select Delivery Address',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 18),
+                        ...addressIds.map((id) => FutureBuilder(
+                          future: UserDatabaseHelper().getAddressFromId(id),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return Padding(
+                                padding: EdgeInsets.symmetric(vertical: 6),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: theme.primaryColor),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text('Loading...', style: theme.textTheme.bodyMedium),
+                                  ],
+                                ),
+                              );
+                            }
+                            final address = snapshot.data;
+                            String display = id;
+                            if (address != null) {
+                              display = [
+                                address.addressLine1,
+                                address.city,
+                                address.state,
+                                address.pincode,
+                              ].whereType<String>().where((e) => e.isNotEmpty).join(', ');
+                            }
+                            return Card(
+                              color: selectedId == id ? theme.primaryColor.withOpacity(0.08) : theme.cardColor,
+                              elevation: 0,
+                              margin: EdgeInsets.symmetric(vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              child: RadioListTile<String>(
+                                title: Text(display,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: selectedId == id ? theme.primaryColor : theme.textTheme.bodyLarge?.color,
+                                    fontWeight: selectedId == id ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
+                                value: id,
+                                groupValue: selectedId,
+                                onChanged: (val) {
+                                  setState(() => selectedId = val);
+                                },
+                                secondary: Icon(Icons.home, color: selectedId == id ? theme.primaryColor : theme.iconTheme.color),
+                                activeColor: theme.primaryColor,
+                              ),
+                            );
+                          },
+                        )),
+                        SizedBox(height: 18),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Cancel', style: theme.textTheme.labelLarge?.copyWith(color: theme.primaryColor)),
+                            ),
+                            SizedBox(width: 8),
+                            ElevatedButton.icon(
+                              onPressed: selectedId == null
+                                  ? null
+                                  : () {
+                                      ref.read(selectedAddressIdProvider.notifier).state = selectedId;
+                                      Navigator.of(context).pop();
+                                    },
+                              icon: Icon(Icons.check, color: Colors.white),
+                              label: Text('Select', style: TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.primaryColor,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: selectedId == null
-                          ? null
-                          : () {
-                              ref
-                                      .read(selectedAddressIdProvider.notifier)
-                                      .state =
-                                  selectedId;
-                              Navigator.of(context).pop();
-                            },
-                      child: Text('Select'),
-                    ),
-                  ],
                 );
               },
             );
