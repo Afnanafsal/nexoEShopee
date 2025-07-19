@@ -528,7 +528,7 @@ class _BodyState extends ConsumerState<Body> {
       ),
       child: Row(
         children: [
-          Icon(icon, color: kPrimaryColor, size: 28),
+            Icon(Icons.credit_card, color: kPrimaryColor, size: 28),
           SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -802,332 +802,332 @@ class _BodyState extends ConsumerState<Body> {
                   );
                 }
               }
-            } else {
-              Logger().w('Snapshot has no data: $snapshot');
-            }
-            // Store the last total for QR code
-            _lastCartTotal = totalPrice;
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ...cartCards,
-                  SizedBox(height: 20),
-                  // Payment Methods Section
-                  Text(
-                    "Payment Methods",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  SizedBox(height: 10),
-                  // Cards Section
-                  ...savedCards.asMap().entries.map((entry) {
-                    final idx = entry.key;
-                    final card = entry.value;
-                    return Container(
-                      margin: EdgeInsets.symmetric(vertical: 4),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
+              // Store the last total for QR code
+              _lastCartTotal = totalPrice;
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ...cartCards,
+                    SizedBox(height: 20),
+                    // Payment Methods Section
+                    Text(
+                      "Payment Methods",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    SizedBox(height: 10),
+                    // Cards Section
+                    ...savedCards.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final card = entry.value;
+                      return Container(
+                        margin: EdgeInsets.symmetric(vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Radio<int>(
+                              value: idx,
+                              groupValue: selectedCardIndex,
+                              onChanged: (val) {
+                                setState(() {
+                                  selectedCardIndex = val;
+                                  selectedUpiApp = null;
+                                });
+                              },
+                              activeColor: kPrimaryColor,
+                            ),
+                            Icon(
+                              Icons.credit_card,
+                              color: kPrimaryColor,
+                              size: 28,
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    card['name'] ?? 'Card',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  Text(
+                                    "**** **** **** ${card['number']?.substring(card['number'].length - 4)}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.edit, color: kPrimaryColor),
+                              onPressed: () => showAddCardDialog(
+                                context,
+                                card: card,
+                                editIndex: idx,
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                await deleteCardFromFirestore(idx);
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    InkWell(
+                      onTap: () => showAddCardDialog(context),
+                      child: paymentMethodTile(Icons.add_card, "Add Card", null),
+                    ),
+                    Text(
+                      "UPI Apps",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: () => setState(() {
+                            selectedUpiApp = 'gpay';
+                            selectedCardIndex = null;
+                          }),
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: selectedUpiApp == 'gpay'
+                                    ? kPrimaryColor
+                                    : Colors.grey[300]!,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Image.asset(
+                              'assets/icons/gpay.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        InkWell(
+                          onTap: () => setState(() {
+                            selectedUpiApp = 'phonepe';
+                            selectedCardIndex = null;
+                          }),
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: selectedUpiApp == 'phonepe'
+                                    ? kPrimaryColor
+                                    : Colors.grey[300]!,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Image.asset(
+                              'assets/icons/phonepe.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        InkWell(
+                          onTap: () => setState(() {
+                            selectedUpiApp = 'paytm';
+                            selectedCardIndex = null;
+                          }),
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: selectedUpiApp == 'paytm'
+                                    ? kPrimaryColor
+                                    : Colors.grey[300]!,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Image.asset(
+                              'assets/icons/paytm.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    InkWell(
+                      onTap: () => showQrPaymentDialog(context),
+                      child: paymentMethodTile(
+                        Icons.qr_code,
+                        "Scan & Pay",
+                        "Generate QR for payment",
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Radio<int>(
-                            value: idx,
-                            groupValue: selectedCardIndex,
-                            onChanged: (val) {
-                              setState(() {
-                                selectedCardIndex = val;
-                                selectedUpiApp = null;
-                              });
-                            },
-                            activeColor: kPrimaryColor,
-                          ),
-                          Icon(
-                            Icons.credit_card,
-                            color: kPrimaryColor,
-                            size: 28,
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  card['name'] ?? 'Card',
+                                  "Total Amount",
                                   style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
+                                SizedBox(height: 4),
                                 Text(
-                                  "**** **** **** ${card['number']?.substring(card['number'].length - 4)}",
+                                  "₹${totalPrice.toStringAsFixed(0)}",
                                   style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24,
+                                    color: kPrimaryColor,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(Icons.edit, color: kPrimaryColor),
-                            onPressed: () => showAddCardDialog(
-                              context,
-                              card: card,
-                              editIndex: idx,
+                        ),
+                        SizedBox(width: 12),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kPrimaryColor,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 18,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () async {
-                              await deleteCardFromFirestore(idx);
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  InkWell(
-                    onTap: () => showAddCardDialog(context),
-                    child: paymentMethodTile(Icons.add_card, "Add Card", null),
-                  ),
-                  Text(
-                    "UPI Apps",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      InkWell(
-                        onTap: () => setState(() {
-                          selectedUpiApp = 'gpay';
-                          selectedCardIndex = null;
-                        }),
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: selectedUpiApp == 'gpay'
-                                  ? kPrimaryColor
-                                  : Colors.grey[300]!,
+                          onPressed: () => showCheckoutBottomSheetWithTotal(totalPrice),
+                          child: Text(
+                            "Checkout",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.white,
                             ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Image.asset(
-                            'assets/icons/gpay.png',
-                            fit: BoxFit.contain,
                           ),
                         ),
-                      ),
-                      SizedBox(width: 12),
-                      InkWell(
-                        onTap: () => setState(() {
-                          selectedUpiApp = 'phonepe';
-                          selectedCardIndex = null;
-                        }),
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: selectedUpiApp == 'phonepe'
-                                  ? kPrimaryColor
-                                  : Colors.grey[300]!,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Image.asset(
-                            'assets/icons/phonepe.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      InkWell(
-                        onTap: () => setState(() {
-                          selectedUpiApp = 'paytm';
-                          selectedCardIndex = null;
-                        }),
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: selectedUpiApp == 'paytm'
-                                  ? kPrimaryColor
-                                  : Colors.grey[300]!,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Image.asset(
-                            'assets/icons/paytm.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  InkWell(
-                    onTap: () => showQrPaymentDialog(context),
-                    child: paymentMethodTile(
-                      Icons.qr_code,
-                      "Scan & Pay",
-                      "Generate QR for payment",
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 8,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Total Amount",
-                                style: TextStyle(
-                                  color: Colors.grey[700],
-                                  fontWeight: FontWeight.w500,
+                    SizedBox(height: 20),
+                    FutureBuilder<Address?>(
+                      future: _selectedAddressId != null
+                          ? UserDatabaseHelper().getAddressFromId(
+                              _selectedAddressId!,
+                            )
+                          : null,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData && snapshot.data != null) {
+                          final address = snapshot.data!;
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
                                 ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                "₹${totalPrice.toStringAsFixed(0)}",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 24,
-                                  color: kPrimaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kPrimaryColor,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 18,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: showCheckoutBottomSheet,
-                        child: Text(
-                          "Checkout",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  FutureBuilder<Address?>(
-                    future: _selectedAddressId != null
-                        ? UserDatabaseHelper().getAddressFromId(
-                            _selectedAddressId!,
-                          )
-                        : null,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData && snapshot.data != null) {
-                        final address = snapshot.data!;
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 8,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          padding: EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Delivery to",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
+                              ],
+                            ),
+                            padding: EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Delivery to",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      "${address.title ?? ''}, ${address.addressLine1 ?? ''}\n${address.addressLine2 ?? ''}\n${address.city ?? ''}, ${address.state ?? ''}\nPhone: ${address.phone ?? ''}",
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey[700],
+                                      SizedBox(height: 4),
+                                      Text(
+                                        "${address.title ?? ''}, ${address.addressLine1 ?? ''}\n${address.addressLine2 ?? ''}\n${address.city ?? ''}, ${address.state ?? ''}\nPhone: ${address.phone ?? ''}",
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey[700],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: 12),
-                              Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(8),
+                                SizedBox(width: 12),
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.map,
+                                    color: kPrimaryColor,
+                                    size: 32,
+                                  ),
                                 ),
-                                child: Icon(
-                                  Icons.map,
-                                  color: kPrimaryColor,
-                                  size: 32,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        return SizedBox.shrink();
-                      }
-                    },
-                  ),
-                  SizedBox(height: 20),
-                ],
-              ),
-            );
+                              ],
+                            ),
+                          );
+                        } else {
+                          return SizedBox.shrink();
+                        }
+                      },
+                    ),
+                    SizedBox(height: 20),
+                  ],
+                ),
+              );
+            }
+            // Ensure a Widget is always returned
+            return SizedBox.shrink();
           },
         );
       },
@@ -1151,12 +1151,14 @@ class _BodyState extends ConsumerState<Body> {
     );
   }
 
-  void showCheckoutBottomSheet() {
-    // Show checkout bottom sheet
+  void showCheckoutBottomSheetWithTotal(double totalPrice) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return CheckoutCard(onCheckoutPressed: checkoutButtonCallback);
+        return CheckoutCard(
+          onCheckoutPressed: checkoutButtonCallback,
+          totalPrice: totalPrice,
+        );
       },
     );
   }
@@ -1206,7 +1208,7 @@ class _BodyState extends ConsumerState<Body> {
               }
 
               return result;
-            }
+                }
           }
         }
         return false;
@@ -1349,11 +1351,33 @@ class _BodyState extends ConsumerState<Body> {
     );
   }
 
+  Future<double> getCartTotal() async {
+    final cartItemsId = ref.read(cartItemsStreamProvider).value ?? [];
+    double total = 0;
+    if (cartItemsId.isNotEmpty) {
+      final cartItems = await Future.wait(cartItemsId.map((id) => UserDatabaseHelper().getCartItemFromId(id)));
+      final products = await Future.wait(cartItemsId.map((id) => ProductDatabaseHelper().getProductWithID(id.split('_').first)));
+      for (int i = 0; i < cartItemsId.length; i++) {
+        final cartItem = cartItems[i];
+        final product = products[i];
+        final price = product?.discountPrice ?? product?.originalPrice ?? 0;
+        total += price * (cartItem.itemCount);
+      }
+    }
+    return total;
+  }
+
   Future<void> checkoutButtonCallback() async {
     shutBottomSheet();
+    double amount = await getCartTotal();
+    if (amount == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cart is empty or failed to calculate total.')),
+      );
+      return;
+    }
     // If UPI app is selected, launch UPI intent
     if (selectedUpiApp != null) {
-      double amount = _lastCartTotal ?? 0;
       String upiUrl =
           'upi://pay?pa=afnnafsal@oksbi&pn=Afnan Afsal&am=${amount.toStringAsFixed(2)}&cu=INR';
       // Use url_launcher to launch UPI intent
