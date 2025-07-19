@@ -6,6 +6,24 @@ import 'package:nexoeshopee/services/database/product_database_helper.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 
 class UserDatabaseHelper {
+  Future<CartItem?> getCartItemByProductAndAddress(String productId, String? addressId) async {
+    final uid = AuthentificationService().currentUser.uid;
+    final cartRef = FirebaseFirestore.instance
+        .collection(USERS_COLLECTION_NAME)
+        .doc(uid)
+        .collection(CART_COLLECTION_NAME);
+    final query = cartRef
+        .where('product_id', isEqualTo: productId)
+        .where('address_id', isEqualTo: addressId);
+    final snapshot = await query.get();
+    if (snapshot.docs.isNotEmpty) {
+      final doc = snapshot.docs.first;
+      final data = doc.data();
+      // If CartItem.fromMap expects only the map, pass data
+      return CartItem.fromMap(data);
+    }
+    return null;
+  }
   static const String USERS_COLLECTION_NAME = "users";
   static const String ADDRESSES_COLLECTION_NAME = "addresses";
   static const String CART_COLLECTION_NAME = "cart";
@@ -179,13 +197,6 @@ class UserDatabaseHelper {
 
   Future<bool> addProductToCart(String productId, {String? addressId}) async {
     String uid = AuthentificationService().currentUser.uid;
-    final docRef = firestore
-        .collection(USERS_COLLECTION_NAME)
-        .doc(uid)
-        .collection(CART_COLLECTION_NAME)
-        .doc(productId);
-    final snapshot = await docRef.get();
-    // If addressId is not provided, use default address
     String? effectiveAddressId = addressId;
     if (effectiveAddressId == null) {
       final addresses = await UserDatabaseHelper().addressesList;
@@ -193,10 +204,17 @@ class UserDatabaseHelper {
         effectiveAddressId = addresses.first;
       }
     }
+    final compositeId = '${productId}_${effectiveAddressId ?? ""}';
+    final docRef = firestore
+        .collection(USERS_COLLECTION_NAME)
+        .doc(uid)
+        .collection(CART_COLLECTION_NAME)
+        .doc(compositeId);
+    final snapshot = await docRef.get();
     if (snapshot.exists) {
       await docRef.update({CartItem.ITEM_COUNT_KEY: FieldValue.increment(1)});
     } else {
-      await docRef.set(CartItem(itemCount: 1, addressId: effectiveAddressId).toMap());
+      await docRef.set(CartItem(productId: productId, itemCount: 1, addressId: effectiveAddressId).toMap());
     }
     return true;
   }

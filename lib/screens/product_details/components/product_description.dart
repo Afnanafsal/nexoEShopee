@@ -3,6 +3,8 @@ import 'package:nexoeshopee/size_config.dart';
 import 'package:nexoeshopee/components/async_progress_dialog.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nexoeshopee/providers/user_providers.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logger/logger.dart';
 import '../../../utils.dart';
@@ -12,17 +14,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../constants.dart';
 import 'expandable_text.dart';
 
-class ProductDescription extends StatefulWidget {
-  const ProductDescription({required Key key, required this.product})
-    : super(key: key);
+class ProductDescription extends ConsumerStatefulWidget {
+  const ProductDescription({required Key key, required this.product}) : super(key: key);
 
   final Product product;
 
   @override
-  State<ProductDescription> createState() => _ProductDescriptionState();
+  ConsumerState<ProductDescription> createState() => _ProductDescriptionState();
 }
 
-class _ProductDescriptionState extends State<ProductDescription> {
+class _ProductDescriptionState extends ConsumerState<ProductDescription> {
   int cartCount = 0;
 
   void _incrementCounter() {
@@ -72,12 +73,10 @@ class _ProductDescriptionState extends State<ProductDescription> {
       return;
     }
     String snackbarMessage = "";
-    // Prepare all add requests before dialog for speed
-    // TODO: Get selected addressId from context or state
-    String? selectedAddressId;
-    // Example: selectedAddressId = ...; // Get from address selector or provider
+    // Get selected address from provider
+    final selectedAddressId = ref.read(selectedAddressIdProvider);
     final addFutures = List.generate(cartCount, (_) => UserDatabaseHelper().addProductToCart(widget.product.id, addressId: selectedAddressId));
-    Logger().i('Attempting to add product to cart: id=${widget.product.id}, count=$cartCount');
+    Logger().i('Attempting to add product to cart: id=${widget.product.id}, count=$cartCount, addressId=$selectedAddressId');
     bool allAdded = true;
     await showDialog(
       context: context,

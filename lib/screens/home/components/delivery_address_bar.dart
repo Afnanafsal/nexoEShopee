@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nexoeshopee/providers/user_providers.dart';
 import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/screens/manage_addresses/manage_addresses_screen.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:logger/logger.dart';
 
-class DeliveryAddressBar extends StatelessWidget {
+class DeliveryAddressBar extends ConsumerWidget {
   const DeliveryAddressBar({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedAddressId = ref.watch(selectedAddressIdProvider);
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: getProportionateScreenWidth(20),
@@ -32,12 +35,47 @@ class DeliveryAddressBar extends StatelessWidget {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                FutureBuilder<String>(
-                  future: _getDeliveryAddress(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
+                if (selectedAddressId == null)
+                  Text(
+                    "Add delivery address",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: kPrimaryColor,
+                    ),
+                  )
+                else
+                  FutureBuilder(
+                    future: UserDatabaseHelper().getAddressFromId(
+                      selectedAddressId,
+                    ),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Text(
+                          "Loading...",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[400],
+                          ),
+                        );
+                      }
+                      final address = snapshot.data;
+                      String formattedAddress = selectedAddressId;
+                      if (address != null) {
+                        formattedAddress =
+                            [
+                                  address.addressLine1,
+                                  address.city,
+                                  address.state,
+                                  address.pincode,
+                                ]
+                                .whereType<String>()
+                                .where((e) => e.isNotEmpty)
+                                .join(', ');
+                      }
                       return Text(
-                        snapshot.data!,
+                        formattedAddress,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -46,28 +84,8 @@ class DeliveryAddressBar extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       );
-                    } else if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return Text(
-                        "Loading...",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[400],
-                        ),
-                      );
-                    } else {
-                      return Text(
-                        "Add delivery address",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: kPrimaryColor,
-                        ),
-                      );
-                    }
-                  },
-                ),
+                    },
+                  ),
               ],
             ),
           ),
@@ -92,48 +110,5 @@ class DeliveryAddressBar extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Future<String> _getDeliveryAddress() async {
-    try {
-      final addressIds = await UserDatabaseHelper().addressesList;
-      if (addressIds.isEmpty) {
-        return "Add delivery address";
-      }
-
-      // Get the first address as default delivery address
-      final address = await UserDatabaseHelper().getAddressFromId(
-        addressIds.first,
-      );
-
-      // Format the address for display
-      String formattedAddress = "";
-
-      if (address.addressLine1 != null && address.addressLine1!.isNotEmpty) {
-        formattedAddress += address.addressLine1!;
-      }
-
-      if (address.city != null && address.city!.isNotEmpty) {
-        if (formattedAddress.isNotEmpty) formattedAddress += ", ";
-        formattedAddress += address.city!;
-      }
-
-      if (address.state != null && address.state!.isNotEmpty) {
-        if (formattedAddress.isNotEmpty) formattedAddress += ", ";
-        formattedAddress += address.state!;
-      }
-
-      if (address.pincode != null && address.pincode!.isNotEmpty) {
-        if (formattedAddress.isNotEmpty) formattedAddress += " - ";
-        formattedAddress += address.pincode!;
-      }
-
-      return formattedAddress.isNotEmpty
-          ? formattedAddress
-          : "Address not available";
-    } catch (e) {
-      Logger().e("Error fetching delivery address: $e");
-      return "Add delivery address";
-    }
   }
 }
