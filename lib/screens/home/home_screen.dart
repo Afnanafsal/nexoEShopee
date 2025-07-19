@@ -65,6 +65,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       } else {
         String? selectedId;
         if (!mounted) return;
+        // Prefetch all address details in parallel
+        final addressDetails = await Future.wait(addressIds.map((id) => UserDatabaseHelper().getAddressFromId(id)));
         await showDialog(
           context: localContext,
           barrierDismissible: false,
@@ -112,58 +114,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ],
                         ),
                         SizedBox(height: 18),
-                        ...addressIds.map((id) => FutureBuilder(
-                          future: UserDatabaseHelper().getAddressFromId(id),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return Padding(
-                                padding: EdgeInsets.symmetric(vertical: 6),
-                                child: Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: theme.primaryColor),
-                                    ),
-                                    SizedBox(width: 12),
-                                    Text('Loading...', style: theme.textTheme.bodyMedium),
-                                  ],
+                        ...List.generate(addressIds.length, (i) {
+                          final id = addressIds[i];
+                          final address = addressDetails[i];
+                          String display = id;
+                          if (address != null) {
+                            display = [
+                              address.addressLine1,
+                              address.city,
+                              address.state,
+                              address.pincode,
+                            ].whereType<String>().where((e) => e.isNotEmpty).join(', ');
+                          }
+                          return Card(
+                            color: selectedId == id ? theme.primaryColor.withOpacity(0.08) : theme.cardColor,
+                            elevation: 0,
+                            margin: EdgeInsets.symmetric(vertical: 6),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            child: RadioListTile<String>(
+                              title: Text(display,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: selectedId == id ? theme.primaryColor : theme.textTheme.bodyLarge?.color,
+                                  fontWeight: selectedId == id ? FontWeight.bold : FontWeight.normal,
                                 ),
-                              );
-                            }
-                            final address = snapshot.data;
-                            String display = id;
-                            if (address != null) {
-                              display = [
-                                address.addressLine1,
-                                address.city,
-                                address.state,
-                                address.pincode,
-                              ].whereType<String>().where((e) => e.isNotEmpty).join(', ');
-                            }
-                            return Card(
-                              color: selectedId == id ? theme.primaryColor.withOpacity(0.08) : theme.cardColor,
-                              elevation: 0,
-                              margin: EdgeInsets.symmetric(vertical: 6),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              child: RadioListTile<String>(
-                                title: Text(display,
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: selectedId == id ? theme.primaryColor : theme.textTheme.bodyLarge?.color,
-                                    fontWeight: selectedId == id ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                                value: id,
-                                groupValue: selectedId,
-                                onChanged: (val) {
-                                  setState(() => selectedId = val);
-                                },
-                                secondary: Icon(Icons.home, color: selectedId == id ? theme.primaryColor : theme.iconTheme.color),
-                                activeColor: theme.primaryColor,
                               ),
-                            );
-                          },
-                        )),
+                              value: id,
+                              groupValue: selectedId,
+                              onChanged: (val) {
+                                setState(() => selectedId = val);
+                              },
+                              secondary: Icon(Icons.home, color: selectedId == id ? theme.primaryColor : theme.iconTheme.color),
+                              activeColor: theme.primaryColor,
+                            ),
+                          );
+                        }),
                         SizedBox(height: 18),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
