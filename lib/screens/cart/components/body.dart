@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,11 +28,15 @@ import '../../../utils.dart';
 // Formatter for MM/YY expiry
 class ExpiryDateTextInputFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     var text = newValue.text;
     // Only allow MM/YY
     if (text.length == 2 && oldValue.text.length == 1) {
-      if (int.tryParse(text.substring(0, 2)) != null && int.parse(text.substring(0, 2)) <= 12) {
+      if (int.tryParse(text.substring(0, 2)) != null &&
+          int.parse(text.substring(0, 2)) <= 12) {
         text += '/';
       } else {
         text = '';
@@ -61,8 +63,14 @@ class _BodyState extends ConsumerState<Body> {
   bool showQrDialog = false;
   int? selectedCardIndex;
 
-  void showAddCardDialog(BuildContext context, {Map<String, dynamic>? card, int? editIndex}) {
-    final cardNumberController = TextEditingController(text: card?['number'] ?? '');
+  void showAddCardDialog(
+    BuildContext context, {
+    Map<String, dynamic>? card,
+    int? editIndex,
+  }) {
+    final cardNumberController = TextEditingController(
+      text: card?['number'] ?? '',
+    );
     final expiryController = TextEditingController(text: card?['expiry'] ?? '');
     final cvvController = TextEditingController(text: card?['cvv'] ?? '');
     final nameController = TextEditingController(text: card?['name'] ?? '');
@@ -70,7 +78,9 @@ class _BodyState extends ConsumerState<Body> {
       context: context,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             decoration: BoxDecoration(
@@ -80,14 +90,23 @@ class _BodyState extends ConsumerState<Body> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(editIndex == null ? 'Add Card' : 'Edit Card', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: kPrimaryColor)),
+                Text(
+                  editIndex == null ? 'Add Card' : 'Edit Card',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                    color: kPrimaryColor,
+                  ),
+                ),
                 SizedBox(height: 24),
                 TextField(
                   controller: cardNumberController,
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.credit_card, color: kPrimaryColor),
                     labelText: 'Card Number',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     filled: true,
                     fillColor: Colors.grey[100],
                   ),
@@ -101,9 +120,14 @@ class _BodyState extends ConsumerState<Body> {
                       child: TextField(
                         controller: expiryController,
                         decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.calendar_today, color: kPrimaryColor),
+                          prefixIcon: Icon(
+                            Icons.calendar_today,
+                            color: kPrimaryColor,
+                          ),
                           labelText: 'Expiry (MM/YY)',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           filled: true,
                           fillColor: Colors.grey[100],
                         ),
@@ -122,7 +146,9 @@ class _BodyState extends ConsumerState<Body> {
                         decoration: InputDecoration(
                           prefixIcon: Icon(Icons.lock, color: kPrimaryColor),
                           labelText: 'CVV',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           filled: true,
                           fillColor: Colors.grey[100],
                         ),
@@ -139,7 +165,9 @@ class _BodyState extends ConsumerState<Body> {
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.person, color: kPrimaryColor),
                     labelText: 'Name on Card',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     filled: true,
                     fillColor: Colors.grey[100],
                   ),
@@ -149,22 +177,41 @@ class _BodyState extends ConsumerState<Body> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      child: Text('Cancel', style: TextStyle(color: kPrimaryColor)),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: kPrimaryColor),
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: kPrimaryColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 14,
+                        ),
                       ),
-                      child: Text(editIndex == null ? 'Save' : 'Update', style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white, fontSize: 16)),
+                      child: Text(
+                        editIndex == null ? 'Save' : 'Update',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
                       onPressed: () async {
                         final expiry = expiryController.text;
-                        final valid = RegExp(r'^(0[1-9]|1[0-2])\/\d{2}$').hasMatch(expiry);
+                        final valid = RegExp(
+                          r'^(0[1-9]|1[0-2])\/\d{2}$',
+                        ).hasMatch(expiry);
                         if (!valid) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Expiry must be in MM/YY format')),
+                            SnackBar(
+                              content: Text('Expiry must be in MM/YY format'),
+                            ),
                           );
                           return;
                         }
@@ -174,7 +221,10 @@ class _BodyState extends ConsumerState<Body> {
                           'cvv': cvvController.text,
                           'name': nameController.text,
                         };
-                        await saveCardToFirestore(cardData, editIndex: editIndex);
+                        await saveCardToFirestore(
+                          cardData,
+                          editIndex: editIndex,
+                        );
                         Navigator.pop(context);
                       },
                     ),
@@ -188,10 +238,16 @@ class _BodyState extends ConsumerState<Body> {
     );
   }
 
-  Future<void> saveCardToFirestore(Map<String, dynamic> card, {int? editIndex}) async {
+  Future<void> saveCardToFirestore(
+    Map<String, dynamic> card, {
+    int? editIndex,
+  }) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
-    final cardsRef = FirebaseFirestore.instance.collection('users').doc(uid).collection('cards');
+    final cardsRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('cards');
     try {
       if (editIndex == null) {
         await cardsRef.add(card);
@@ -208,7 +264,10 @@ class _BodyState extends ConsumerState<Body> {
   Future<void> fetchCardsFromFirestore() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
-    final cardsRef = FirebaseFirestore.instance.collection('users').doc(uid).collection('cards');
+    final cardsRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('cards');
     try {
       final snapshot = await cardsRef.get();
       final cards = snapshot.docs.map((doc) {
@@ -229,7 +288,10 @@ class _BodyState extends ConsumerState<Body> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
     final cardId = savedCards[index]['id'];
-    final cardsRef = FirebaseFirestore.instance.collection('users').doc(uid).collection('cards');
+    final cardsRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('cards');
     try {
       await cardsRef.doc(cardId).delete();
       await fetchCardsFromFirestore();
@@ -245,7 +307,6 @@ class _BodyState extends ConsumerState<Body> {
     double totalAmount = 0;
     final cartItemsAsync = ref.read(cartItemsStreamProvider);
     if (cartItemsAsync.hasValue) {
-
       // Fetch product prices synchronously is not possible, so pass total from UI
       // Instead, get the total from the last buildCartItemsList calculation
       // We'll use a workaround: store the last total in a variable
@@ -266,7 +327,8 @@ class _BodyState extends ConsumerState<Body> {
                 });
               });
             }
-            String upiUrl = 'upi://pay?pa=afnnafsal@oksbi&pn=Afnan Afsal&am=${totalAmount.toStringAsFixed(2)}&cu=INR';
+            String upiUrl =
+                'upi://pay?pa=afnnafsal@oksbi&pn=Afnan Afsal&am=${totalAmount.toStringAsFixed(2)}&cu=INR';
             return AlertDialog(
               title: Text('Scan & Pay'),
               content: Column(
@@ -277,10 +339,7 @@ class _BodyState extends ConsumerState<Body> {
                     height: 180,
                     color: Colors.grey[200],
                     child: Center(
-                      child: QrImageView(
-                        data: upiUrl,
-                        size: 160.0,
-                      ),
+                      child: QrImageView(data: upiUrl, size: 160.0),
                     ),
                   ),
                   SizedBox(height: 16),
@@ -290,7 +349,10 @@ class _BodyState extends ConsumerState<Body> {
                     'Expires in: ${Duration(seconds: secondsLeft).inMinutes}:${(secondsLeft % 60).toString().padLeft(2, '0')}',
                   ),
                   SizedBox(height: 8),
-                  Text('Pay to: afnnafsal@oksbi', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Pay to: afnnafsal@oksbi',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   Text('Amount: ₹${totalAmount.toStringAsFixed(2)}'),
                 ],
               ),
@@ -310,7 +372,11 @@ class _BodyState extends ConsumerState<Body> {
   double? _lastCartTotal;
 
   List<String> _addresses = [];
-  String? _selectedAddressId;
+
+  String? get _selectedAddressId => ref.watch(selectedAddressIdProvider);
+  set _selectedAddressId(String? value) {
+    ref.read(selectedAddressIdProvider.notifier).state = value;
+  }
 
   @override
   void initState() {
@@ -325,10 +391,11 @@ class _BodyState extends ConsumerState<Body> {
       if (mounted) {
         setState(() {
           _addresses = addresses;
-          if (_addresses.isNotEmpty) {
-            _selectedAddressId = _addresses.first;
-          }
         });
+        // If no address selected, set to first
+        if (_addresses.isNotEmpty && _selectedAddressId == null) {
+          _selectedAddressId = _addresses.first;
+        }
       }
     } catch (e) {
       Logger().e('Error fetching addresses: $e');
@@ -393,9 +460,7 @@ class _BodyState extends ConsumerState<Body> {
                       );
                     }).toList(),
                     onChanged: (value) {
-                      setState(() {
-                        _selectedAddressId = value;
-                      });
+                      _selectedAddressId = value;
                     },
                   ),
                 ),
@@ -510,20 +575,18 @@ class _BodyState extends ConsumerState<Body> {
         return FutureBuilder<List<dynamic>>(
           future: Future.wait([
             Future.wait(
-              cartItemsId.map(
-                (id) {
-                  Logger().i('Fetching cart item details for: $id');
-                  return UserDatabaseHelper().getCartItemFromId(id);
-                },
-              ),
+              cartItemsId.map((id) {
+                Logger().i('Fetching cart item details for: $id');
+                return UserDatabaseHelper().getCartItemFromId(id);
+              }),
             ),
             Future.wait(
-              cartItemsId.map(
-                (id) {
-                  Logger().i('Fetching product for cart item: $id');
-                  return ProductDatabaseHelper().getProductWithID(id);
-                },
-              ),
+              cartItemsId.map((id) {
+                // Extract productId from composite key
+                final productId = id.split('_').first;
+                Logger().i('Fetching product for cart item: $productId');
+                return ProductDatabaseHelper().getProductWithID(productId);
+              }),
             ),
           ]),
           builder: (context, snapshot) {
@@ -538,8 +601,12 @@ class _BodyState extends ConsumerState<Body> {
                 final cartItem = cartItems[i];
                 final product = products[i];
                 // Show cart items for selected address, and also items with no addressId (legacy)
-                if (cartItem != null && product != null && (cartItem.addressId == _selectedAddressId || cartItem.addressId == null)) {
-                  final price = product.discountPrice ?? product.originalPrice ?? 0;
+                if (cartItem != null &&
+                    product != null &&
+                    (cartItem.addressId == _selectedAddressId ||
+                        cartItem.addressId == null)) {
+                  final price =
+                      product.discountPrice ?? product.originalPrice ?? 0;
                   totalPrice += price * (cartItem.itemCount);
                   cartCards.add(
                     Container(
@@ -567,7 +634,8 @@ class _BodyState extends ConsumerState<Body> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child:
-                                (product.images != null && product.images!.isNotEmpty)
+                                (product.images != null &&
+                                    product.images!.isNotEmpty)
                                 ? Base64ImageService().base64ToImage(
                                     product.images!.first,
                                     fit: BoxFit.cover,
@@ -616,11 +684,13 @@ class _BodyState extends ConsumerState<Body> {
                                     SizedBox(width: 8),
                                     if (product.originalPrice != null &&
                                         product.discountPrice != null &&
-                                        product.originalPrice != product.discountPrice)
+                                        product.originalPrice !=
+                                            product.discountPrice)
                                       Text(
                                         "₹${product.originalPrice}",
                                         style: TextStyle(
-                                          decoration: TextDecoration.lineThrough,
+                                          decoration:
+                                              TextDecoration.lineThrough,
                                           color: Colors.grey,
                                         ),
                                       ),
@@ -641,7 +711,7 @@ class _BodyState extends ConsumerState<Body> {
                                   child: Icon(Icons.add, color: kPrimaryColor),
                                 ),
                                 onTap: () async {
-                                  await arrowUpCallback(cartItemsId[i]);
+                                  await arrowUpCallback(product.id, _selectedAddressId);
                                 },
                               ),
                               SizedBox(height: 8),
@@ -666,7 +736,7 @@ class _BodyState extends ConsumerState<Body> {
                                   ),
                                 ),
                                 onTap: () async {
-                                  await arrowDownCallback(cartItemsId[i]);
+                                  await arrowDownCallback(product.id, _selectedAddressId);
                                 },
                               ),
                             ],
@@ -689,7 +759,10 @@ class _BodyState extends ConsumerState<Body> {
                   ...cartCards,
                   SizedBox(height: 20),
                   // Payment Methods Section
-                  Text("Payment Methods", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    "Payment Methods",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                   SizedBox(height: 10),
                   // Cards Section
                   ...savedCards.asMap().entries.map((entry) {
@@ -697,11 +770,20 @@ class _BodyState extends ConsumerState<Body> {
                     final card = entry.value;
                     return Container(
                       margin: EdgeInsets.symmetric(vertical: 4),
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
-                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 1))],
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
@@ -716,20 +798,40 @@ class _BodyState extends ConsumerState<Body> {
                             },
                             activeColor: kPrimaryColor,
                           ),
-                          Icon(Icons.credit_card, color: kPrimaryColor, size: 28),
+                          Icon(
+                            Icons.credit_card,
+                            color: kPrimaryColor,
+                            size: 28,
+                          ),
                           SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(card['name'] ?? 'Card', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                                Text("**** **** **** ${card['number']?.substring(card['number'].length - 4)}", style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                                Text(
+                                  card['name'] ?? 'Card',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                Text(
+                                  "**** **** **** ${card['number']?.substring(card['number'].length - 4)}",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           IconButton(
                             icon: Icon(Icons.edit, color: kPrimaryColor),
-                            onPressed: () => showAddCardDialog(context, card: card, editIndex: idx),
+                            onPressed: () => showAddCardDialog(
+                              context,
+                              card: card,
+                              editIndex: idx,
+                            ),
                           ),
                           IconButton(
                             icon: Icon(Icons.delete, color: Colors.red),
@@ -745,7 +847,10 @@ class _BodyState extends ConsumerState<Body> {
                     onTap: () => showAddCardDialog(context),
                     child: paymentMethodTile(Icons.add_card, "Add Card", null),
                   ),
-                  Text("UPI Apps", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text(
+                    "UPI Apps",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
                   SizedBox(height: 8),
                   Row(
                     children: [
@@ -758,10 +863,17 @@ class _BodyState extends ConsumerState<Body> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            border: Border.all(color: selectedUpiApp == 'gpay' ? kPrimaryColor : Colors.grey[300]!),
+                            border: Border.all(
+                              color: selectedUpiApp == 'gpay'
+                                  ? kPrimaryColor
+                                  : Colors.grey[300]!,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Image.asset('assets/icons/gpay.png', fit: BoxFit.contain),
+                          child: Image.asset(
+                            'assets/icons/gpay.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       SizedBox(width: 12),
@@ -774,10 +886,17 @@ class _BodyState extends ConsumerState<Body> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            border: Border.all(color: selectedUpiApp == 'phonepe' ? kPrimaryColor : Colors.grey[300]!),
+                            border: Border.all(
+                              color: selectedUpiApp == 'phonepe'
+                                  ? kPrimaryColor
+                                  : Colors.grey[300]!,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Image.asset('assets/icons/phonepe.png', fit: BoxFit.contain),
+                          child: Image.asset(
+                            'assets/icons/phonepe.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       SizedBox(width: 12),
@@ -790,10 +909,17 @@ class _BodyState extends ConsumerState<Body> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            border: Border.all(color: selectedUpiApp == 'paytm' ? kPrimaryColor : Colors.grey[300]!),
+                            border: Border.all(
+                              color: selectedUpiApp == 'paytm'
+                                  ? kPrimaryColor
+                                  : Colors.grey[300]!,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Image.asset('assets/icons/paytm.png', fit: BoxFit.contain),
+                          child: Image.asset(
+                            'assets/icons/paytm.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     ],
@@ -801,14 +927,21 @@ class _BodyState extends ConsumerState<Body> {
                   SizedBox(height: 16),
                   InkWell(
                     onTap: () => showQrPaymentDialog(context),
-                    child: paymentMethodTile(Icons.qr_code, "Scan & Pay", "Generate QR for payment"),
+                    child: paymentMethodTile(
+                      Icons.qr_code,
+                      "Scan & Pay",
+                      "Generate QR for payment",
+                    ),
                   ),
                   SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                          padding: EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 12,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
@@ -823,9 +956,22 @@ class _BodyState extends ConsumerState<Body> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Total Amount", style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w500)),
+                              Text(
+                                "Total Amount",
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                               SizedBox(height: 4),
-                              Text("₹${totalPrice.toStringAsFixed(0)}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: kPrimaryColor)),
+                              Text(
+                                "₹${totalPrice.toStringAsFixed(0)}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24,
+                                  color: kPrimaryColor,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -834,17 +980,33 @@ class _BodyState extends ConsumerState<Body> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: kPrimaryColor,
-                          padding: EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 18,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         onPressed: showCheckoutBottomSheet,
-                        child: Text("Checkout", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                        child: Text(
+                          "Checkout",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   SizedBox(height: 20),
                   FutureBuilder<Address?>(
-                    future: _selectedAddressId != null ? UserDatabaseHelper().getAddressFromId(_selectedAddressId!) : null,
+                    future: _selectedAddressId != null
+                        ? UserDatabaseHelper().getAddressFromId(
+                            _selectedAddressId!,
+                          )
+                        : null,
                     builder: (context, snapshot) {
                       if (snapshot.hasData && snapshot.data != null) {
                         final address = snapshot.data!;
@@ -867,9 +1029,21 @@ class _BodyState extends ConsumerState<Body> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("Delivery to", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                    Text(
+                                      "Delivery to",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
                                     SizedBox(height: 4),
-                                    Text("${address.title ?? ''}, ${address.addressLine1 ?? ''}\n${address.addressLine2 ?? ''}\n${address.city ?? ''}, ${address.state ?? ''}\nPhone: ${address.phone ?? ''}", style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                                    Text(
+                                      "${address.title ?? ''}, ${address.addressLine1 ?? ''}\n${address.addressLine2 ?? ''}\n${address.city ?? ''}, ${address.state ?? ''}\nPhone: ${address.phone ?? ''}",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -877,8 +1051,15 @@ class _BodyState extends ConsumerState<Body> {
                               Container(
                                 width: 60,
                                 height: 60,
-                                decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
-                                child: Icon(Icons.map, color: kPrimaryColor, size: 32),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.map,
+                                  color: kPrimaryColor,
+                                  size: 32,
+                                ),
                               ),
                             ],
                           ),
@@ -988,7 +1169,7 @@ class _BodyState extends ConsumerState<Body> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: FutureBuilder<Product?>(
-        future: ProductDatabaseHelper().getProductWithID(cartItemId),
+        future: ProductDatabaseHelper().getProductWithID(cartItemId.split('_').first),
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data != null) {
             Product product = snapshot.data!;
@@ -1029,7 +1210,8 @@ class _BodyState extends ConsumerState<Body> {
                         InkWell(
                           child: Icon(Icons.arrow_drop_up, color: kTextColor),
                           onTap: () async {
-                            await arrowUpCallback(cartItemId);
+                            // Pass productId and selectedAddressId
+                            await arrowUpCallback(cartItemId, _selectedAddressId);
                           },
                         ),
                         SizedBox(height: 8),
@@ -1062,7 +1244,8 @@ class _BodyState extends ConsumerState<Body> {
                         InkWell(
                           child: Icon(Icons.arrow_drop_down, color: kTextColor),
                           onTap: () async {
-                            await arrowDownCallback(cartItemId);
+                            // Pass productId and selectedAddressId
+                            await arrowDownCallback(cartItemId, _selectedAddressId);
                           },
                         ),
                       ],
@@ -1116,14 +1299,18 @@ class _BodyState extends ConsumerState<Body> {
     // If UPI app is selected, launch UPI intent
     if (selectedUpiApp != null) {
       double amount = _lastCartTotal ?? 0;
-      String upiUrl = 'upi://pay?pa=afnnafsal@oksbi&pn=Afnan Afsal&am=${amount.toStringAsFixed(2)}&cu=INR';
+      String upiUrl =
+          'upi://pay?pa=afnnafsal@oksbi&pn=Afnan Afsal&am=${amount.toStringAsFixed(2)}&cu=INR';
       // Use url_launcher to launch UPI intent
       if (await canLaunchUrl(Uri.parse(upiUrl))) {
-        await launchUrl(Uri.parse(upiUrl), mode: LaunchMode.externalApplication);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not launch UPI app')),
+        await launchUrl(
+          Uri.parse(upiUrl),
+          mode: LaunchMode.externalApplication,
         );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not launch UPI app')));
       }
       return;
     }
@@ -1204,53 +1391,69 @@ class _BodyState extends ConsumerState<Body> {
     // Remove bottom sheet handler since we're using modal bottom sheet
   }
 
-  Future<void> arrowUpCallback(String cartItemId) async {
+  Future<void> arrowUpCallback(String productId, String? addressId) async {
     shutBottomSheet();
-    final future = UserDatabaseHelper().increaseCartItemCount(cartItemId);
-    future
-        .then((status) async {
-          if (status) {
-            await refreshPage();
-          } else {
-            throw "Couldn't perform the operation due to some unknown issue";
-          }
-        })
-        .catchError((e) {
-          Logger().e(e.toString());
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Something went wrong")));
-        });
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AsyncProgressDialog(future, message: Text("Please wait"));
-      },
-    );
+    // Find the cart item for the selected address and product
+    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(productId, addressId);
+    if (cartItem != null) {
+      final future = UserDatabaseHelper().increaseCartItemCount(cartItem.id);
+      future
+          .then((status) async {
+            if (status) {
+              await refreshPage();
+            } else {
+              throw "Couldn't perform the operation due to some unknown issue";
+            }
+          })
+          .catchError((e) {
+            Logger().e(e.toString());
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+          });
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AsyncProgressDialog(future, message: Text("Please wait"));
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("This product is not in your selected address's cart.")),
+      );
+    }
   }
 
-  Future<void> arrowDownCallback(String cartItemId) async {
+  Future<void> arrowDownCallback(String productId, String? addressId) async {
     shutBottomSheet();
-    final future = UserDatabaseHelper().decreaseCartItemCount(cartItemId);
-    future
-        .then((status) async {
-          if (status) {
-            await refreshPage();
-          } else {
-            throw "Couldn't perform the operation due to some unknown issue";
-          }
-        })
-        .catchError((e) {
-          Logger().e(e.toString());
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Something went wrong")));
-        });
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AsyncProgressDialog(future, message: Text("Please wait"));
-      },
-    );
+    // Find the cart item for the selected address and product
+    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(productId, addressId);
+    if (cartItem != null) {
+      final future = UserDatabaseHelper().decreaseCartItemCount(cartItem.id);
+      future
+          .then((status) async {
+            if (status) {
+              await refreshPage();
+            } else {
+              throw "Couldn't perform the operation due to some unknown issue";
+            }
+          })
+          .catchError((e) {
+            Logger().e(e.toString());
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+          });
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AsyncProgressDialog(future, message: Text("Please wait"));
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("This product is not in your selected address's cart.")),
+      );
+    }
   }
 }
