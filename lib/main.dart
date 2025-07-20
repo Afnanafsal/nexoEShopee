@@ -11,7 +11,15 @@ void main() async {
 
   await HiveService.instance.init();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } catch (e) {
+    print('Firebase already initialized: $e');
+  }
 
   runApp(ProviderScope(child: App()));
 }

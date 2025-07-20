@@ -30,7 +30,9 @@ class CategoryCard extends StatelessWidget {
                   color: Color(0xFFFFECDF),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: SvgPicture.asset(icon),
+                child: icon.endsWith('.png')
+                    ? Image.asset(icon, errorBuilder: (context, error, stackTrace) => Icon(Icons.error, color: Colors.red))
+                    : SvgPicture.asset(icon, placeholderBuilder: (context) => Icon(Icons.image, color: Colors.grey)),
               ),
             ),
             const SizedBox(height: 5),

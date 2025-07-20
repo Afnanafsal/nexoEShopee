@@ -21,8 +21,8 @@ class ProductTypeBox extends StatelessWidget {
       child: Container(
         width: getProportionateScreenWidth(89.91),
         height: getProportionateScreenHeight(202.5),
-            margin: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(4),
+        margin: EdgeInsets.symmetric(
+          horizontal: getProportionateScreenWidth(4),
         ),
         padding: EdgeInsets.symmetric(
           vertical: getProportionateScreenHeight(18),

@@ -216,9 +216,9 @@ class Body extends ConsumerWidget {
       case ProductType.Freshwater:
         return "assets/icons/rohu.png";
       case ProductType.Saltwater:
-        return "assets/icons/Mackerel.png";
+        return "assets/icons/mackerel.png";
       case ProductType.Shellfish:
-        return "assets/icons/prawns.png";
+        return "assets/icons/Prawns.png";
       case ProductType.Exotic:
         return "assets/icons/salmon.png";
       case ProductType.Dried:

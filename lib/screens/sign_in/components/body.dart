@@ -98,11 +98,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
         );
         return;
       }
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => Center(child: CircularProgressIndicator()),
-      );
+      // Removed loading dialog as requested
       String snackbarMessage = '';
       bool signInStatus = false;
       try {
@@ -112,13 +108,25 @@ class _SignInCardContentState extends State<_SignInCardContent> {
           password: password,
         );
         snackbarMessage = "Signed In Successfully";
-        Navigator.of(context).pop();
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+        // Only navigate if signInStatus is true and user is not null
+        if (signInStatus) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
+        }
       } on MessagedFirebaseAuthException catch (e) {
         snackbarMessage = e.message;
-        Navigator.of(context).pop();
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       } catch (e) {
         snackbarMessage = e.toString();
-        Navigator.of(context).pop();
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       }
       if (!signInStatus) {
         ScaffoldMessenger.of(

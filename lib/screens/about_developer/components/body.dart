@@ -31,18 +31,18 @@ class Body extends StatelessWidget {
                 InkWell(
                   onTap: () async {
                     const String linkedInUrl =
-                        "https://www.linkedin.com/in/imrb7here";
+                        "https://www.linkedin.com/in/afnanafsal";
                     await launchExternalUrl(linkedInUrl);
                   },
                   child: buildDeveloperAvatar(),
                 ),
                 SizedBox(height: getProportionateScreenHeight(30)),
                 Text(
-                  '" Rahul Badgujar "',
+                  '" Afnan afsal "',
                   style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
                 ),
                 Text(
-                  "PCCoE Pune",
+                  "Flutter Developer",
                   style: TextStyle(fontSize: 21, fontWeight: FontWeight.w500),
                 ),
                 SizedBox(height: getProportionateScreenHeight(30)),
@@ -58,7 +58,8 @@ class Body extends StatelessWidget {
                       iconSize: 40,
                       padding: EdgeInsets.all(16),
                       onPressed: () async {
-                        const String githubUrl = "https://github.com/imRB7here";
+                        const String githubUrl =
+                            "https://github.com/afnanafsal";
                         await launchExternalUrl(githubUrl);
                       },
                     ),
@@ -71,7 +72,7 @@ class Body extends StatelessWidget {
                       padding: EdgeInsets.all(16),
                       onPressed: () async {
                         const String linkedInUrl =
-                            "https://www.linkedin.com/in/imrb7here";
+                            "https://www.linkedin.com/in/afnanafsal";
                         await launchExternalUrl(linkedInUrl);
                       },
                     ),
@@ -84,7 +85,7 @@ class Body extends StatelessWidget {
                       padding: EdgeInsets.all(16),
                       onPressed: () async {
                         const String instaUrl =
-                            "https://www.instagram.com/_rahul.badgujar_";
+                            "https://www.instagram.com/afnnafsal/";
                         await launchExternalUrl(instaUrl);
                       },
                     ),

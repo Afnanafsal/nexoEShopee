@@ -66,7 +66,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         String? selectedId;
         if (!mounted) return;
         // Prefetch all address details in parallel
-        final addressDetails = await Future.wait(addressIds.map((id) => UserDatabaseHelper().getAddressFromId(id)));
+        final addressDetails = await Future.wait(
+          addressIds.map((id) => UserDatabaseHelper().getAddressFromId(id)),
+        );
         await showDialog(
           context: localContext,
           barrierDismissible: false,
@@ -75,7 +77,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               builder: (context, setState) {
                 final theme = Theme.of(context);
                 return Dialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
                   backgroundColor: theme.scaffoldBackgroundColor,
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -101,10 +105,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               padding: EdgeInsets.all(8),
-                              child: Icon(Icons.location_on, color: theme.primaryColor, size: 28),
+                              child: Icon(
+                                Icons.location_on,
+                                color: theme.primaryColor,
+                                size: 28,
+                              ),
                             ),
                             SizedBox(width: 12),
-                            Text('Select Delivery Address',
+                            Text(
+                              'Select Delivery Address',
                               style: theme.textTheme.titleMedium?.copyWith(
                                 color: theme.primaryColor,
                                 fontWeight: FontWeight.bold,
@@ -119,23 +128,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           final address = addressDetails[i];
                           String display = id;
                           if (address != null) {
-                            display = [
-                              address.addressLine1,
-                              address.city,
-                              address.state,
-                              address.pincode,
-                            ].whereType<String>().where((e) => e.isNotEmpty).join(', ');
+                            display =
+                                [
+                                      address.addressLine1,
+                                      address.city,
+                                      address.state,
+                                      address.pincode,
+                                    ]
+                                    .whereType<String>()
+                                    .where((e) => e.isNotEmpty)
+                                    .join(', ');
                           }
                           return Card(
-                            color: selectedId == id ? theme.primaryColor.withOpacity(0.08) : theme.cardColor,
+                            color: selectedId == id
+                                ? theme.primaryColor.withOpacity(0.08)
+                                : theme.cardColor,
                             elevation: 0,
                             margin: EdgeInsets.symmetric(vertical: 6),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: RadioListTile<String>(
-                              title: Text(display,
+                              title: Text(
+                                display,
                                 style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: selectedId == id ? theme.primaryColor : theme.textTheme.bodyLarge?.color,
-                                  fontWeight: selectedId == id ? FontWeight.bold : FontWeight.normal,
+                                  color: selectedId == id
+                                      ? theme.primaryColor
+                                      : theme.textTheme.bodyLarge?.color,
+                                  fontWeight: selectedId == id
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                 ),
                               ),
                               value: id,
@@ -143,7 +165,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               onChanged: (val) {
                                 setState(() => selectedId = val);
                               },
-                              secondary: Icon(Icons.home, color: selectedId == id ? theme.primaryColor : theme.iconTheme.color),
+                              secondary: Icon(
+                                Icons.home,
+                                color: selectedId == id
+                                    ? theme.primaryColor
+                                    : theme.iconTheme.color,
+                              ),
                               activeColor: theme.primaryColor,
                             ),
                           );
@@ -156,24 +183,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
-                              child: Text('Cancel', style: theme.textTheme.labelLarge?.copyWith(color: theme.primaryColor)),
+                              child: Text(
+                                'Cancel',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: theme.primaryColor,
+                                ),
+                              ),
                             ),
                             SizedBox(width: 8),
                             ElevatedButton.icon(
                               onPressed: selectedId == null
                                   ? null
                                   : () {
-                                      ref.read(selectedAddressIdProvider.notifier).state = selectedId;
+                                      ref
+                                              .read(
+                                                selectedAddressIdProvider
+                                                    .notifier,
+                                              )
+                                              .state =
+                                          selectedId;
                                       Navigator.of(context).pop();
                                     },
                               icon: Icon(Icons.check, color: Colors.white),
-                              label: Text('Select', style: TextStyle(color: Colors.white)),
+                              label: Text(
+                                'Select',
+                                style: TextStyle(color: Colors.white),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: theme.primaryColor,
                                 foregroundColor: Colors.white,
                                 elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
                               ),
                             ),
                           ],
