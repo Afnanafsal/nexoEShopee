@@ -185,6 +185,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     ),
                                   );
                                 },
+                                showDiscountTag: false,
                               ),
                               Positioned(
                                 bottom: 4,
