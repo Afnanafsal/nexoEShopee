@@ -4,17 +4,19 @@ import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-final selectedAddressIdProvider = StateProvider<String?>((ref) => null);
+import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:hive/hive.dart';
+final selectedAddressIdProvider = StateProvider.autoDispose<String?>((ref) => null);
 
-final userDatabaseHelperProvider = Provider<UserDatabaseHelper>((ref) {
+final userDatabaseHelperProvider = Provider.autoDispose<UserDatabaseHelper>((ref) {
   return UserDatabaseHelper();
 });
 
-final authServiceProvider = Provider<AuthentificationService>((ref) {
+final authServiceProvider = Provider.autoDispose<AuthentificationService>((ref) {
   return AuthentificationService();
 });
 
-final authStateProvider = StreamProvider<User?>((ref) {
+final authStateProvider = StreamProvider.autoDispose<User?>((ref) {
   final authService = ref.watch(authServiceProvider);
   return authService.authStateChanges;
 });
@@ -66,13 +68,13 @@ class FormStateNotifier extends StateNotifier<FormState> {
   }
 }
 
-final signInFormProvider = StateNotifierProvider<FormStateNotifier, FormState>((
+final signInFormProvider = StateNotifierProvider.autoDispose<FormStateNotifier, FormState>((
   ref,
 ) {
   return FormStateNotifier();
 });
 
-final signUpFormProvider = StateNotifierProvider<FormStateNotifier, FormState>((
+final signUpFormProvider = StateNotifierProvider.autoDispose<FormStateNotifier, FormState>((
   ref,
 ) {
   return FormStateNotifier();
@@ -140,41 +142,118 @@ class SignUpFormNotifier extends StateNotifier<SignUpFormData> {
 }
 
 final signUpFormDataProvider =
-    StateNotifierProvider<SignUpFormNotifier, SignUpFormData>((ref) {
+    StateNotifierProvider.autoDispose<SignUpFormNotifier, SignUpFormData>((ref) {
       return SignUpFormNotifier();
     });
 
-final cartItemsProvider = FutureProvider<List<String>>((ref) async {
-  final userHelper = ref.watch(userDatabaseHelperProvider);
-  return await userHelper.allCartItemsList;
+final cartItemsProvider = FutureProvider.autoDispose<List<String>>((ref) async {
+  // Try to load from Hive cache first
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId != null) {
+    final cachedUser = HiveService.instance.getCachedUser(userId);
+    if (cachedUser != null && cachedUser.cartItems.isNotEmpty) {
+      return cachedUser.cartItems;
+    }
+  }
+  // Fallback to backend fetch and cache result
+  final userHelper = ref.read(userDatabaseHelperProvider);
+  final items = await userHelper.allCartItemsList;
+  if (userId != null) {
+    await HiveService.instance.updateUserCart(userId, items);
+  }
+  return items;
 });
 
-final favouriteProductsProvider = FutureProvider<List<String>>((ref) async {
-  final userHelper = ref.watch(userDatabaseHelperProvider);
-  return await userHelper.usersFavouriteProductsList;
+final favouriteProductsProvider = FutureProvider.autoDispose<List<String>>((ref) async {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId != null) {
+    final cachedUser = HiveService.instance.getCachedUser(userId);
+    if (cachedUser != null && cachedUser.favoriteProducts.isNotEmpty) {
+      return cachedUser.favoriteProducts;
+    }
+  }
+  final userHelper = ref.read(userDatabaseHelperProvider);
+  final favs = await userHelper.usersFavouriteProductsList;
+  if (userId != null) {
+    await HiveService.instance.updateUserFavorites(userId, favs);
+  }
+  return favs;
 });
 
-final orderedProductsProvider = FutureProvider<List<String>>((ref) async {
-  final userHelper = ref.watch(userDatabaseHelperProvider);
-  return await userHelper.orderedProductsList;
+// Helper functions for cache access (fixes lint errors)
+extension HiveOrderCacheExtension on HiveService {
+  List<Map<String, dynamic>> getOrdersCache() {
+    try {
+      return Hive.box<dynamic>('orders').values.toList().cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
+  Future<void> setOrdersCache(List<Map<String, dynamic>> orders) async {
+    try {
+      final Map<String, Map<String, dynamic>> ordersMap = {
+        for (var order in orders) order['id'] as String: order,
+      };
+      await Hive.box<dynamic>('orders').putAll(ordersMap);
+    } catch (_) {}
+  }
+}
+
+final orderedProductsProvider = FutureProvider.autoDispose<List<String>>((ref) async {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  // Optimized: cache orders per user for instant load
+  if (userId != null) {
+    final cachedOrders = HiveService.instance.getOrdersCache();
+    // Only return orders for current user
+    final userOrders = cachedOrders.where((order) => order['userId'] == userId).toList();
+    if (userOrders.isNotEmpty) {
+      return userOrders.map((order) => order['id'] as String).toList();
+    }
+  }
+  // Fallback to backend fetch and cache result
+  final userHelper = ref.read(userDatabaseHelperProvider);
+  final orders = await userHelper.orderedProductsList;
+  // Batch cache update for speed
+  if (orders.isNotEmpty && userId != null) {
+    await HiveService.instance.setOrdersCache(
+      orders.map((id) => {'id': id, 'userId': userId}).toList(),
+    );
+  }
+  return orders;
 });
 
-final cartTotalProvider = FutureProvider<num>((ref) async {
-  final userHelper = ref.watch(userDatabaseHelperProvider);
-  return await userHelper.cartTotal;
+final cartTotalProvider = FutureProvider.autoDispose<num>((ref) async {
+  // Try cache first
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  final cachedUser = userId != null ? HiveService.instance.getCachedUser(userId) : null;
+  if (cachedUser != null && cachedUser.cartItems.isNotEmpty) {
+    // You may want to cache cart total separately for more accuracy
+    // For now, fallback to backend
+  }
+  final userHelper = ref.read(userDatabaseHelperProvider);
+  final total = await userHelper.cartTotal;
+  // Optionally cache total
+  return total;
 });
 
-final isProductFavouriteProvider = FutureProvider.family<bool, String>((
+final isProductFavouriteProvider = FutureProvider.autoDispose.family<bool, String>((
   ref,
   productId,
 ) async {
-  final userHelper = ref.watch(userDatabaseHelperProvider);
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId != null) {
+    final cachedUser = HiveService.instance.getCachedUser(userId);
+    if (cachedUser != null && cachedUser.favoriteProducts.contains(productId)) {
+      return true;
+    }
+  }
+  final userHelper = ref.read(userDatabaseHelperProvider);
   return await userHelper.isProductFavourite(productId);
 });
 
 // Cart stream provider
-final cartItemsStreamProvider = StreamProvider<List<String>>((ref) {
-  final userHelper = ref.watch(userDatabaseHelperProvider);
+final cartItemsStreamProvider = StreamProvider.autoDispose<List<String>>((ref) {
+  final userHelper = ref.read(userDatabaseHelperProvider);
   final selectedAddressId = ref.watch(selectedAddressIdProvider);
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid == null) return const Stream.empty();

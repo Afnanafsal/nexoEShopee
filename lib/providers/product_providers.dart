@@ -2,21 +2,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/models/Review.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
+import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:hive/hive.dart';
 
 final productDatabaseHelperProvider = Provider<ProductDatabaseHelper>((ref) {
   return ProductDatabaseHelper();
 });
 
 final allProductsProvider = FutureProvider<List<String>>((ref) async {
-  final productHelper = ref.watch(productDatabaseHelperProvider);
-  return await productHelper.getAllProducts();
+  // Try cache first
+  final cachedProducts = HiveService.instance.getCachedProducts();
+  if (cachedProducts.isNotEmpty) {
+    return cachedProducts.map((p) => p.id).toList();
+  }
+  // Fallback to backend
+  final productHelper = ref.read(productDatabaseHelperProvider);
+  final products = await productHelper.getAllProducts();
+  // Cache products
+  await HiveService.instance.cacheProducts(products.map((id) => Product(id)).toList());
+  return products;
 });
 
-final categoryProductsProvider =
-    FutureProvider.family<List<String>, ProductType>((ref, productType) async {
-      final productHelper = ref.watch(productDatabaseHelperProvider);
-      return await productHelper.getCategoryProductsList(productType);
-    });
+final categoryProductsProvider = FutureProvider.family<List<String>, ProductType>((ref, productType) async {
+  // Try cache first
+  final cachedProducts = HiveService.instance.getCachedProductsByType(productType);
+  if (cachedProducts.isNotEmpty) {
+    return cachedProducts.map((p) => p.id).toList();
+  }
+  // Fallback to backend
+  final productHelper = ref.read(productDatabaseHelperProvider);
+  final products = await productHelper.getCategoryProductsList(productType);
+  // Cache products by type
+  await HiveService.instance.cacheProducts(products.map((id) => Product(id, productType: productType)).toList());
+  return products;
+});
 
 final latestProductsProvider = FutureProvider.family<List<String>, int>((
   ref,
@@ -26,12 +45,19 @@ final latestProductsProvider = FutureProvider.family<List<String>, int>((
   return await productHelper.getLatestProducts(limit);
 });
 
-final productProvider = FutureProvider.family<Product?, String>((
-  ref,
-  productId,
-) async {
-  final productHelper = ref.watch(productDatabaseHelperProvider);
-  return await productHelper.getProductWithID(productId);
+final productProvider = FutureProvider.family<Product?, String>((ref, productId) async {
+  // Try cache first
+  final cachedProduct = HiveService.instance.getCachedProduct(productId);
+  if (cachedProduct != null) {
+    return cachedProduct;
+  }
+  // Fallback to backend
+  final productHelper = ref.read(productDatabaseHelperProvider);
+  final product = await productHelper.getProductWithID(productId);
+  if (product != null) {
+    await HiveService.instance.cacheProduct(product);
+  }
+  return product;
 });
 
 final userProductsProvider = FutureProvider<List<String>>((ref) async {
