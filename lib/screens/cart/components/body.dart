@@ -555,6 +555,7 @@ class _BodyState extends ConsumerState<Body> {
   Widget buildCartItemsList() {
     final cartItemsAsync = ref.watch(cartItemsStreamProvider);
     Logger().i('CartItemsStreamProvider value: $cartItemsAsync');
+    bool isFirstLoad = cartItemsAsync.isLoading && (savedCards.isEmpty);
     return cartItemsAsync.when(
       data: (cartItemsId) {
         Logger().i('Cart items IDs: $cartItemsId');
@@ -590,8 +591,8 @@ class _BodyState extends ConsumerState<Body> {
           builder: (context, snapshot) {
             double totalPrice = 0;
             List<Widget> cartCards = [];
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              // Show shimmer loading for cart items
+            if (snapshot.connectionState == ConnectionState.waiting && isFirstLoad) {
+              // Show shimmer loading only on first load
               return ListView.builder(
                 itemCount: 3,
                 itemBuilder: (context, index) {
@@ -767,6 +768,8 @@ class _BodyState extends ConsumerState<Body> {
                                 ),
                                 onTap: () async {
                                   await arrowUpCallback(product.id, _selectedAddressId);
+                                  // Auto-refresh after add
+                                  await refreshPage();
                                 },
                               ),
                               SizedBox(height: 8),
@@ -792,6 +795,8 @@ class _BodyState extends ConsumerState<Body> {
                                 ),
                                 onTap: () async {
                                   await arrowDownCallback(product.id, _selectedAddressId);
+                                  // Auto-refresh after remove
+                                  await refreshPage();
                                 },
                               ),
                             ],
@@ -1133,7 +1138,8 @@ class _BodyState extends ConsumerState<Body> {
       },
       loading: () {
         Logger().i('CartItemsStreamProvider loading...');
-        return Center(child: CircularProgressIndicator());
+        // Don't show indicator, just return empty widget
+        return SizedBox.shrink();
       },
       error: (error, stackTrace) {
         Logger().w('CartItemsStreamProvider error: $error');

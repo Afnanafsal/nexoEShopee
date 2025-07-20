@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 final selectedAddressIdProvider = StateProvider<String?>((ref) => null);
 
 final userDatabaseHelperProvider = Provider<UserDatabaseHelper>((ref) {
@@ -175,15 +176,19 @@ final isProductFavouriteProvider = FutureProvider.family<bool, String>((
 final cartItemsStreamProvider = StreamProvider<List<String>>((ref) {
   final userHelper = ref.watch(userDatabaseHelperProvider);
   final selectedAddressId = ref.watch(selectedAddressIdProvider);
-  return Stream.fromFuture(userHelper.allCartItemsList.then((ids) async {
-    final filteredIds = <String>[];
-    for (final id in ids) {
-      final cartItem = await userHelper.getCartItemFromId(id);
-      // Show items for selected address, and legacy items with no addressId
-      if (cartItem != null && (selectedAddressId == null ? true : (cartItem.addressId == selectedAddressId || cartItem.addressId == null))) {
-        filteredIds.add(id);
-      }
-    }
-    return filteredIds;
-  }));
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return const Stream.empty();
+  final cartCollection = userHelper.firestore
+      .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+      .doc(uid)
+      .collection(UserDatabaseHelper.CART_COLLECTION_NAME);
+  Query query;
+  if (selectedAddressId != null) {
+    query = cartCollection.where('address_id', isEqualTo: selectedAddressId);
+  } else {
+    query = cartCollection;
+  }
+  return query.snapshots().map((snapshot) {
+    return snapshot.docs.map((doc) => doc.id).toList();
+  });
 });
