@@ -236,12 +236,7 @@ class _ProfileActions extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        _ProfileActionTile(
-          title: 'About Developer',
-          icon: Icons.info_outline,
-          onTap: () => _push(context, AboutDeveloperScreen()),
-        ),
+        
         const SizedBox(height: 16),
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
