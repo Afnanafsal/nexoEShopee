@@ -25,40 +25,40 @@ const String PRODUCT_TYPE_KEY = "product_type";
 class Body extends ConsumerWidget {
   final productCategories = <Map>[
     <String, dynamic>{
-      ICON_KEY: "assets/icons/chicken.svg",
-      TITLE_KEY: "Chicken",
-      PRODUCT_TYPE_KEY: ProductType.Chicken,
+      ICON_KEY: "assets/icons/rohu.png",
+      TITLE_KEY: "Freshwater Fish",
+      PRODUCT_TYPE_KEY: ProductType.Freshwater,
+      "examples": ["Rohu", "Catla", "Tilapia"],
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/mutton.svg",
-      TITLE_KEY: "Mutton",
-      PRODUCT_TYPE_KEY: ProductType.Mutton,
+      ICON_KEY: "assets/icons/Mackerel.png",
+      TITLE_KEY: "Saltwater Fish",
+      PRODUCT_TYPE_KEY: ProductType.Saltwater,
+      "examples": ["Pomfret", "King Fish", "Mackerel"],
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/beef.svg",
-      TITLE_KEY: "Beef",
-      PRODUCT_TYPE_KEY: ProductType.Beef,
+      ICON_KEY: "assets/icons/prawns.png",
+      TITLE_KEY: "Shellfish",
+      PRODUCT_TYPE_KEY: ProductType.Shellfish,
+      "examples": ["Prawns", "Crabs", "Lobster"],
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/fish.svg",
-      TITLE_KEY: "Fish",
-      PRODUCT_TYPE_KEY: ProductType.Fish,
+      ICON_KEY: "assets/icons/salmon.png",
+      TITLE_KEY: "Exotic Fish",
+      PRODUCT_TYPE_KEY: ProductType.Exotic,
+      "examples": ["Salmon", "Tuna", "Snapper"],
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/eggs.svg",
-      TITLE_KEY: "Eggs",
-      PRODUCT_TYPE_KEY: ProductType.Eggs,
-    },
-
-    <String, dynamic>{
-      ICON_KEY: "assets/icons/ready_to_eat.svg",
-      TITLE_KEY: "Ready to Eat",
-      PRODUCT_TYPE_KEY: ProductType.ReadyToEat,
+      ICON_KEY: "assets/icons/Anchovies.png",
+      TITLE_KEY: "Dried Fish",
+      PRODUCT_TYPE_KEY: ProductType.Dried,
+      "examples": ["Anchovies", "Bombay Duck"],
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/others.svg",
+      ICON_KEY: "assets/icons/canned.png",
       TITLE_KEY: "Others",
       PRODUCT_TYPE_KEY: ProductType.Others,
+      "examples": ["Other seafood"],
     },
   ];
 
@@ -156,7 +156,7 @@ class Body extends ConsumerWidget {
                       ),
                       SizedBox(height: getProportionateScreenHeight(15)),
                       SizedBox(
-                        height: SizeConfig.screenHeight * 0.1,
+                        height: SizeConfig.screenHeight * 0.191,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: ListView.builder(

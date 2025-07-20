@@ -2,13 +2,12 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:nexoeshopee/models/Model.dart';
 
 enum ProductType {
-  Chicken,
-  Mutton,
-  Beef,
-  Fish,
-  Eggs,
-  ReadyToEat,
+  Freshwater,
+  Saltwater,
+  Shellfish,
+  Exotic,
   Others,
+  Dried,
 }
 
 class Product extends Model {

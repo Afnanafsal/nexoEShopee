@@ -213,20 +213,21 @@ class Body extends ConsumerWidget {
 
   String bannerFromProductType() {
     switch (productType) {
-      case ProductType.Chicken:
-        return "assets/images/chicken_banner.jpg";
-      case ProductType.Mutton:
-        return "assets/images/mutton_banner.jpg";
-      case ProductType.Beef:
-        return "assets/images/beef_banner.jpg";
-      case ProductType.Fish:
-        return "assets/images/fish_banner.jpg";
-      case ProductType.Eggs:
-        return "assets/images/eggs_banner.jpg";
-     case ProductType.ReadyToEat:
-        return "assets/images/ready_to_eat_banner.jpg";
+      case ProductType.Freshwater:
+        return "assets/icons/rohu.png";
+      case ProductType.Saltwater:
+        return "assets/icons/Mackerel.png";
+      case ProductType.Shellfish:
+        return "assets/icons/prawns.png";
+      case ProductType.Exotic:
+        return "assets/icons/salmon.png";
+      case ProductType.Dried:
+        return "assets/icons/Anchovies.png";
       case ProductType.Others:
-        return "assets/images/others_banner.jpg";
+        return "assets/icons/canned.png";
+      // Add other cases as needed
+      default:
+        return "assets/icons/canned.png";
     }
   }
 }
