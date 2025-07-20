@@ -91,13 +91,17 @@ class _SearchScreenState extends State<SearchScreen> {
       final container = ProviderScope.containerOf(context);
       selectedAddressId = container.read(selectedAddressIdProvider);
     } catch (_) {}
-    UserDatabaseHelper().addProductToCart(productId, addressId: selectedAddressId).then((success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? 'Added to cart' : 'Failed to add to cart'),
-        ),
-      );
-    });
+    UserDatabaseHelper()
+        .addProductToCart(productId, addressId: selectedAddressId)
+        .then((success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                success ? 'Added to cart' : 'Failed to add to cart',
+              ),
+            ),
+          );
+        });
   }
 
   @override
@@ -140,14 +144,18 @@ class _SearchScreenState extends State<SearchScreen> {
                                 press: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => ProductDetailsScreen(key: Key(product.id), productId: product.id),
+                                      builder: (context) =>
+                                          ProductDetailsScreen(
+                                            key: Key(product.id),
+                                            productId: product.id,
+                                          ),
                                     ),
                                   );
                                 },
                               ),
                               Positioned(
-                                bottom: 16,
-                                right: 16,
+                                bottom: 4,
+                                right: 4,
                                 child: Material(
                                   color: Colors.white,
                                   shape: const CircleBorder(),
@@ -161,8 +169,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                       padding: const EdgeInsets.all(8.0),
                                       child: Icon(
                                         Icons.add,
-                                        size: 24,
-                                        color: Colors.blue,
+                                        size: 32,
+                                        color: Colors.black,
                                       ),
                                     ),
                                   ),
@@ -196,13 +204,17 @@ class _SearchScreenState extends State<SearchScreen> {
                                 press: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => ProductDetailsScreen(key: Key(product.id), productId: product.id),
+                                      builder: (context) =>
+                                          ProductDetailsScreen(
+                                            key: Key(product.id),
+                                            productId: product.id,
+                                          ),
                                     ),
                                   );
                                 },
                               ),
                               Positioned(
-                                bottom: 16,
+                                bottom: 10,
                                 right: 16,
                                 child: Material(
                                   color: Colors.white,
@@ -217,8 +229,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                       padding: const EdgeInsets.all(8.0),
                                       child: Icon(
                                         Icons.add,
-                                        size: 24,
-                                        color: Colors.blue,
+                                        size: 32,
+                                        color: Colors.black,
                                       ),
                                     ),
                                   ),
