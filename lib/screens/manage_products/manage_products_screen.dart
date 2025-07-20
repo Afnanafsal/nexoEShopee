@@ -19,6 +19,17 @@ class ManageProductsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text("Manage Products"),
+        centerTitle: true,
+        elevation: 2,
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -42,7 +53,10 @@ class ProductsList extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection(ProductDatabaseHelper.PRODUCTS_COLLECTION_NAME)
-          .where(Product.OWNER_KEY, isEqualTo: AuthentificationService().currentUser.uid)
+          .where(
+            Product.OWNER_KEY,
+            isEqualTo: AuthentificationService().currentUser.uid,
+          )
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -58,7 +72,11 @@ class ProductsList extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.shopping_bag_outlined, size: 100, color: kPrimaryColor),
+                Icon(
+                  Icons.shopping_bag_outlined,
+                  size: 100,
+                  color: kPrimaryColor,
+                ),
                 SizedBox(height: 20),
                 Text(
                   'No products yet',
@@ -71,16 +89,20 @@ class ProductsList extends StatelessWidget {
           );
         }
 
-        final products = snapshot.data!.docs.map((doc) {
-          try {
-            final data = doc.data() as Map<String, dynamic>?;
-            if (data == null) return null;
-            return Product.fromMap(data, id: doc.id);
-          } catch (e) {
-            print('Error parsing product ${doc.id}: $e');
-            return null;
-          }
-        }).where((product) => product != null).cast<Product>().toList();
+        final products = snapshot.data!.docs
+            .map((doc) {
+              try {
+                final data = doc.data() as Map<String, dynamic>?;
+                if (data == null) return null;
+                return Product.fromMap(data, id: doc.id);
+              } catch (e) {
+                print('Error parsing product ${doc.id}: $e');
+                return null;
+              }
+            })
+            .where((product) => product != null)
+            .cast<Product>()
+            .toList();
 
         if (products.isEmpty) {
           return Center(
@@ -120,17 +142,20 @@ class ProductsList extends StatelessWidget {
                           color: kPrimaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Icon(Icons.image_not_supported, color: kPrimaryColor),
+                        child: Icon(
+                          Icons.image_not_supported,
+                          color: kPrimaryColor,
+                        ),
                       );
                     }
-                    
+
                     try {
                       final base64Image = product.images![0];
                       // Remove data URI prefix if present
-                      final imageData = base64Image.startsWith('data:image') 
+                      final imageData = base64Image.startsWith('data:image')
                           ? base64Image.split(',')[1]
                           : base64Image;
-                      
+
                       return ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.memory(
@@ -147,7 +172,10 @@ class ProductsList extends StatelessWidget {
                                 color: kPrimaryColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Icon(Icons.broken_image, color: kPrimaryColor),
+                              child: Icon(
+                                Icons.broken_image,
+                                color: kPrimaryColor,
+                              ),
                             );
                           },
                         ),
@@ -198,7 +226,10 @@ class ProductsList extends StatelessWidget {
                       value: 'delete',
                       child: ListTile(
                         leading: Icon(Icons.delete, color: Colors.red),
-                        title: Text('Delete', style: TextStyle(color: Colors.red)),
+                        title: Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -208,7 +239,8 @@ class ProductsList extends StatelessWidget {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => EditProductScreen(productToEdit: product),
+                          builder: (context) =>
+                              EditProductScreen(productToEdit: product),
                         ),
                       );
                     } else if (value == 'delete') {
@@ -217,7 +249,9 @@ class ProductsList extends StatelessWidget {
                         context: context,
                         builder: (context) => AlertDialog(
                           title: Text('Delete Product'),
-                          content: Text('Are you sure you want to delete this product?'),
+                          content: Text(
+                            'Are you sure you want to delete this product?',
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
@@ -225,7 +259,10 @@ class ProductsList extends StatelessWidget {
                             ),
                             TextButton(
                               onPressed: () => Navigator.pop(context, true),
-                              child: Text('Delete', style: TextStyle(color: Colors.red)),
+                              child: Text(
+                                'Delete',
+                                style: TextStyle(color: Colors.red),
+                              ),
                             ),
                           ],
                         ),
@@ -233,9 +270,13 @@ class ProductsList extends StatelessWidget {
 
                       if (confirm == true) {
                         try {
-                          await ProductDatabaseHelper().deleteUserProduct(product.id);
+                          await ProductDatabaseHelper().deleteUserProduct(
+                            product.id,
+                          );
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Product deleted successfully')),
+                            SnackBar(
+                              content: Text('Product deleted successfully'),
+                            ),
                           );
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
