@@ -33,6 +33,17 @@ class _BodyState extends State<Body> {
   late final String currentUserUid;
   final HiveService _hiveService = HiveService.instance;
 
+  // Address cache for dropdown speed
+  final Map<String, Address> _addressCache = {};
+  Future<Address> _getAddressWithCaching(String addressId) async {
+    if (_addressCache.containsKey(addressId)) {
+      return _addressCache[addressId]!;
+    }
+    final address = await UserDatabaseHelper().getAddressFromId(addressId);
+    _addressCache[addressId] = address;
+    return address;
+  }
+
   static const int _pageSize = 20;
   DocumentSnapshot? _lastDocument;
   bool _isLoadingMore = false;
@@ -188,21 +199,17 @@ class _BodyState extends State<Body> {
                                       return DropdownMenuItem<String>(
                                         value: addressId,
                                         child: FutureBuilder<Address>(
-                                          future: UserDatabaseHelper()
-                                              .getAddressFromId(addressId),
+                                          future: _getAddressWithCaching(addressId),
                                           builder: (context, snapshot) {
-                                            if (snapshot.hasData &&
-                                                snapshot.data != null) {
+                                            if (snapshot.hasData && snapshot.data != null) {
                                               final address = snapshot.data!;
                                               return Text(
-                                                address.title ??
-                                                    address.addressLine1 ??
-                                                    addressId,
+                                                address.title ?? '',
                                                 overflow: TextOverflow.ellipsis,
                                               );
                                             }
                                             return Text(
-                                              addressId,
+                                              '', // Only show blank if not loaded
                                               overflow: TextOverflow.ellipsis,
                                             );
                                           },
