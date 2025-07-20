@@ -4,6 +4,8 @@ import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
+import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:nexoeshopee/services/database/product_database_helper.dart';
 
 class Body extends StatelessWidget {
   final String searchQuery;
@@ -19,6 +21,16 @@ class Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Preload and cache all products for search results
+    for (final id in searchResultProductsId) {
+      final cached = HiveService.instance.getCachedProduct(id);
+      if (cached == null) {
+        ProductDatabaseHelper().getProductWithID(id).then((product) {
+          if (product != null) HiveService.instance.cacheProduct(product);
+        });
+      }
+    }
+
     return SafeArea(
       child: SingleChildScrollView(
         child: Padding(

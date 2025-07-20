@@ -10,6 +10,7 @@ import 'package:nexoeshopee/providers/providers.dart';
 import 'package:nexoeshopee/providers/providers.dart'; // Ensure cartProvider is imported
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
+import 'package:nexoeshopee/services/cache/hive_service.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -56,11 +57,30 @@ class _SearchScreenState extends State<SearchScreen> {
     // Sort by count descending
     final sortedIds = countMap.keys.toList()
       ..sort((a, b) => countMap[b]!.compareTo(countMap[a]!));
-    // Fetch product details
+
+    // Batch fetch cached products first
     List<Product> products = [];
+    List<String> missingIds = [];
     for (final id in sortedIds) {
-      final product = await ProductDatabaseHelper().getProductWithID(id);
-      if (product != null) products.add(product);
+      final cached = HiveService.instance.getCachedProduct(id);
+      if (cached != null) {
+        products.add(cached);
+      } else {
+        missingIds.add(id);
+      }
+    }
+    // Batch fetch missing products from DB and cache them
+    if (missingIds.isNotEmpty) {
+      final fetchedProducts = await Future.wait(
+        missingIds.map((id) => ProductDatabaseHelper().getProductWithID(id)),
+      );
+      for (int i = 0; i < fetchedProducts.length; i++) {
+        final product = fetchedProducts[i];
+        if (product != null) {
+          products.add(product);
+          await HiveService.instance.cacheProduct(product);
+        }
+      }
     }
     setState(() {
       frequentlyBoughtProducts = products;
@@ -120,6 +140,19 @@ class _SearchScreenState extends State<SearchScreen> {
               },
             ),
             SizedBox(height: 16),
+            if (!isSearching) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Frequently Bought Products',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+            ],
             if (isLoading) Center(child: CircularProgressIndicator()),
             if (!isSearching && !isLoading)
               Expanded(
