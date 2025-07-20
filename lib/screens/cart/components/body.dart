@@ -23,6 +23,7 @@ import 'package:nexoeshopee/services/authentification/authentification_service.d
 import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:nexoeshopee/services/cache/hive_service.dart';
 import 'package:nexoeshopee/size_config.dart';
 import '../../../utils.dart';
 
@@ -439,7 +440,9 @@ class _BodyState extends ConsumerState<Body> {
                       return DropdownMenuItem<String>(
                         value: addressId,
                         child: FutureBuilder<Address>(
-                          future: UserDatabaseHelper().getAddressFromId(addressId),
+                          future: UserDatabaseHelper().getAddressFromId(
+                            addressId,
+                          ),
                           builder: (context, snapshot) {
                             if (snapshot.hasData && snapshot.data != null) {
                               final address = snapshot.data!;
@@ -449,10 +452,7 @@ class _BodyState extends ConsumerState<Body> {
                               );
                             }
                             // While loading, show empty or loading text
-                            return Text(
-                              '',
-                              overflow: TextOverflow.ellipsis,
-                            );
+                            return Text('', overflow: TextOverflow.ellipsis);
                           },
                         ),
                       );
@@ -528,7 +528,7 @@ class _BodyState extends ConsumerState<Body> {
       ),
       child: Row(
         children: [
-            Icon(Icons.credit_card, color: kPrimaryColor, size: 28),
+          Icon(Icons.credit_card, color: kPrimaryColor, size: 28),
           SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -553,6 +553,132 @@ class _BodyState extends ConsumerState<Body> {
   }
 
   Widget buildCartItemsList() {
+    final user = FirebaseAuth.instance.currentUser;
+    final userId = user?.uid;
+    // Try to load cart items from cache first
+    List<String> cachedCartItems = [];
+    if (userId != null) {
+      final cachedUser = HiveService.instance.getCachedUser(userId);
+      if (cachedUser != null) {
+        cachedCartItems = cachedUser.cartItems;
+      }
+    }
+    if (cachedCartItems.isNotEmpty) {
+      // Use cached cart items and products for instant UI
+      final products = cachedCartItems.map((id) {
+        final productId = id.split('_').first;
+        final cachedProduct = HiveService.instance.getCachedProduct(productId);
+        return cachedProduct ??
+            Product(
+              productId,
+              title: 'Unknown',
+              images: [],
+              discountPrice: 0,
+              originalPrice: 0,
+            );
+      }).toList();
+      double totalPrice = 0;
+      List<Widget> cartCards = [];
+      for (int i = 0; i < cachedCartItems.length; i++) {
+        final cartItemId = cachedCartItems[i];
+        final product = products[i];
+        // For demo, assume quantity 1 (can be improved if CartItem is cached)
+        totalPrice += product.discountPrice ?? product.originalPrice ?? 0;
+        cartCards.add(
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 8),
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: (product.images != null && product.images!.isNotEmpty)
+                      ? Base64ImageService().base64ToImage(
+                          product.images!.first,
+                          fit: BoxFit.cover,
+                        )
+                      : Icon(
+                          Icons.image_not_supported,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.title ?? "Product",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      if (product.description != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            product.description!,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      SizedBox(height: 8),
+                      Text(
+                        '₹${product.discountPrice?.toStringAsFixed(2) ?? product.originalPrice?.toStringAsFixed(2) ?? ''}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: kPrimaryColor,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text('Qty: 1'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      _lastCartTotal = totalPrice;
+      return Column(
+        children: [
+          ...cartCards,
+          SizedBox(height: 12),
+          Text(
+            'Total: ₹${totalPrice.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: kPrimaryColor,
+            ),
+          ),
+        ],
+      );
+    }
+    // Fallback to DB if cache is empty
     final cartItemsAsync = ref.watch(cartItemsStreamProvider);
     Logger().i('CartItemsStreamProvider value: $cartItemsAsync');
     bool isFirstLoad = cartItemsAsync.isLoading && (savedCards.isEmpty);
@@ -591,7 +717,8 @@ class _BodyState extends ConsumerState<Body> {
           builder: (context, snapshot) {
             double totalPrice = 0;
             List<Widget> cartCards = [];
-            if (snapshot.connectionState == ConnectionState.waiting && isFirstLoad) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                isFirstLoad) {
               // Show shimmer loading only on first load
               return ListView.builder(
                 itemCount: 3,
@@ -767,7 +894,10 @@ class _BodyState extends ConsumerState<Body> {
                                   child: Icon(Icons.add, color: kPrimaryColor),
                                 ),
                                 onTap: () async {
-                                  await arrowUpCallback(product.id, _selectedAddressId);
+                                  await arrowUpCallback(
+                                    product.id,
+                                    _selectedAddressId,
+                                  );
                                   // Auto-refresh after add
                                   await refreshPage();
                                 },
@@ -794,7 +924,10 @@ class _BodyState extends ConsumerState<Body> {
                                   ),
                                 ),
                                 onTap: () async {
-                                  await arrowDownCallback(product.id, _selectedAddressId);
+                                  await arrowDownCallback(
+                                    product.id,
+                                    _selectedAddressId,
+                                  );
                                   // Auto-refresh after remove
                                   await refreshPage();
                                 },
@@ -818,7 +951,10 @@ class _BodyState extends ConsumerState<Body> {
                     // Payment Methods Section
                     Text(
                       "Payment Methods",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     SizedBox(height: 10),
                     // Cards Section
@@ -902,11 +1038,18 @@ class _BodyState extends ConsumerState<Body> {
                     }),
                     InkWell(
                       onTap: () => showAddCardDialog(context),
-                      child: paymentMethodTile(Icons.add_card, "Add Card", null),
+                      child: paymentMethodTile(
+                        Icons.add_card,
+                        "Add Card",
+                        null,
+                      ),
                     ),
                     Text(
                       "UPI Apps",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                     ),
                     SizedBox(height: 8),
                     Row(
@@ -1045,7 +1188,8 @@ class _BodyState extends ConsumerState<Body> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: () => showCheckoutBottomSheetWithTotal(totalPrice),
+                          onPressed: () =>
+                              showCheckoutBottomSheetWithTotal(totalPrice),
                           child: Text(
                             "Checkout",
                             style: TextStyle(
@@ -1084,7 +1228,8 @@ class _BodyState extends ConsumerState<Body> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         "Delivery to",
@@ -1214,7 +1359,7 @@ class _BodyState extends ConsumerState<Body> {
               }
 
               return result;
-                }
+            }
           }
         }
         return false;
@@ -1232,7 +1377,9 @@ class _BodyState extends ConsumerState<Body> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: FutureBuilder<Product?>(
-        future: ProductDatabaseHelper().getProductWithID(cartItemId.split('_').first),
+        future: ProductDatabaseHelper().getProductWithID(
+          cartItemId.split('_').first,
+        ),
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data != null) {
             Product product = snapshot.data!;
@@ -1274,7 +1421,10 @@ class _BodyState extends ConsumerState<Body> {
                           child: Icon(Icons.arrow_drop_up, color: kTextColor),
                           onTap: () async {
                             // Pass productId and selectedAddressId
-                            await arrowUpCallback(cartItemId, _selectedAddressId);
+                            await arrowUpCallback(
+                              cartItemId,
+                              _selectedAddressId,
+                            );
                           },
                         ),
                         SizedBox(height: 8),
@@ -1308,7 +1458,10 @@ class _BodyState extends ConsumerState<Body> {
                           child: Icon(Icons.arrow_drop_down, color: kTextColor),
                           onTap: () async {
                             // Pass productId and selectedAddressId
-                            await arrowDownCallback(cartItemId, _selectedAddressId);
+                            await arrowDownCallback(
+                              cartItemId,
+                              _selectedAddressId,
+                            );
                           },
                         ),
                       ],
@@ -1361,8 +1514,14 @@ class _BodyState extends ConsumerState<Body> {
     final cartItemsId = ref.read(cartItemsStreamProvider).value ?? [];
     double total = 0;
     if (cartItemsId.isNotEmpty) {
-      final cartItems = await Future.wait(cartItemsId.map((id) => UserDatabaseHelper().getCartItemFromId(id)));
-      final products = await Future.wait(cartItemsId.map((id) => ProductDatabaseHelper().getProductWithID(id.split('_').first)));
+      final cartItems = await Future.wait(
+        cartItemsId.map((id) => UserDatabaseHelper().getCartItemFromId(id)),
+      );
+      final products = await Future.wait(
+        cartItemsId.map(
+          (id) => ProductDatabaseHelper().getProductWithID(id.split('_').first),
+        ),
+      );
       for (int i = 0; i < cartItemsId.length; i++) {
         final cartItem = cartItems[i];
         final product = products[i];
@@ -1479,7 +1638,10 @@ class _BodyState extends ConsumerState<Body> {
   Future<void> arrowUpCallback(String productId, String? addressId) async {
     shutBottomSheet();
     // Find the cart item for the selected address and product
-    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(productId, addressId);
+    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
+      productId,
+      addressId,
+    );
     if (cartItem != null) {
       final future = UserDatabaseHelper().increaseCartItemCount(cartItem.id);
       future
@@ -1504,7 +1666,9 @@ class _BodyState extends ConsumerState<Body> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("This product is not in your selected address's cart.")),
+        SnackBar(
+          content: Text("This product is not in your selected address's cart."),
+        ),
       );
     }
   }
@@ -1512,7 +1676,10 @@ class _BodyState extends ConsumerState<Body> {
   Future<void> arrowDownCallback(String productId, String? addressId) async {
     shutBottomSheet();
     // Find the cart item for the selected address and product
-    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(productId, addressId);
+    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
+      productId,
+      addressId,
+    );
     if (cartItem != null) {
       final future = UserDatabaseHelper().decreaseCartItemCount(cartItem.id);
       future
@@ -1537,7 +1704,9 @@ class _BodyState extends ConsumerState<Body> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("This product is not in your selected address's cart.")),
+        SnackBar(
+          content: Text("This product is not in your selected address's cart."),
+        ),
       );
     }
   }

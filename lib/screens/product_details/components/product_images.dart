@@ -165,7 +165,10 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
     return Stack(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+            borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
+            ),
           child:
               product.images != null &&
                   product.images!.isNotEmpty &&

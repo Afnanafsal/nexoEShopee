@@ -3,6 +3,7 @@ import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/screens/product_details/components/product_actions_section.dart';
 import 'package:nexoeshopee/screens/product_details/components/product_images.dart';
 import 'package:nexoeshopee/services/database/product_database_helper.dart';
+import 'package:nexoeshopee/services/cache/hive_service.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -14,11 +15,53 @@ class Body extends StatelessWidget {
   const Body({required Key key, required this.productId}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final cached = HiveService.instance.getCachedProduct(productId);
+    if (cached != null) {
+      return SafeArea(
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ProductImages(product: cached),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: getProportionateScreenWidth(screenPadding),
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(height: getProportionateScreenHeight(20)),
+                    ProductActionsSection(
+                      key: Key('ProductActionsSection_${cached.id}'),
+                      product: cached,
+                    ),
+                    SizedBox(height: getProportionateScreenHeight(20)),
+                    ProductReviewsSection(
+                      key: Key('ProductReviewsSection_${cached.id}'),
+                      product: cached,
+                    ),
+                    SizedBox(height: getProportionateScreenHeight(100)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    // If not cached, fallback to async fetch
     return SafeArea(
       child: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
         child: FutureBuilder<Product?>(
-          future: ProductDatabaseHelper().getProductWithID(productId),
+          future: (() async {
+            final product = await ProductDatabaseHelper().getProductWithID(
+              productId,
+            );
+            if (product != null)
+              await HiveService.instance.cacheProduct(product);
+            return product;
+          })(),
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data != null) {
               final product = snapshot.data;
