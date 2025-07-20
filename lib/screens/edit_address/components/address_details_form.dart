@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nexoeshopee/auth_wrapper.dart';
 import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/models/Address.dart';
+import 'package:nexoeshopee/screens/home/home_screen.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +12,7 @@ import '../../../constants.dart';
 
 class AddressDetailsForm extends StatefulWidget {
   final Address? addressToEdit;
-  AddressDetailsForm({
-    Key? key,
-    this.addressToEdit,
-  }) : super(key: key);
+  AddressDetailsForm({Key? key, this.addressToEdit}) : super(key: key);
 
   @override
   _AddressDetailsFormState createState() => _AddressDetailsFormState();
@@ -310,30 +309,43 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
   Future<void> saveNewAddressButtonCallback() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      final Address newAddress = generateAddressObject(id: UniqueKey().toString());
+      final Address newAddress = generateAddressObject(
+        id: UniqueKey().toString(),
+      );
       bool status = false;
       String snackbarMessage = "";
       try {
-        status =
-            await UserDatabaseHelper().addAddressForCurrentUser(newAddress);
+        status = await UserDatabaseHelper().addAddressForCurrentUser(
+          newAddress,
+        );
         if (status == true) {
           snackbarMessage = "Address saved successfully";
+          // Show snackbar and navigate to orders screen as fresh entry, trigger address popup
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => AuthWrapper(),
+              settings: RouteSettings(arguments: {'showAddressPopup': true}),
+            ),
+            (route) => false,
+          );
         } else {
           throw "Coundn't save the address due to unknown reason";
         }
       } on FirebaseException catch (e) {
         Logger().w("Firebase Exception: $e");
         snackbarMessage = "Something went wrong";
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       } catch (e) {
         Logger().w("Unknown Exception: $e");
         snackbarMessage = "Something went wrong";
-      } finally {
-        Logger().i(snackbarMessage);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(snackbarMessage),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
   }
@@ -341,14 +353,16 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
   Future<void> saveEditedAddressButtonCallback() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      final Address newAddress =
-          generateAddressObject(id: widget.addressToEdit!.id);
+      final Address newAddress = generateAddressObject(
+        id: widget.addressToEdit!.id,
+      );
 
       bool status = false;
       String snackbarMessage = "";
       try {
-        status =
-            await UserDatabaseHelper().updateAddressForCurrentUser(newAddress);
+        status = await UserDatabaseHelper().updateAddressForCurrentUser(
+          newAddress,
+        );
         if (status == true) {
           snackbarMessage = "Address updated successfully";
         } else {
@@ -362,11 +376,9 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
         snackbarMessage = "Something went wrong";
       } finally {
         Logger().i(snackbarMessage);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(snackbarMessage),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
   }
