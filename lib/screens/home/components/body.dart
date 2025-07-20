@@ -14,6 +14,7 @@ import 'package:nexoeshopee/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:nexoeshopee/services/cache/hive_service.dart';
 import '../../../utils.dart';
 import '../components/home_header.dart';
 import 'product_type_box.dart';
@@ -207,43 +208,40 @@ class Body extends ConsumerWidget {
                               return FutureBuilder<List<Product>>(
                                 future: Future.wait(
                                   productIds.map((id) async {
-                                    final product =
-                                        await ProductDatabaseHelper()
-                                            .getProductWithID(id);
-                                    return product ??
-                                        Product(
-                                          id,
-                                          title: 'Unknown',
-                                          images: [],
-                                          discountPrice: 0,
-                                          originalPrice: 0,
-                                        );
+                                    // Try cache first
+                                    final cached = HiveService.instance.getCachedProduct(id);
+                                    if (cached != null) return cached;
+                                    final product = await ProductDatabaseHelper().getProductWithID(id);
+                                    // Cache it for future
+                                    if (product != null) await HiveService.instance.cacheProduct(product);
+                                    return product ?? Product(
+                                      id,
+                                      title: 'Unknown',
+                                      images: [],
+                                      discountPrice: 0,
+                                      originalPrice: 0,
+                                    );
                                   }),
                                 ),
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
-                                    return Center(
-                                      child: CircularProgressIndicator(),
-                                    );
+                                    return Center(child: CircularProgressIndicator());
                                   }
                                   final products = snapshot.data!;
+                                  // Cache all loaded products for fast future access
+                                  HiveService.instance.cacheProducts(products);
                                   return ListView.separated(
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
                                     itemCount: products.length,
-                                    separatorBuilder: (context, index) =>
-                                        SizedBox(height: 20),
+                                    separatorBuilder: (context, index) => SizedBox(height: 20),
                                     itemBuilder: (context, index) {
                                       final product = products[index];
                                       return Container(
-                                        margin: EdgeInsets.symmetric(
-                                          horizontal: 2,
-                                        ),
+                                        margin: EdgeInsets.symmetric(horizontal: 2),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            24,
-                                          ),
+                                          borderRadius: BorderRadius.circular(24),
                                           boxShadow: [
                                             BoxShadow(
                                               color: Colors.black12,
@@ -253,38 +251,23 @@ class Body extends ConsumerWidget {
                                           ],
                                         ),
                                         child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
                                           children: [
                                             Padding(
-                                              padding: const EdgeInsets.all(
-                                                12.0,
-                                              ),
+                                              padding: const EdgeInsets.all(12.0),
                                               child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
+                                                borderRadius: BorderRadius.circular(16),
                                                 child: Container(
                                                   width: 80,
                                                   height: 80,
                                                   color: Colors.grey[200],
-                                                  child:
-                                                      (product.images != null &&
-                                                          product
-                                                              .images!
-                                                              .isNotEmpty &&
-                                                          product
-                                                              .images!
-                                                              .first
-                                                              .isNotEmpty)
-                                                      ? Base64ImageService()
-                                                            .base64ToImage(
-                                                              product
-                                                                  .images!
-                                                                  .first,
-                                                              fit: BoxFit.cover,
-                                                              width: 80,
-                                                              height: 80,
-                                                            )
+                                                  child: (product.images != null && product.images!.isNotEmpty && product.images!.first.isNotEmpty)
+                                                      ? Base64ImageService().base64ToImage(
+                                                          product.images!.first,
+                                                          fit: BoxFit.cover,
+                                                          width: 80,
+                                                          height: 80,
+                                                        )
                                                       : Center(
                                                           child: Icon(
                                                             Icons.image,
@@ -297,41 +280,28 @@ class Body extends ConsumerWidget {
                                             ),
                                             Expanded(
                                               child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 18.0,
-                                                      horizontal: 4.0,
-                                                    ),
+                                                padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 4.0),
                                                 child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       product.title ?? '',
                                                       style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w700,
+                                                        fontWeight: FontWeight.w700,
                                                         fontSize: 17,
-                                                        color: Color(
-                                                          0xFF2B344F,
-                                                        ),
+                                                        color: Color(0xFF2B344F),
                                                       ),
                                                       maxLines: 2,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
+                                                      overflow: TextOverflow.ellipsis,
                                                     ),
                                                     if (product.variant != null)
                                                       Padding(
-                                                        padding:
-                                                            const EdgeInsets.only(
-                                                              top: 2.0,
-                                                            ),
+                                                        padding: const EdgeInsets.only(top: 2.0),
                                                         child: Text(
                                                           'Net weight: ${product.variant}',
                                                           style: TextStyle(
                                                             fontSize: 13,
-                                                            color:
-                                                                Colors.black54,
+                                                            color: Colors.black54,
                                                           ),
                                                         ),
                                                       ),
@@ -341,29 +311,20 @@ class Body extends ConsumerWidget {
                                                         Text(
                                                           '₹${product.discountPrice?.toStringAsFixed(2) ?? ''}',
                                                           style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w700,
+                                                            fontWeight: FontWeight.w700,
                                                             fontSize: 16,
                                                             color: Colors.black,
                                                           ),
                                                         ),
-                                                        if (product
-                                                                .originalPrice !=
-                                                            null)
+                                                        if (product.originalPrice != null)
                                                           Padding(
-                                                            padding:
-                                                                const EdgeInsets.only(
-                                                                  left: 8.0,
-                                                                ),
+                                                            padding: const EdgeInsets.only(left: 8.0),
                                                             child: Text(
                                                               '₹${product.originalPrice?.toStringAsFixed(2) ?? ''}',
                                                               style: TextStyle(
                                                                 fontSize: 14,
-                                                                color: Colors
-                                                                    .black38,
-                                                                decoration:
-                                                                    TextDecoration
-                                                                        .lineThrough,
+                                                                color: Colors.black38,
+                                                                decoration: TextDecoration.lineThrough,
                                                               ),
                                                             ),
                                                           ),
@@ -374,48 +335,30 @@ class Body extends ConsumerWidget {
                                               ),
                                             ),
                                             Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 16.0,
-                                                  ),
+                                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                               child: Material(
                                                 color: Colors.transparent,
                                                 child: InkWell(
-                                                  borderRadius:
-                                                      BorderRadius.circular(32),
+                                                  borderRadius: BorderRadius.circular(32),
                                                   onTap: () {
-                                                    final selectedAddressId =
-                                                        ref.read(
-                                                          selectedAddressIdProvider,
-                                                        );
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
+                                                    final selectedAddressId = ref.read(selectedAddressIdProvider);
+                                                    ScaffoldMessenger.of(context).showSnackBar(
                                                       SnackBar(
-                                                        content: Text(
-                                                          '${product.title} added to cart!',
-                                                        ),
+                                                        content: Text('${product.title} added to cart!'),
                                                       ),
                                                     );
                                                     // Run DB call in background
-                                                    UserDatabaseHelper()
-                                                        .addProductToCart(
-                                                          product.id,
-                                                          addressId:
-                                                              selectedAddressId,
-                                                        )
-                                                        .catchError((e) {
-                                                          ScaffoldMessenger.of(
-                                                            context,
-                                                          ).showSnackBar(
-                                                            SnackBar(
-                                                              content: Text(
-                                                                'Failed to add to cart: $e',
-                                                              ),
-                                                            ),
-                                                          );
-                                                          return false;
-                                                        });
+                                                    UserDatabaseHelper().addProductToCart(
+                                                      product.id,
+                                                      addressId: selectedAddressId,
+                                                    ).catchError((e) {
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text('Failed to add to cart: $e'),
+                                                        ),
+                                                      );
+                                                      return false;
+                                                    });
                                                   },
                                                   child: Container(
                                                     width: 56,
