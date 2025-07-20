@@ -330,10 +330,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: titleFieldController,
       keyboardType: TextInputType.name,
       decoration: InputDecoration(
-        hintText: "e.g., Samsung Galaxy F41 Mobile",
+        hintText: "e.g., Fresh Rohu Fish 1kg",
         labelText: "Product Title",
+        prefixIcon: Icon(Icons.shopping_bag),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (titleFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -349,10 +354,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: variantFieldController,
       keyboardType: TextInputType.name,
       decoration: InputDecoration(
-        hintText: "e.g., Fusion Green",
+        hintText: "e.g., Large Size, Boneless",
         labelText: "Variant",
+        prefixIcon: Icon(Icons.category),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (variantFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -368,11 +378,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: highlightsFieldController,
       keyboardType: TextInputType.multiline,
       decoration: InputDecoration(
-        hintText:
-            "e.g., RAM: 4GB | Front Camera: 30MP | Rear Camera: Quad Camera Setup",
+        hintText: "e.g., Wild caught | Cleaned & gutted | Rich in Omega-3",
         labelText: "Highlights",
+        prefixIcon: Icon(Icons.star),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (highlightsFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -390,10 +404,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       keyboardType: TextInputType.multiline,
       decoration: InputDecoration(
         hintText:
-            "e.g., This a flagship phone under made in India, by Samsung. With this device, Samsung introduces its new F Series.",
+            "e.g., Fresh Rohu fish sourced from local waters. Cleaned, gutted, and packed hygienically. Perfect for curries and fries.",
         labelText: "Description",
+        prefixIcon: Icon(Icons.description),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (desciptionFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -410,10 +429,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: sellerFieldController,
       keyboardType: TextInputType.name,
       decoration: InputDecoration(
-        hintText: "e.g., HighTech Traders",
+        hintText: "e.g., FreshFish Mart",
         labelText: "Seller",
+        prefixIcon: Icon(Icons.store),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (sellerFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -429,10 +453,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: originalPriceFieldController,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
-        hintText: "e.g., 5999.0",
+        hintText: "e.g., 499.0",
         labelText: "Original Price (in INR)",
+        prefixIcon: Icon(Icons.price_change),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (originalPriceFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -448,10 +477,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: discountPriceFieldController,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
-        hintText: "e.g., 2499.0",
+        hintText: "e.g., 399.0",
         labelText: "Discount Price (in INR)",
+        prefixIcon: Icon(Icons.discount),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (discountPriceFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
