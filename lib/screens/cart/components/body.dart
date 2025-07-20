@@ -1633,7 +1633,9 @@ class _BodyState extends ConsumerState<Body> {
   }
 
   void shutBottomSheet() {
-    // Remove bottom sheet handler since we're using modal bottom sheet
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
   }
 
   Future<void> arrowUpCallback(String productId, String? addressId) async {
