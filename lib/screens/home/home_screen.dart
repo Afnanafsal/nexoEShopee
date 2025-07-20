@@ -115,8 +115,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             Text(
                               'Select Delivery Address',
                               style: theme.textTheme.titleMedium?.copyWith(
+                                fontFamily: 'Poppins',
                                 color: theme.primaryColor,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                                 fontSize: 18,
                               ),
                             ),
@@ -127,18 +128,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           final id = addressIds[i];
                           final address = addressDetails[i];
                           String display = id;
-                          if (address != null) {
-                            display =
-                                [
-                                      address.addressLine1,
-                                      address.city,
-                                      address.state,
-                                      address.pincode,
-                                    ]
-                                    .whereType<String>()
-                                    .where((e) => e.isNotEmpty)
-                                    .join(', ');
-                          }
+                          display =
+                              [
+                                    address.addressLine1,
+                                    address.city,
+                                    address.state,
+                                    address.pincode,
+                                  ]
+                                  .whereType<String>()
+                                  .where((e) => e.isNotEmpty)
+                                  .join(', ');
                           return Card(
                             color: selectedId == id
                                 ? theme.primaryColor.withOpacity(0.08)
@@ -152,12 +151,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               title: Text(
                                 display,
                                 style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontFamily: 'Poppins',
                                   color: selectedId == id
                                       ? theme.primaryColor
                                       : theme.textTheme.bodyLarge?.color,
                                   fontWeight: selectedId == id
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
+                                      ? FontWeight.w500
+                                      : FontWeight.w400,
                                 ),
                               ),
                               value: id,
@@ -186,7 +186,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               child: Text(
                                 'Cancel',
                                 style: theme.textTheme.labelLarge?.copyWith(
+                                  fontFamily: 'Poppins',
                                   color: theme.primaryColor,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -207,7 +209,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               icon: Icon(Icons.check, color: Colors.white),
                               label: Text(
                                 'Select',
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: theme.primaryColor,

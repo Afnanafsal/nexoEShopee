@@ -141,6 +141,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
         Text(
           "Email",
           style: TextStyle(
+            fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
             fontSize: 16,
             color: Color(0xFF2B344F),
@@ -170,6 +171,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
         Text(
           "Password",
           style: TextStyle(
+            fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
             fontSize: 16,
             color: Color(0xFF2B344F),
@@ -224,7 +226,12 @@ class _SignInCardContentState extends State<_SignInCardContent> {
             ),
             Text(
               "Keep me logged in",
-              style: TextStyle(fontSize: 15, color: Color(0xFF2B344F)),
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 15,
+                color: Color(0xFF2B344F),
+                fontWeight: FontWeight.w400,
+              ),
             ),
             Spacer(),
             GestureDetector(
@@ -236,6 +243,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
               child: Text(
                 "Sign Up",
                 style: TextStyle(
+                  fontFamily: 'Poppins',
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF2B344F),
                   decoration: TextDecoration.underline,
@@ -258,6 +266,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
               child: Text(
                 "Forgot Password?",
                 style: TextStyle(
+                  fontFamily: 'Poppins',
                   color: Color(0xFF2B344F),
                   decoration: TextDecoration.underline,
                   fontWeight: FontWeight.w400,
@@ -282,7 +291,14 @@ class _SignInCardContentState extends State<_SignInCardContent> {
               textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
             ),
             onPressed: handleLogin,
-            child: Text("Login"),
+            child: Text(
+              "Login",
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+              ),
+            ),
           ),
         ),
         SizedBox(height: 24),
@@ -291,7 +307,14 @@ class _SignInCardContentState extends State<_SignInCardContent> {
             Expanded(child: Divider()),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text("Or", style: TextStyle(color: Colors.grey)),
+              child: Text(
+                "Or",
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
             ),
             Expanded(child: Divider()),
           ],
@@ -371,6 +394,7 @@ class _SocialButton extends StatelessWidget {
             Text(
               text,
               style: TextStyle(
+                fontFamily: 'Poppins',
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF2B344F),

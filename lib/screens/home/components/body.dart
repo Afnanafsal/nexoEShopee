@@ -31,13 +31,13 @@ class Body extends ConsumerWidget {
       "examples": ["Rohu", "Catla", "Tilapia"],
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/Mackerel.png",
+      ICON_KEY: "assets/icons/Pomfret.png",
       TITLE_KEY: "Saltwater Fish",
       PRODUCT_TYPE_KEY: ProductType.Saltwater,
       "examples": ["Pomfret", "King Fish", "Mackerel"],
     },
     <String, dynamic>{
-      ICON_KEY: "assets/icons/prawns.png",
+      ICON_KEY: "assets/icons/Lobster.png",
       TITLE_KEY: "Shellfish",
       PRODUCT_TYPE_KEY: ProductType.Shellfish,
       "examples": ["Prawns", "Crabs", "Lobster"],

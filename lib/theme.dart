@@ -6,7 +6,7 @@ import 'constants.dart';
 ThemeData theme() {
   return ThemeData(
     scaffoldBackgroundColor: Colors.white,
-    fontFamily: "Muli",
+    fontFamily: "Poppins",
     primarySwatch: Colors.deepOrange,
     appBarTheme: appBarTheme(),
     textTheme: textTheme(),
@@ -14,9 +14,7 @@ ThemeData theme() {
     visualDensity: VisualDensity.adaptivePlatformDensity,
     snackBarTheme: SnackBarThemeData(
       backgroundColor: Colors.black,
-      contentTextStyle: TextStyle(
-        color: Colors.white,
-      ),
+      contentTextStyle: TextStyle(color: Colors.white),
     ),
   );
 }
@@ -37,13 +35,89 @@ InputDecorationTheme inputDecorationTheme() {
 
 TextTheme textTheme() {
   return TextTheme(
-    bodyLarge: TextStyle(
+    displayLarge: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.bold,
+      fontSize: 32,
       color: kTextColor,
+    ),
+    displayMedium: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w600,
+      fontSize: 24,
+      color: kTextColor,
+    ),
+    displaySmall: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w500,
+      fontSize: 20,
+      color: kTextColor,
+    ),
+    headlineLarge: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.bold,
+      fontSize: 22,
+      color: kTextColor,
+    ),
+    headlineMedium: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w600,
+      fontSize: 18,
+      color: kTextColor,
+    ),
+    headlineSmall: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w500,
       fontSize: 16,
+      color: kTextColor,
+    ),
+    titleLarge: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w600,
+      fontSize: 18,
+      color: kTextColor,
+    ),
+    titleMedium: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w500,
+      fontSize: 16,
+      color: kTextColor,
+    ),
+    titleSmall: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w400,
+      fontSize: 14,
+      color: kTextColor,
+    ),
+    bodyLarge: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w400,
+      fontSize: 16,
+      color: kTextColor,
     ),
     bodyMedium: TextStyle(
-      color: kTextColor,
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w300,
       fontSize: 14,
+      color: kTextColor,
+    ),
+    labelLarge: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w500,
+      fontSize: 15,
+      color: kTextColor,
+    ),
+    labelMedium: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w400,
+      fontSize: 13,
+      color: kTextColor,
+    ),
+    labelSmall: TextStyle(
+      fontFamily: 'Poppins',
+      fontWeight: FontWeight.w300,
+      fontSize: 11,
+      color: kTextColor,
     ),
   );
 }
@@ -54,6 +128,7 @@ AppBarTheme appBarTheme() {
     elevation: 0,
     iconTheme: IconThemeData(color: Colors.black),
     titleTextStyle: TextStyle(color: Color(0XFF8B8B8B), fontSize: 18),
-    centerTitle: true, systemOverlayStyle: SystemUiOverlayStyle.dark,
+    centerTitle: true,
+    systemOverlayStyle: SystemUiOverlayStyle.dark,
   );
 }

@@ -31,8 +31,23 @@ class CategoryCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: icon.endsWith('.png')
-                    ? Image.asset(icon, errorBuilder: (context, error, stackTrace) => Icon(Icons.error, color: Colors.red))
-                    : SvgPicture.asset(icon, placeholderBuilder: (context) => Icon(Icons.image, color: Colors.grey)),
+                    ? Image.asset(
+                        icon,
+                        errorBuilder: (context, error, stackTrace) {
+                          if (icon.contains('mackerel.png')) {
+                            return Image.asset('assets/icons/Pomfret.png');
+                          } else if (icon.contains('Prawns.png')) {
+                            return Image.asset('assets/icons/Lobster.png');
+                          } else {
+                            return Icon(Icons.error, color: Colors.red);
+                          }
+                        },
+                      )
+                    : SvgPicture.asset(
+                        icon,
+                        placeholderBuilder: (context) =>
+                            Icon(Icons.image, color: Colors.grey),
+                      ),
               ),
             ),
             const SizedBox(height: 5),
