@@ -19,10 +19,6 @@ class ManageProductsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Manage Products"),
-        automaticallyImplyLeading: false,
-      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(

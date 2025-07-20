@@ -119,30 +119,40 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
   }
 
   Widget buildBasicDetailsTile(BuildContext context) {
-    return Form(
-      key: _basicDetailsFormKey,
-      child: ExpansionTile(
-        maintainState: true,
-        title: Text(
-          "Basic Details",
-          style: Theme.of(context).textTheme.titleLarge,
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        child: Form(
+          key: _basicDetailsFormKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.shop, color: Theme.of(context).primaryColor),
+                  SizedBox(width: 8),
+                  Text(
+                    "Basic Details",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              SizedBox(height: getProportionateScreenHeight(20)),
+              buildTitleField(),
+              SizedBox(height: getProportionateScreenHeight(16)),
+              buildVariantField(),
+              SizedBox(height: getProportionateScreenHeight(16)),
+              buildOriginalPriceField(),
+              SizedBox(height: getProportionateScreenHeight(16)),
+              buildDiscountPriceField(),
+              SizedBox(height: getProportionateScreenHeight(16)),
+              buildSellerField(),
+            ],
+          ),
         ),
-        leading: Icon(Icons.shop),
-        childrenPadding: EdgeInsets.symmetric(
-          vertical: getProportionateScreenHeight(20),
-        ),
-        children: [
-          buildTitleField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-          buildVariantField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-          buildOriginalPriceField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-          buildDiscountPriceField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-          buildSellerField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-        ],
       ),
     );
   }
@@ -161,24 +171,34 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
   }
 
   Widget buildDescribeProductTile(BuildContext context) {
-    return Form(
-      key: _describeProductFormKey,
-      child: ExpansionTile(
-        maintainState: true,
-        title: Text(
-          "Describe Product",
-          style: Theme.of(context).textTheme.titleLarge,
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        child: Form(
+          key: _describeProductFormKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.description, color: Theme.of(context).primaryColor),
+                  SizedBox(width: 8),
+                  Text(
+                    "Describe Product",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              SizedBox(height: getProportionateScreenHeight(20)),
+              buildHighlightsField(),
+              SizedBox(height: getProportionateScreenHeight(16)),
+              buildDescriptionField(),
+            ],
+          ),
         ),
-        leading: Icon(Icons.description),
-        childrenPadding: EdgeInsets.symmetric(
-          vertical: getProportionateScreenHeight(20),
-        ),
-        children: [
-          buildHighlightsField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-          buildDescriptionField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-        ],
       ),
     );
   }
@@ -194,134 +214,153 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
   }
 
   Widget buildProductTypeDropdown() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-      decoration: BoxDecoration(
-        border: Border.all(color: kTextColor, width: 1),
-        borderRadius: BorderRadius.all(Radius.circular(28)),
-      ),
-      child: Consumer(
-        builder: (context, ref, child) {
-          final productDetailsState = ref.watch(productDetailsProvider);
-          final productDetailsNotifier = ref.read(
-            productDetailsProvider.notifier,
-          );
-          return DropdownButton(
-            value: productDetailsState.productType,
-            items: ProductType.values
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(EnumToString.convertToString(e)),
-                  ),
-                )
-                .toList(),
-            hint: Text("Chose Product Type"),
-            style: TextStyle(color: kTextColor, fontSize: 16),
-            onChanged: (value) {
-              productDetailsNotifier.setProductType(value!);
-            },
-            elevation: 0,
-            underline: SizedBox(width: 0, height: 0),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget buildUploadImagesTile(BuildContext context) {
-    return ExpansionTile(
-      title: Text(
-        "Upload Images",
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
-      leading: Icon(Icons.image),
-      childrenPadding: EdgeInsets.symmetric(
-        vertical: getProportionateScreenHeight(20),
-      ),
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: IconButton(
-            icon: Icon(Icons.add_a_photo),
-            color: kTextColor,
-            onPressed: () {
-              addImageButtonCallback(index: null);
-            },
-          ),
-        ),
-        Consumer(
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        child: Consumer(
           builder: (context, ref, child) {
             final productDetailsState = ref.watch(productDetailsProvider);
+            final productDetailsNotifier = ref.read(productDetailsProvider.notifier);
             return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ...List.generate(
-                  productDetailsState.selectedImages.length,
-                  (index) => SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          addImageButtonCallback(index: index);
-                        },
-                        child:
-                            productDetailsState.selectedImages[index].imgType ==
-                                ImageType.local
-                            ? kIsWeb
-                                  ? (productDetailsState
-                                                .selectedImages[index]
-                                                .xFile !=
-                                            null
-                                        ? FutureBuilder<Uint8List>(
-                                            future: productDetailsState
-                                                .selectedImages[index]
-                                                .xFile!
-                                                .readAsBytes(),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.hasData) {
-                                                return Image.memory(
-                                                  snapshot.data!,
-                                                );
-                                              } else {
-                                                return Container(
-                                                  color: Colors.grey[300],
-                                                  child: Icon(
-                                                    Icons.image,
-                                                    color: Colors.grey[600],
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                          )
-                                        : Container(
-                                            color: Colors.grey[300],
-                                            child: Icon(
-                                              Icons.image,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ))
-                                  : Image.file(
-                                      File(
-                                        productDetailsState
-                                            .selectedImages[index]
-                                            .path,
-                                      ),
-                                    )
-                            : Base64ImageService().base64ToImage(
-                                productDetailsState.selectedImages[index].path,
-                              ),
-                      ),
+                Icon(Icons.list_alt, color: Theme.of(context).primaryColor),
+                SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButtonFormField<ProductType>(
+                    value: productDetailsState.productType,
+                    items: ProductType.values
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e,
+                            child: Text(EnumToString.convertToString(e)),
+                          ),
+                        )
+                        .toList(),
+                    decoration: InputDecoration(
+                      labelText: "Choose Product Type",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
+                    style: TextStyle(color: kTextColor, fontSize: 16, fontWeight: FontWeight.w500),
+                    onChanged: (value) {
+                      if (value != null) productDetailsNotifier.setProductType(value);
+                    },
+                    validator: (value) {
+                      if (value == null) return "Please select a product type";
+                      return null;
+                    },
                   ),
                 ),
               ],
             );
           },
         ),
-      ],
+      ),
+    );
+  }
+
+  Widget buildUploadImagesTile(BuildContext context) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.image, color: Theme.of(context).primaryColor),
+                SizedBox(width: 8),
+                Text(
+                  "Upload Images",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: getProportionateScreenHeight(16)),
+            Center(
+              child: ElevatedButton.icon(
+                icon: Icon(Icons.add_a_photo),
+                label: Text("Add Image"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                onPressed: () {
+                  addImageButtonCallback(index: null);
+                },
+              ),
+            ),
+            SizedBox(height: getProportionateScreenHeight(12)),
+            Consumer(
+              builder: (context, ref, child) {
+                final productDetailsState = ref.watch(productDetailsProvider);
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: List.generate(
+                    productDetailsState.selectedImages.length,
+                    (index) => GestureDetector(
+                      onTap: () {
+                        addImageButtonCallback(index: index);
+                      },
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.grey[300]!, width: 2),
+                          color: Colors.grey[100],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child:
+                              productDetailsState.selectedImages[index].imgType == ImageType.local
+                                  ? kIsWeb
+                                      ? (productDetailsState.selectedImages[index].xFile != null
+                                          ? FutureBuilder<Uint8List>(
+                                              future: productDetailsState.selectedImages[index].xFile!.readAsBytes(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.hasData) {
+                                                  return Image.memory(snapshot.data!, fit: BoxFit.cover);
+                                                } else {
+                                                  return Container(
+                                                    color: Colors.grey[300],
+                                                    child: Icon(Icons.image, color: Colors.grey[600]),
+                                                  );
+                                                }
+                                              },
+                                            )
+                                          : Container(
+                                              color: Colors.grey[300],
+                                              child: Icon(Icons.image, color: Colors.grey[600]),
+                                            ))
+                                      : Image.file(
+                                          File(productDetailsState.selectedImages[index].path),
+                                          fit: BoxFit.cover,
+                                        )
+                                  : Base64ImageService().base64ToImage(
+                                      productDetailsState.selectedImages[index].path,
+                                    ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
