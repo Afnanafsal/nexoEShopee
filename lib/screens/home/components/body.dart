@@ -49,7 +49,7 @@ class Body extends ConsumerWidget {
       TITLE_KEY: "Eggs",
       PRODUCT_TYPE_KEY: ProductType.Eggs,
     },
-    
+
     <String, dynamic>{
       ICON_KEY: "assets/icons/ready_to_eat.svg",
       TITLE_KEY: "Ready to Eat",
@@ -148,6 +148,12 @@ class Body extends ConsumerWidget {
                           );
                         },
                       ),
+                      SizedBox(height: getProportionateScreenHeight(10)),
+                      Image.asset(
+                        'assets/images/banner.png',
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
                       SizedBox(height: getProportionateScreenHeight(15)),
                       SizedBox(
                         height: SizeConfig.screenHeight * 0.1,
@@ -167,7 +173,8 @@ class Body extends ConsumerWidget {
                                     MaterialPageRoute(
                                       builder: (context) => CategoryProductsScreen(
                                         key: UniqueKey(),
-                                        productType: productCategories[index][PRODUCT_TYPE_KEY],
+                                        productType:
+                                            productCategories[index][PRODUCT_TYPE_KEY],
                                       ),
                                     ),
                                   );
