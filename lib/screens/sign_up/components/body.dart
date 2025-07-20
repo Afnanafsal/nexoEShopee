@@ -68,9 +68,9 @@ class Body extends StatelessWidget {
                           children: [
                             TextButton(
                               onPressed: () {
-                                Navigator.pushNamed(context, '/signin');
+                                Navigator.pushNamed(context, '/sign_in');
                               },
-                              child: Text(
+                                child: Text(
                                 "Already have an account?",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
