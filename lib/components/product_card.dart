@@ -50,8 +50,11 @@ class ProductCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
           child: FutureBuilder<Product?>(
             future: (() async {
-              final product = await ProductDatabaseHelper().getProductWithID(productId);
-              if (product != null) await HiveService.instance.cacheProduct(product);
+              final product = await ProductDatabaseHelper().getProductWithID(
+                productId,
+              );
+              if (product != null)
+                await HiveService.instance.cacheProduct(product);
               return product;
             })(),
             builder: (context, snapshot) {

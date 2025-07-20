@@ -136,7 +136,9 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
                   SizedBox(width: 8),
                   Text(
                     "Basic Details",
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -184,11 +186,16 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.description, color: Theme.of(context).primaryColor),
+                  Icon(
+                    Icons.description,
+                    color: Theme.of(context).primaryColor,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     "Describe Product",
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -223,7 +230,9 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
         child: Consumer(
           builder: (context, ref, child) {
             final productDetailsState = ref.watch(productDetailsProvider);
-            final productDetailsNotifier = ref.read(productDetailsProvider.notifier);
+            final productDetailsNotifier = ref.read(
+              productDetailsProvider.notifier,
+            );
             return Row(
               children: [
                 Icon(Icons.list_alt, color: Theme.of(context).primaryColor),
@@ -241,14 +250,24 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
                         .toList(),
                     decoration: InputDecoration(
                       labelText: "Choose Product Type",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       filled: true,
                       fillColor: Colors.grey[50],
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                     ),
-                    style: TextStyle(color: kTextColor, fontSize: 16, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      color: kTextColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                     onChanged: (value) {
-                      if (value != null) productDetailsNotifier.setProductType(value);
+                      if (value != null)
+                        productDetailsNotifier.setProductType(value);
                     },
                     validator: (value) {
                       if (value == null) return "Please select a product type";
@@ -280,7 +299,9 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
                 SizedBox(width: 8),
                 Text(
                   "Upload Images",
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -292,7 +313,9 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 onPressed: () {
@@ -318,39 +341,66 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
                         height: 80,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.grey[300]!, width: 2),
+                          border: Border.all(
+                            color: Colors.grey[300]!,
+                            width: 2,
+                          ),
                           color: Colors.grey[100],
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
                           child:
-                              productDetailsState.selectedImages[index].imgType == ImageType.local
-                                  ? kIsWeb
-                                      ? (productDetailsState.selectedImages[index].xFile != null
+                              productDetailsState
+                                      .selectedImages[index]
+                                      .imgType ==
+                                  ImageType.local
+                              ? kIsWeb
+                                    ? (productDetailsState
+                                                  .selectedImages[index]
+                                                  .xFile !=
+                                              null
                                           ? FutureBuilder<Uint8List>(
-                                              future: productDetailsState.selectedImages[index].xFile!.readAsBytes(),
+                                              future: productDetailsState
+                                                  .selectedImages[index]
+                                                  .xFile!
+                                                  .readAsBytes(),
                                               builder: (context, snapshot) {
                                                 if (snapshot.hasData) {
-                                                  return Image.memory(snapshot.data!, fit: BoxFit.cover);
+                                                  return Image.memory(
+                                                    snapshot.data!,
+                                                    fit: BoxFit.cover,
+                                                  );
                                                 } else {
                                                   return Container(
                                                     color: Colors.grey[300],
-                                                    child: Icon(Icons.image, color: Colors.grey[600]),
+                                                    child: Icon(
+                                                      Icons.image,
+                                                      color: Colors.grey[600],
+                                                    ),
                                                   );
                                                 }
                                               },
                                             )
                                           : Container(
                                               color: Colors.grey[300],
-                                              child: Icon(Icons.image, color: Colors.grey[600]),
+                                              child: Icon(
+                                                Icons.image,
+                                                color: Colors.grey[600],
+                                              ),
                                             ))
-                                      : Image.file(
-                                          File(productDetailsState.selectedImages[index].path),
-                                          fit: BoxFit.cover,
-                                        )
-                                  : Base64ImageService().base64ToImage(
-                                      productDetailsState.selectedImages[index].path,
-                                    ),
+                                    : Image.file(
+                                        File(
+                                          productDetailsState
+                                              .selectedImages[index]
+                                              .path,
+                                        ),
+                                        fit: BoxFit.cover,
+                                      )
+                              : Base64ImageService().base64ToImage(
+                                  productDetailsState
+                                      .selectedImages[index]
+                                      .path,
+                                ),
                         ),
                       ),
                     ),
@@ -622,9 +672,32 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
         ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
-    List<String> base64Images = productDetailsState.selectedImages
-        .map((e) => e.imgType == ImageType.network ? e.path : e.path)
-        .toList();
+    // Always convert all selected images to base64 before uploading
+    List<String> base64Images = [];
+    for (final img in productDetailsState.selectedImages) {
+      if (img.imgType == ImageType.network) {
+        // Already base64
+        base64Images.add(img.path);
+      } else if (img.imgType == ImageType.local) {
+        String? base64Image;
+        try {
+          if (img.xFile != null) {
+            base64Image = await Base64ImageService().xFileToBase64(img.xFile!);
+          } else if (!kIsWeb) {
+            base64Image = await Base64ImageService().fileToBase64(
+              File(img.path),
+            );
+          }
+        } catch (e) {
+          Logger().w(
+            "Error converting image to base64 for Firestore upload: $e",
+          );
+        }
+        if (base64Image != null) {
+          base64Images.add(base64Image);
+        }
+      }
+    }
     bool productFinalizeUpdate = false;
     try {
       final updateProductFuture = ProductDatabaseHelper().updateProductsImages(
