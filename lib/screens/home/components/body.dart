@@ -85,13 +85,35 @@ class Body extends ConsumerWidget {
                       HomeHeader(
                         onSearchSubmitted: (value) async {
                           final query = value.toString();
-                          if (query.length <= 0) return;
+                          if (query.isEmpty) return;
                           try {
+                            // Try cache first for search results
+                            final cachedIds = HiveService.instance
+                                .getCachedSearchResults(query);
+                            if (cachedIds != null && cachedIds.isNotEmpty) {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SearchResultScreen(
+                                    searchQuery: query,
+                                    searchResultProductsId: cachedIds,
+                                    searchIn: "All Products",
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            // If not cached, fetch from backend
                             final searchParams = ProductSearchParams(
                               query: query.toLowerCase(),
                             );
                             final searchResults = await ref.read(
                               productSearchProvider(searchParams).future,
+                            );
+                            // Cache the search results for future
+                            await HiveService.instance.cacheSearchResults(
+                              query,
+                              searchResults,
                             );
                             await Navigator.push(
                               context,

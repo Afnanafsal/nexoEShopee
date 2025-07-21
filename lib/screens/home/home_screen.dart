@@ -55,7 +55,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  Navigator.pushNamed(context, '/manage_addresses');
+                  Navigator.pushNamed(context, '/add_address');
                 },
                 child: Text('Add Address'),
               ),

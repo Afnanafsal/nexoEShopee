@@ -92,11 +92,48 @@ class _BodyState extends State<Body> {
                       if (snapshot.hasData) {
                         final addresses = snapshot.data;
                         if (addresses!.isEmpty) {
-                          return Center(
-                            child: NothingToShowContainer(
-                              iconPath: "assets/icons/add_location.svg",
-                              secondaryMessage: "Add your first Address",
-                            ),
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              NothingToShowContainer(
+                                iconPath: "assets/icons/add_location.svg",
+                                secondaryMessage: "Add your first Address",
+                              ),
+                              const SizedBox(height: 24),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 56,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF34495E),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  onPressed: () async {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => EditAddressScreen(
+                                          key: UniqueKey(),
+                                          addressIdToEdit: null,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    "Add New Address",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
                           );
                         }
                         return Column(
