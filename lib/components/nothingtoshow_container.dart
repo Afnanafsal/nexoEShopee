@@ -34,6 +34,9 @@ class NothingToShowContainer extends StatelessWidget {
           ),
           Text(
             "$secondaryMessage",
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
             style: TextStyle(
               color: kTextColor,
               fontSize: 18,

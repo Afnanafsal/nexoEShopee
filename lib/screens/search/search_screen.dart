@@ -145,10 +145,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Frequently Bought Products',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
               SizedBox(height: 8),
@@ -185,6 +182,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     ),
                                   );
                                 },
+                                showDiscountTag: false,
                               ),
                               Positioned(
                                 bottom: 4,

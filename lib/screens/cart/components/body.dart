@@ -1581,8 +1581,9 @@ class _BodyState extends ConsumerState<Body> {
     final isoDateTime = dateTime.toIso8601String();
     List<OrderedProduct> orderedProducts = [];
     for (final doc in cartSnapshot.docs) {
-      final productId = doc.id;
       final data = doc.data();
+      final productId =
+          data[CartItem.PRODUCT_ID_KEY]; // Use actual product document ID
       final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
       orderedProducts.add(
         OrderedProduct(

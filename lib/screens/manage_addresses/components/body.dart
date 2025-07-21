@@ -245,16 +245,20 @@ class _BodyState extends State<Body> {
   }
 
   Future<void> addressItemTapCallback(String addressId) async {
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return SimpleDialog(
-          backgroundColor: Colors.transparent,
-          title: AddressBox(key: Key(addressId), addressId: addressId),
-          titlePadding: EdgeInsets.zero,
-        );
-      },
-    );
+    // Only show dialog if there are multiple addresses
+    final addresses = await UserDatabaseHelper().addressesList;
+    if (addresses.length > 1) {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return SimpleDialog(
+            backgroundColor: Colors.transparent,
+            title: AddressBox(key: Key(addressId), addressId: addressId),
+            titlePadding: EdgeInsets.zero,
+          );
+        },
+      );
+    }
     await refreshPage();
   }
 

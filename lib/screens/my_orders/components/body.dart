@@ -33,6 +33,17 @@ class _BodyState extends State<Body> {
   late final String currentUserUid;
   final HiveService _hiveService = HiveService.instance;
 
+  // Address cache for dropdown speed
+  final Map<String, Address> _addressCache = {};
+  Future<Address> _getAddressWithCaching(String addressId) async {
+    if (_addressCache.containsKey(addressId)) {
+      return _addressCache[addressId]!;
+    }
+    final address = await UserDatabaseHelper().getAddressFromId(addressId);
+    _addressCache[addressId] = address;
+    return address;
+  }
+
   static const int _pageSize = 20;
   DocumentSnapshot? _lastDocument;
   bool _isLoadingMore = false;
@@ -136,185 +147,172 @@ class _BodyState extends State<Body> {
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: refreshPage,
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding),
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              child: Column(
-                children: [
-                  SizedBox(height: getProportionateScreenHeight(10)),
-                  // Back button and address selector in same row
-                  Row(
-                    children: [
-                      // iOS style back button
-                      IconButton(
-                        icon: Icon(
-                          Icons.arrow_back_ios_new,
-                          color: Colors.black,
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).maybePop();
-                        },
-                        tooltip: 'Back',
-                      ),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: _addresses.length > 1
-                              ? Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black12,
-                                        blurRadius: 8,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 2,
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: _selectedAddressId,
-                                      icon: Icon(
-                                        Icons.keyboard_arrow_down,
-                                        color: Colors.black,
-                                      ),
-                                      isExpanded: true,
-                                      items: _addresses.map((addressId) {
-                                        return DropdownMenuItem<String>(
-                                          value: addressId,
-                                          child: FutureBuilder<Address>(
-                                            future: UserDatabaseHelper()
-                                                .getAddressFromId(addressId),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.hasData &&
-                                                  snapshot.data != null) {
-                                                final address = snapshot.data!;
-                                                return Text(
-                                                  address.title ??
-                                                      address.addressLine1 ??
-                                                      addressId,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                );
-                                              }
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: getProportionateScreenWidth(screenPadding),
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              children: [
+                SizedBox(height: getProportionateScreenHeight(10)),
+                // Back button and address selector in same row
+                Row(
+                  children: [
+                    // iOS style back button
+                    IconButton(
+                      icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                      onPressed: () {
+                        Navigator.of(context).maybePop();
+                      },
+                      tooltip: 'Back',
+                    ),
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: _addresses.length > 1
+                            ? Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 8,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 2,
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: _selectedAddressId,
+                                    icon: Icon(
+                                      Icons.keyboard_arrow_down,
+                                      color: Colors.black,
+                                    ),
+                                    isExpanded: true,
+                                    items: _addresses.map((addressId) {
+                                      return DropdownMenuItem<String>(
+                                        value: addressId,
+                                        child: FutureBuilder<Address>(
+                                          future: _getAddressWithCaching(
+                                            addressId,
+                                          ),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData &&
+                                                snapshot.data != null) {
+                                              final address = snapshot.data!;
                                               return Text(
-                                                addressId,
+                                                address.title ?? '',
                                                 overflow: TextOverflow.ellipsis,
                                               );
-                                            },
-                                          ),
-                                        );
-                                      }).toList(),
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _selectedAddressId = value;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                )
-                              : (_addresses.length == 1
-                                    ? FutureBuilder<Address>(
-                                        future: UserDatabaseHelper()
-                                            .getAddressFromId(_addresses.first),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.hasData &&
-                                              snapshot.data != null) {
-                                            final address = snapshot.data!;
-                                            return Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black12,
-                                                    blurRadius: 8,
-                                                    offset: Offset(0, 2),
-                                                  ),
-                                                ],
-                                              ),
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 8,
-                                              ),
-                                              child: Text(
-                                                address.title ??
-                                                    address.addressLine1 ??
-                                                    _addresses.first,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
+                                            }
+                                            return Text(
+                                              '', // Only show blank if not loaded
+                                              overflow: TextOverflow.ellipsis,
                                             );
-                                          }
-                                          return SizedBox.shrink();
-                                        },
-                                      )
-                                    : SizedBox.shrink()),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: getProportionateScreenHeight(10)),
-                  // Tab bar
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      ...List.generate(_orderTabs.length, (i) {
-                        final selected = _selectedTabIndex == i;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedTabIndex = i;
-                            });
-                          },
-                          child: Container(
-                            margin: EdgeInsets.only(right: 24),
-                            padding: EdgeInsets.symmetric(vertical: 4),
-                            decoration: BoxDecoration(
-                              border: selected
-                                  ? Border(
-                                      bottom: BorderSide(
-                                        color: kPrimaryColor,
-                                        width: 2,
-                                      ),
+                                          },
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _selectedAddressId = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              )
+                            : (_addresses.length == 1
+                                  ? FutureBuilder<Address>(
+                                      future: UserDatabaseHelper()
+                                          .getAddressFromId(_addresses.first),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData &&
+                                            snapshot.data != null) {
+                                          final address = snapshot.data!;
+                                          return Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black12,
+                                                  blurRadius: 8,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 8,
+                                            ),
+                                            child: Text(
+                                              address.title ??
+                                                  address.addressLine1 ??
+                                                  _addresses.first,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                        return SizedBox.shrink();
+                                      },
                                     )
-                                  : null,
-                            ),
-                            child: Text(
-                              _orderTabs[i],
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: selected
-                                    ? kPrimaryColor
-                                    : Colors.black54,
-                                fontSize: 16,
-                              ),
+                                  : SizedBox.shrink()),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: getProportionateScreenHeight(10)),
+                // Tab bar
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    ...List.generate(_orderTabs.length, (i) {
+                      final selected = _selectedTabIndex == i;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedTabIndex = i;
+                          });
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(right: 24),
+                          padding: EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            border: selected
+                                ? Border(
+                                    bottom: BorderSide(
+                                      color: kPrimaryColor,
+                                      width: 2,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          child: Text(
+                            _orderTabs[i],
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: selected ? kPrimaryColor : Colors.black54,
+                              fontSize: 16,
                             ),
                           ),
-                        );
-                      }),
-                    ],
-                  ),
-                  SizedBox(height: getProportionateScreenHeight(10)),
-                  // ...existing code...
-                  SizedBox(
-                    height: SizeConfig.screenHeight * 0.75,
-                    child: buildOrderedProductsList(),
-                  ),
-                ],
-              ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+                SizedBox(height: getProportionateScreenHeight(10)),
+                // Orders list
+                Expanded(child: buildOrderedProductsList()),
+              ],
             ),
           ),
         ),
@@ -385,11 +383,7 @@ class _BodyState extends State<Body> {
               return addressId == _selectedAddressId;
             }).toList();
           }
-          if (_selectedTabIndex == 1) {
-            orderedProductsDocs = [];
-          } else if (_selectedTabIndex == 2) {
-            orderedProductsDocs = [];
-          }
+          // Remove status filter so all orders show
           Logger().i(
             'Found ${orderedProductsDocs.length} orders for user $currentUserUid and address $_selectedAddressId',
           );
@@ -410,14 +404,26 @@ class _BodyState extends State<Body> {
             if (bDate == null) return -1;
             return bDate.compareTo(aDate);
           });
-          // Group by date
+          // Group by date (show only date part)
           Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>
           grouped = {};
           for (var doc in orderedProductsDocs) {
-            final date =
+            final rawDate =
                 doc.data()[OrderedProduct.ORDER_DATE_KEY] as String? ?? '';
-            grouped.putIfAbsent(date, () => []).add(doc);
+            String dateOnly = rawDate;
+            // Try to parse and format date
+            try {
+              DateTime dt = DateTime.parse(rawDate);
+              dateOnly =
+                  "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}";
+            } catch (e) {}
+            grouped.putIfAbsent(dateOnly, () => []).add(doc);
           }
+          // Debug: print grouped dates and counts
+          Logger().i('Grouped order dates:');
+          grouped.forEach((date, docs) {
+            Logger().i('Date: $date, Count: ${docs.length}');
+          });
           return ListView(
             physics: BouncingScrollPhysics(),
             children: grouped.entries.map((entry) {
@@ -425,9 +431,11 @@ class _BodyState extends State<Body> {
               Map<String, int> productCounts = {};
               Map<String, QueryDocumentSnapshot<Map<String, dynamic>>>
               productDocs = {};
+              Logger().i('Rendering date group: ${entry.key}');
               for (var doc in entry.value) {
                 final pid =
                     doc.data()[OrderedProduct.PRODUCT_UID_KEY] as String?;
+                Logger().i('Rendering product UID: $pid for date ${entry.key}');
                 if (pid != null) {
                   productCounts[pid] = (productCounts[pid] ?? 0) + 1;
                   productDocs[pid] = doc;
@@ -476,7 +484,21 @@ class _BodyState extends State<Body> {
                                 );
                               }
                               if (!snapshot.hasData || snapshot.data == null) {
-                                return SizedBox.shrink();
+                                Logger().w(
+                                  'Product not found for UID: $pid on date ${entry.key}',
+                                );
+                                return Container(
+                                  margin: EdgeInsets.only(bottom: 8),
+                                  padding: EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red[50],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    'Product not found for UID: $pid',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                );
                               }
                               final product = snapshot.data!;
                               return Container(
