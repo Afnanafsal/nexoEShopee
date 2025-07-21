@@ -3,6 +3,7 @@ import 'package:nexoeshopee/models/cached_product.dart';
 import 'package:nexoeshopee/models/cached_user.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/services/cache/duration_adapter.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 
 class HiveService {
   static const String _productsBoxName = 'products';
@@ -160,10 +161,10 @@ class HiveService {
 
   List<Product> getCachedProductsByType(ProductType type) {
     final cachedProducts = _productsBox?.values.toList() ?? [];
+    final typeString = EnumToString.convertToString(type);
     return cachedProducts
         .where(
-          (product) =>
-              !product.isExpired && product.productType == type.toString(),
+          (product) => !product.isExpired && product.productType == typeString,
         )
         .map((product) => product.toProduct())
         .toList();

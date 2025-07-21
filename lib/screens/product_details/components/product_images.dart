@@ -25,44 +25,6 @@ class ProductImages extends ConsumerWidget {
       ),
     );
   }
-
-  Widget buildSmallPreview(BuildContext context, WidgetRef ref, int index) {
-    final swiperState = ref.watch(productImageSwiperProvider(product.id));
-    return GestureDetector(
-      onTap: () {
-        ref
-            .read(productImageSwiperProvider(product.id).notifier)
-            .setCurrentImageIndex(index);
-      },
-      child: Container(
-        margin: EdgeInsets.symmetric(
-          horizontal: getProportionateScreenWidth(8),
-        ),
-        padding: EdgeInsets.all(getProportionateScreenHeight(8)),
-        height: getProportionateScreenWidth(48),
-        width: getProportionateScreenWidth(48),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: swiperState.currentImageIndex == index
-                ? kPrimaryColor
-                : Colors.transparent,
-          ),
-        ),
-        child:
-            product.images != null &&
-                product.images!.isNotEmpty &&
-                product.images![index].isNotEmpty
-            ? Base64ImageService().base64ToImage(product.images![index])
-            : Icon(
-                Icons.image,
-                size: getProportionateScreenWidth(32),
-                color: Colors.grey,
-              ),
-      ),
-    );
-  }
 }
 
 class _ProductDetailsContent extends StatefulWidget {
@@ -82,13 +44,22 @@ class _ProductDetailsContent extends StatefulWidget {
 }
 
 class _ProductDetailsContentState extends State<_ProductDetailsContent> {
+  late PageController _pageController;
+  int _currentPage = 0;
   int cartCount = 0;
   bool isFavorite = false;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(viewportFraction: 1.0);
     _loadFavoriteStatus();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadFavoriteStatus() async {
@@ -161,27 +132,74 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
-    final swiperState = widget.swiperState;
+    final images = product.images ?? [];
     return Stack(
       children: [
         ClipRRect(
-            borderRadius: const BorderRadius.only(
+          borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(24),
             bottomRight: Radius.circular(24),
-            ),
-          child:
-              product.images != null &&
-                  product.images!.isNotEmpty &&
-                  product.images![swiperState.currentImageIndex].isNotEmpty
-              ? Base64ImageService().base64ToImage(
-                  product.images![swiperState.currentImageIndex],
-                )
-              : Icon(
-                  Icons.image,
-                  size: getProportionateScreenWidth(120),
-                  color: Colors.grey,
-                ),
+          ),
+          child: Container(
+            color: const Color(0xFFF6F7FA),
+            height: getProportionateScreenHeight(260),
+            child: images.isNotEmpty
+                ? PageView.builder(
+                    controller: _pageController,
+                    itemCount: images.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      final img = images[index];
+                      return img.isNotEmpty
+                          ? SizedBox.expand(
+                              child: Base64ImageService().base64ToImage(img),
+                            )
+                          : Center(
+                              child: Icon(
+                                Icons.image,
+                                size: getProportionateScreenWidth(120),
+                                color: Colors.grey,
+                              ),
+                            );
+                    },
+                  )
+                : Center(
+                    child: Icon(
+                      Icons.image,
+                      size: getProportionateScreenWidth(120),
+                      color: Colors.grey,
+                    ),
+                  ),
+          ),
         ),
+        // Dot pagination overlay
+        if (images.length > 1)
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                images.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentPage == index ? 12 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _currentPage == index ? kPrimaryColor : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        // Back button
         Positioned(
           top: 16,
           left: 16,
@@ -198,6 +216,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
             ),
           ),
         ),
+        // Favorite button
         Positioned(
           top: 16,
           right: 16,
