@@ -5,6 +5,17 @@ import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/services/cache/duration_adapter.dart';
 
 class HiveService {
+  // Cache a list of addresses (List<Map<String, dynamic>>) in Hive
+  Future<void> cacheAddresses(List<Map<String, dynamic>> addresses) async {
+    final Map<String, Map<String, dynamic>> addressesMap = {
+      for (var address in addresses) address['id'] as String: address,
+    };
+    await _addressesBox?.putAll(addressesMap);
+  }
+  // Returns all cached addresses as a List<Map<String, dynamic>>
+  List<Map<String, dynamic>> getCachedAddresses() {
+    return (_addressesBox?.values.toList() ?? []).cast<Map<String, dynamic>>();
+  }
   static const String _productsBoxName = 'products';
   static const String _usersBoxName = 'users';
   static const String _settingsBoxName = 'settings';

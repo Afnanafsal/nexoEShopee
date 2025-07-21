@@ -57,5 +57,17 @@ Future<void> preloadAndCacheEssentialData() async {
     });
   }
 
-  // You can add more preloads here (addresses, reviews, etc.)
+  // Preload and cache addresses
+  final addressesSnapshot = await userHelper.firestore
+      .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+      .doc(userId)
+      .collection(UserDatabaseHelper.ADDRESSES_COLLECTION_NAME)
+      .get();
+  if (addressesSnapshot.docs.isNotEmpty) {
+    final addressList = addressesSnapshot.docs
+        .map((doc) => {'id': doc.id, ...doc.data()})
+        .toList();
+    await HiveService.instance.cacheAddresses(addressList);
+  }
+  // You can add more preloads here (reviews, etc.)
 }

@@ -5,6 +5,7 @@ import 'package:nexoeshopee/screens/edit_address/edit_address_screen.dart';
 import 'package:nexoeshopee/screens/manage_addresses/components/address_short_details_card.dart';
 import 'package:nexoeshopee/services/data_streams/addresses_stream.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:nexoeshopee/services/cache/hive_service.dart';
 import 'package:nexoeshopee/size_config.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,8 @@ class _BodyState extends State<Body> {
 
   @override
   Widget build(BuildContext context) {
+    // Try to get cached addresses instantly
+    final cachedAddresses = HiveService.instance.getCachedAddresses();
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: refreshPage,
@@ -85,21 +88,104 @@ class _BodyState extends State<Body> {
                     style: TextStyle(fontSize: 13, color: Colors.black54),
                   ),
                   const SizedBox(height: 24),
-                  // Address list
-                  StreamBuilder<List<String>>(
-                    stream: addressesStream.stream.cast<List<String>>(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final addresses = snapshot.data;
-                        if (addresses!.isEmpty) {
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              NothingToShowContainer(
-                                iconPath: "assets/icons/add_location.svg",
-                                secondaryMessage: "Add your first Address",
+                  // Address list (cache-first)
+                  if (cachedAddresses.isNotEmpty)
+                    Column(
+                      children: [
+                        ...cachedAddresses.map((address) => buildAddressItemCard(address['id'] as String)).toList(),
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF34495E),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              const SizedBox(height: 24),
+                              padding: EdgeInsets.zero,
+                            ),
+                            onPressed: () async {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditAddressScreen(
+                                    key: UniqueKey(),
+                                    addressIdToEdit: null,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              "Add New Address",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    )
+                  else
+                    StreamBuilder<List<String>>(
+                      stream: addressesStream.stream.cast<List<String>>(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          final addresses = snapshot.data;
+                          if (addresses!.isEmpty) {
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                NothingToShowContainer(
+                                  iconPath: "assets/icons/add_location.svg",
+                                  secondaryMessage: "Add your first Address",
+                                ),
+                                const SizedBox(height: 24),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 56,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF34495E),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    onPressed: () async {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => EditAddressScreen(
+                                            key: UniqueKey(),
+                                            addressIdToEdit: null,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      "Add New Address",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+                            );
+                          }
+                          return Column(
+                            children: [
+                              ...addresses
+                                  .map((id) => buildAddressItemCard(id))
+                                  .toList(),
+                              const SizedBox(height: 32),
                               SizedBox(
                                 width: double.infinity,
                                 height: 56,
@@ -135,64 +221,22 @@ class _BodyState extends State<Body> {
                               const SizedBox(height: 24),
                             ],
                           );
+                        } else if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          final error = snapshot.error;
+                          Logger().w(error.toString());
                         }
-                        return Column(
-                          children: [
-                            ...addresses
-                                .map((id) => buildAddressItemCard(id))
-                                .toList(),
-                            const SizedBox(height: 32),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 56,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF34495E),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                ),
-                                onPressed: () async {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditAddressScreen(
-                                        key: UniqueKey(),
-                                        addressIdToEdit: null,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: const Text(
-                                  "Add New Address",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
+                        return Center(
+                          child: NothingToShowContainer(
+                            iconPath: "assets/icons/network_error.svg",
+                            primaryMessage: "Something went wrong",
+                            secondaryMessage: "Unable to connect to Database",
+                          ),
                         );
-                      } else if (snapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        final error = snapshot.error;
-                        Logger().w(error.toString());
-                      }
-                      return Center(
-                        child: NothingToShowContainer(
-                          iconPath: "assets/icons/network_error.svg",
-                          primaryMessage: "Something went wrong",
-                          secondaryMessage: "Unable to connect to Database",
-                        ),
-                      );
-                    },
-                  ),
+                      },
+                    ),
                   const SizedBox(height: 24),
                 ],
               ),
