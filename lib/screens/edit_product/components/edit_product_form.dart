@@ -119,30 +119,42 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
   }
 
   Widget buildBasicDetailsTile(BuildContext context) {
-    return Form(
-      key: _basicDetailsFormKey,
-      child: ExpansionTile(
-        maintainState: true,
-        title: Text(
-          "Basic Details",
-          style: Theme.of(context).textTheme.titleLarge,
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        child: Form(
+          key: _basicDetailsFormKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.shop, color: Theme.of(context).primaryColor),
+                  SizedBox(width: 8),
+                  Text(
+                    "Basic Details",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: getProportionateScreenHeight(20)),
+              buildTitleField(),
+              SizedBox(height: getProportionateScreenHeight(16)),
+              buildVariantField(),
+              SizedBox(height: getProportionateScreenHeight(16)),
+              buildOriginalPriceField(),
+              SizedBox(height: getProportionateScreenHeight(16)),
+              buildDiscountPriceField(),
+              SizedBox(height: getProportionateScreenHeight(16)),
+              buildSellerField(),
+            ],
+          ),
         ),
-        leading: Icon(Icons.shop),
-        childrenPadding: EdgeInsets.symmetric(
-          vertical: getProportionateScreenHeight(20),
-        ),
-        children: [
-          buildTitleField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-          buildVariantField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-          buildOriginalPriceField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-          buildDiscountPriceField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-          buildSellerField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-        ],
       ),
     );
   }
@@ -161,24 +173,39 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
   }
 
   Widget buildDescribeProductTile(BuildContext context) {
-    return Form(
-      key: _describeProductFormKey,
-      child: ExpansionTile(
-        maintainState: true,
-        title: Text(
-          "Describe Product",
-          style: Theme.of(context).textTheme.titleLarge,
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        child: Form(
+          key: _describeProductFormKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.description,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    "Describe Product",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: getProportionateScreenHeight(20)),
+              buildHighlightsField(),
+              SizedBox(height: getProportionateScreenHeight(16)),
+              buildDescriptionField(),
+            ],
+          ),
         ),
-        leading: Icon(Icons.description),
-        childrenPadding: EdgeInsets.symmetric(
-          vertical: getProportionateScreenHeight(20),
-        ),
-        children: [
-          buildHighlightsField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-          buildDescriptionField(),
-          SizedBox(height: getProportionateScreenHeight(20)),
-        ],
       ),
     );
   }
@@ -194,134 +221,196 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
   }
 
   Widget buildProductTypeDropdown() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-      decoration: BoxDecoration(
-        border: Border.all(color: kTextColor, width: 1),
-        borderRadius: BorderRadius.all(Radius.circular(28)),
-      ),
-      child: Consumer(
-        builder: (context, ref, child) {
-          final productDetailsState = ref.watch(productDetailsProvider);
-          final productDetailsNotifier = ref.read(
-            productDetailsProvider.notifier,
-          );
-          return DropdownButton(
-            value: productDetailsState.productType,
-            items: ProductType.values
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(EnumToString.convertToString(e)),
-                  ),
-                )
-                .toList(),
-            hint: Text("Chose Product Type"),
-            style: TextStyle(color: kTextColor, fontSize: 16),
-            onChanged: (value) {
-              productDetailsNotifier.setProductType(value!);
-            },
-            elevation: 0,
-            underline: SizedBox(width: 0, height: 0),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget buildUploadImagesTile(BuildContext context) {
-    return ExpansionTile(
-      title: Text(
-        "Upload Images",
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
-      leading: Icon(Icons.image),
-      childrenPadding: EdgeInsets.symmetric(
-        vertical: getProportionateScreenHeight(20),
-      ),
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: IconButton(
-            icon: Icon(Icons.add_a_photo),
-            color: kTextColor,
-            onPressed: () {
-              addImageButtonCallback(index: null);
-            },
-          ),
-        ),
-        Consumer(
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        child: Consumer(
           builder: (context, ref, child) {
             final productDetailsState = ref.watch(productDetailsProvider);
+            final productDetailsNotifier = ref.read(
+              productDetailsProvider.notifier,
+            );
             return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ...List.generate(
-                  productDetailsState.selectedImages.length,
-                  (index) => SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          addImageButtonCallback(index: index);
-                        },
-                        child:
-                            productDetailsState.selectedImages[index].imgType ==
-                                ImageType.local
-                            ? kIsWeb
-                                  ? (productDetailsState
-                                                .selectedImages[index]
-                                                .xFile !=
-                                            null
-                                        ? FutureBuilder<Uint8List>(
-                                            future: productDetailsState
-                                                .selectedImages[index]
-                                                .xFile!
-                                                .readAsBytes(),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.hasData) {
-                                                return Image.memory(
-                                                  snapshot.data!,
-                                                );
-                                              } else {
-                                                return Container(
-                                                  color: Colors.grey[300],
-                                                  child: Icon(
-                                                    Icons.image,
-                                                    color: Colors.grey[600],
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                          )
-                                        : Container(
-                                            color: Colors.grey[300],
-                                            child: Icon(
-                                              Icons.image,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ))
-                                  : Image.file(
-                                      File(
-                                        productDetailsState
-                                            .selectedImages[index]
-                                            .path,
-                                      ),
-                                    )
-                            : Base64ImageService().base64ToImage(
-                                productDetailsState.selectedImages[index].path,
-                              ),
+                Icon(Icons.list_alt, color: Theme.of(context).primaryColor),
+                SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButtonFormField<ProductType>(
+                    value: productDetailsState.productType,
+                    items: ProductType.values
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e,
+                            child: Text(EnumToString.convertToString(e)),
+                          ),
+                        )
+                        .toList(),
+                    decoration: InputDecoration(
+                      labelText: "Choose Product Type",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
                     ),
+                    style: TextStyle(
+                      color: kTextColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    onChanged: (value) {
+                      if (value != null)
+                        productDetailsNotifier.setProductType(value);
+                    },
+                    validator: (value) {
+                      if (value == null) return "Please select a product type";
+                      return null;
+                    },
                   ),
                 ),
               ],
             );
           },
         ),
-      ],
+      ),
+    );
+  }
+
+  Widget buildUploadImagesTile(BuildContext context) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.image, color: Theme.of(context).primaryColor),
+                SizedBox(width: 8),
+                Text(
+                  "Upload Images",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: getProportionateScreenHeight(16)),
+            Center(
+              child: ElevatedButton.icon(
+                icon: Icon(Icons.add_a_photo),
+                label: Text("Add Image"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                onPressed: () {
+                  addImageButtonCallback(index: null);
+                },
+              ),
+            ),
+            SizedBox(height: getProportionateScreenHeight(12)),
+            Consumer(
+              builder: (context, ref, child) {
+                final productDetailsState = ref.watch(productDetailsProvider);
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: List.generate(
+                    productDetailsState.selectedImages.length,
+                    (index) => GestureDetector(
+                      onTap: () {
+                        addImageButtonCallback(index: index);
+                      },
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.grey[300]!,
+                            width: 2,
+                          ),
+                          color: Colors.grey[100],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child:
+                              productDetailsState
+                                      .selectedImages[index]
+                                      .imgType ==
+                                  ImageType.local
+                              ? kIsWeb
+                                    ? (productDetailsState
+                                                  .selectedImages[index]
+                                                  .xFile !=
+                                              null
+                                          ? FutureBuilder<Uint8List>(
+                                              future: productDetailsState
+                                                  .selectedImages[index]
+                                                  .xFile!
+                                                  .readAsBytes(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.hasData) {
+                                                  return Image.memory(
+                                                    snapshot.data!,
+                                                    fit: BoxFit.cover,
+                                                  );
+                                                } else {
+                                                  return Container(
+                                                    color: Colors.grey[300],
+                                                    child: Icon(
+                                                      Icons.image,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                            )
+                                          : Container(
+                                              color: Colors.grey[300],
+                                              child: Icon(
+                                                Icons.image,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ))
+                                    : Image.file(
+                                        File(
+                                          productDetailsState
+                                              .selectedImages[index]
+                                              .path,
+                                        ),
+                                        fit: BoxFit.cover,
+                                      )
+                              : Base64ImageService().base64ToImage(
+                                  productDetailsState
+                                      .selectedImages[index]
+                                      .path,
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -330,10 +419,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: titleFieldController,
       keyboardType: TextInputType.name,
       decoration: InputDecoration(
-        hintText: "e.g., Samsung Galaxy F41 Mobile",
+        hintText: "e.g., Fresh Rohu Fish 1kg",
         labelText: "Product Title",
+        prefixIcon: Icon(Icons.shopping_bag),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (titleFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -349,10 +443,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: variantFieldController,
       keyboardType: TextInputType.name,
       decoration: InputDecoration(
-        hintText: "e.g., Fusion Green",
+        hintText: "e.g., Large Size, Boneless",
         labelText: "Variant",
+        prefixIcon: Icon(Icons.category),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (variantFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -368,11 +467,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: highlightsFieldController,
       keyboardType: TextInputType.multiline,
       decoration: InputDecoration(
-        hintText:
-            "e.g., RAM: 4GB | Front Camera: 30MP | Rear Camera: Quad Camera Setup",
+        hintText: "e.g., Wild caught | Cleaned & gutted | Rich in Omega-3",
         labelText: "Highlights",
+        prefixIcon: Icon(Icons.star),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (highlightsFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -390,10 +493,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       keyboardType: TextInputType.multiline,
       decoration: InputDecoration(
         hintText:
-            "e.g., This a flagship phone under made in India, by Samsung. With this device, Samsung introduces its new F Series.",
+            "e.g., Fresh Rohu fish sourced from local waters. Cleaned, gutted, and packed hygienically. Perfect for curries and fries.",
         labelText: "Description",
+        prefixIcon: Icon(Icons.description),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (desciptionFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -410,10 +518,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: sellerFieldController,
       keyboardType: TextInputType.name,
       decoration: InputDecoration(
-        hintText: "e.g., HighTech Traders",
+        hintText: "e.g., FreshFish Mart",
         labelText: "Seller",
+        prefixIcon: Icon(Icons.store),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (sellerFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -429,10 +542,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: originalPriceFieldController,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
-        hintText: "e.g., 5999.0",
+        hintText: "e.g., 499.0",
         labelText: "Original Price (in INR)",
+        prefixIcon: Icon(Icons.price_change),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (originalPriceFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -448,10 +566,15 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       controller: discountPriceFieldController,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
-        hintText: "e.g., 2499.0",
+        hintText: "e.g., 399.0",
         labelText: "Discount Price (in INR)",
+        prefixIcon: Icon(Icons.discount),
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
+      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
       validator: (_) {
         if (discountPriceFieldController.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
@@ -549,9 +672,32 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
         ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
-    List<String> base64Images = productDetailsState.selectedImages
-        .map((e) => e.imgType == ImageType.network ? e.path : e.path)
-        .toList();
+    // Always convert all selected images to base64 before uploading
+    List<String> base64Images = [];
+    for (final img in productDetailsState.selectedImages) {
+      if (img.imgType == ImageType.network) {
+        // Already base64
+        base64Images.add(img.path);
+      } else if (img.imgType == ImageType.local) {
+        String? base64Image;
+        try {
+          if (img.xFile != null) {
+            base64Image = await Base64ImageService().xFileToBase64(img.xFile!);
+          } else if (!kIsWeb) {
+            base64Image = await Base64ImageService().fileToBase64(
+              File(img.path),
+            );
+          }
+        } catch (e) {
+          Logger().w(
+            "Error converting image to base64 for Firestore upload: $e",
+          );
+        }
+        if (base64Image != null) {
+          base64Images.add(base64Image);
+        }
+      }
+    }
     bool productFinalizeUpdate = false;
     try {
       final updateProductFuture = ProductDatabaseHelper().updateProductsImages(

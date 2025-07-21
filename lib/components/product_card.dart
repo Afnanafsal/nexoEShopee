@@ -10,7 +10,13 @@ import 'package:nexoeshopee/services/cache/hive_service.dart';
 class ProductCard extends StatelessWidget {
   final String productId;
   final GestureTapCallback press;
-  const ProductCard({super.key, required this.productId, required this.press});
+  final bool showDiscountTag;
+  const ProductCard({
+    super.key,
+    required this.productId,
+    required this.press,
+    this.showDiscountTag = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -136,28 +142,29 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Flexible(
-                      flex: 3,
-                      child: Stack(
-                        children: [
-                          SvgPicture.asset(
-                            "assets/icons/DiscountTag.svg",
-                            color: kPrimaryColor,
-                          ),
-                          Center(
-                            child: Text(
-                              "${product.calculatePercentageDiscount()}%\nOff",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 8,
-                                fontWeight: FontWeight.w900,
-                              ),
-                              textAlign: TextAlign.center,
+                    if (showDiscountTag)
+                      Flexible(
+                        flex: 3,
+                        child: Stack(
+                          children: [
+                            SvgPicture.asset(
+                              "assets/icons/DiscountTag.svg",
+                              color: kPrimaryColor,
                             ),
-                          ),
-                        ],
+                            Center(
+                              child: Text(
+                                "${product.calculatePercentageDiscount()}%",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),

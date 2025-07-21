@@ -7,6 +7,10 @@ import 'package:nexoeshopee/screens/manage_addresses/manage_addresses_screen.dar
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/size_config.dart';
 
+final _addressesListProvider = FutureProvider<List<String>>((ref) async {
+  return await UserDatabaseHelper().addressesList;
+});
+
 final selectedAddressFutureProvider = FutureProvider((ref) async {
   final selectedAddressId = ref.watch(selectedAddressIdProvider);
   if (selectedAddressId == null) return null;
@@ -20,6 +24,20 @@ class DeliveryAddressBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedAddressId = ref.watch(selectedAddressIdProvider);
     final addressAsync = ref.watch(selectedAddressFutureProvider);
+    final addressesListAsync = ref.watch(_addressesListProvider);
+
+    // If only one address exists, select it automatically
+    addressesListAsync.when(
+      data: (addresses) {
+        if (addresses.length == 1 && selectedAddressId != addresses[0]) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(selectedAddressIdProvider.notifier).state = addresses[0];
+          });
+        }
+      },
+      loading: () {},
+      error: (err, stack) {},
+    );
     return Container(
       padding: EdgeInsets.only(
         right: getProportionateScreenWidth(10),
@@ -44,11 +62,11 @@ class DeliveryAddressBar extends ConsumerWidget {
                       title = address.title!;
                     }
                     return Text(
-                        "${title[0].toUpperCase()}${title.substring(1)}",
+                      "${title[0].toUpperCase()}${title.substring(1)}",
                       style: TextStyle(
-                      fontSize: 16,
-                      color: kPrimaryColor,
-                      fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: kPrimaryColor,
+                        fontWeight: FontWeight.w600,
                       ),
                     );
                   },
@@ -125,21 +143,23 @@ class DeliveryAddressBar extends ConsumerWidget {
               ],
             ),
           ),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ManageAddressesScreen(),
-                ),
-              );
-            },
-            child: Icon(
-              Icons.keyboard_arrow_down,
-              color: kPrimaryColor,
-              size: 20,
+          if (addressesListAsync.value == null ||
+              (addressesListAsync.value?.length ?? 0) > 1)
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ManageAddressesScreen(),
+                  ),
+                );
+              },
+              child: Icon(
+                Icons.keyboard_arrow_down,
+                color: kPrimaryColor,
+                size: 20,
+              ),
             ),
-          ),
         ],
       ),
     );
