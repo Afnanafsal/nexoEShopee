@@ -93,11 +93,45 @@ class _SearchScreenState extends State<SearchScreen> {
       isSearching = true;
       isLoading = true;
     });
-    final ids = await ProductDatabaseHelper().searchInProducts(query);
+    // Try cache first
+    final cachedIds = HiveService.instance.getCachedSearchResults(query);
     List<Product> products = [];
-    for (final id in ids) {
-      final product = await ProductDatabaseHelper().getProductWithID(id);
-      if (product != null) products.add(product);
+    List<String> missingIds = [];
+    if (cachedIds != null && cachedIds.isNotEmpty) {
+      for (final id in cachedIds) {
+        final cached = HiveService.instance.getCachedProduct(id);
+        if (cached != null) {
+          products.add(cached);
+        } else {
+          missingIds.add(id);
+        }
+      }
+    } else {
+      // No cache, search backend
+      final ids = await ProductDatabaseHelper().searchInProducts(query);
+      for (final id in ids) {
+        final cached = HiveService.instance.getCachedProduct(id);
+        if (cached != null) {
+          products.add(cached);
+        } else {
+          missingIds.add(id);
+        }
+      }
+      // Cache search result ids for next time
+      await HiveService.instance.cacheSearchResults(query, ids);
+    }
+    // Batch fetch missing products and cache them
+    if (missingIds.isNotEmpty) {
+      final fetchedProducts = await Future.wait(
+        missingIds.map((id) => ProductDatabaseHelper().getProductWithID(id)),
+      );
+      for (int i = 0; i < fetchedProducts.length; i++) {
+        final product = fetchedProducts[i];
+        if (product != null) {
+          products.add(product);
+          await HiveService.instance.cacheProduct(product);
+        }
+      }
     }
     setState(() {
       searchResults = products;

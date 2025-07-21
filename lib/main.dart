@@ -44,11 +44,16 @@ Future<void> preloadAndCacheEssentialData() async {
   final favs = await userHelper.usersFavouriteProductsList;
   await HiveService.instance.updateUserFavorites(userId, favs);
 
-  // Preload and cache ordered products
-  final orders = await userHelper.orderedProductsList;
-  if (orders.isNotEmpty) {
+  // Preload and cache ordered products (full order data)
+  final ordersSnapshot = await userHelper.firestore
+      .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+      .doc(userId)
+      .collection(UserDatabaseHelper.ORDERED_PRODUCTS_COLLECTION_NAME)
+      .get();
+  if (ordersSnapshot.docs.isNotEmpty) {
     await Hive.box<dynamic>('orders').putAll({
-      for (var id in orders) id: {'id': id, 'userId': userId},
+      for (var doc in ordersSnapshot.docs)
+        doc.id: {'id': doc.id, 'userId': userId, ...doc.data()},
     });
   }
 
