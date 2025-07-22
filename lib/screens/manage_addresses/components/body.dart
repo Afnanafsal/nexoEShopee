@@ -1,3 +1,4 @@
+import 'package:shimmer/shimmer.dart';
 import 'package:nexoeshopee/components/default_button.dart';
 import 'package:nexoeshopee/components/nothingtoshow_container.dart';
 import 'package:nexoeshopee/constants.dart';
@@ -92,7 +93,12 @@ class _BodyState extends State<Body> {
                   if (cachedAddresses.isNotEmpty)
                     Column(
                       children: [
-                        ...cachedAddresses.map((address) => buildAddressItemCard(address['id'] as String)).toList(),
+                        ...cachedAddresses
+                            .map(
+                              (address) =>
+                                  buildAddressItemCard(address['id'] as String),
+                            )
+                            .toList(),
                         const SizedBox(height: 32),
                         SizedBox(
                           width: double.infinity,
@@ -159,10 +165,11 @@ class _BodyState extends State<Body> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => EditAddressScreen(
-                                            key: UniqueKey(),
-                                            addressIdToEdit: null,
-                                          ),
+                                          builder: (context) =>
+                                              EditAddressScreen(
+                                                key: UniqueKey(),
+                                                addressIdToEdit: null,
+                                              ),
                                         ),
                                       );
                                     },
@@ -223,7 +230,28 @@ class _BodyState extends State<Body> {
                           );
                         } else if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
+                          return Center(
+                            child: Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: Column(
+                                children: List.generate(
+                                  2,
+                                  (index) => Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    width: double.infinity,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
                         } else if (snapshot.hasError) {
                           final error = snapshot.error;
                           Logger().w(error.toString());

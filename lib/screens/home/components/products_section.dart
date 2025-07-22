@@ -4,6 +4,7 @@ import 'package:nexoeshopee/screens/home/components/section_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../size_config.dart';
 
@@ -39,9 +40,7 @@ class ProductsSection extends ConsumerWidget {
             key: Key(sectionTitle),
             title: sectionTitle,
             press: () {
-              if (showViewAll) {
-                // TODO: Implement view all functionality
-              }
+              if (showViewAll) {}
             },
           ),
           SizedBox(height: getProportionateScreenHeight(15)),
@@ -63,7 +62,98 @@ class ProductsSection extends ConsumerWidget {
             ? buildProductHorizontalList(productIds)
             : buildProductGrid(productIds);
       },
-      loading: () => Center(child: CircularProgressIndicator()),
+      loading: () => Padding(
+        padding: const EdgeInsets.only(top: 12.0),
+        child: useHorizontalView
+            ? SizedBox(
+                height: getProportionateScreenWidth(180),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 4,
+                  itemBuilder: (context, index) => Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: SizedBox(
+                      width: getProportionateScreenWidth(150),
+                      child: Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Card(
+                          elevation: 4,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Container(height: 100, color: Colors.grey[300]),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      height: 16,
+                                      color: Colors.grey[300],
+                                    ),
+                                    SizedBox(height: 8),
+                                    Container(
+                                      width: 60,
+                                      height: 14,
+                                      color: Colors.grey[300],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : GridView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.75,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: 4,
+                itemBuilder: (context, index) => Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Card(
+                    elevation: 4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(height: 100, color: Colors.grey[300]),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: double.infinity,
+                                height: 16,
+                                color: Colors.grey[300],
+                              ),
+                              SizedBox(height: 8),
+                              Container(
+                                width: 60,
+                                height: 14,
+                                color: Colors.grey[300],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+      ),
       error: (error, stack) {
         Logger().w(error.toString());
         return Center(

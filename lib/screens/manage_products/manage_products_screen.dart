@@ -1,3 +1,4 @@
+import 'package:shimmer/shimmer.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:nexoeshopee/screens/add_product/add_product_screen.dart';
@@ -60,7 +61,45 @@ class ProductsList extends StatelessWidget {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Center(
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: 4,
+                itemBuilder: (context, index) => Card(
+                  elevation: 2,
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(16),
+                    leading: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    title: Container(
+                      width: 120,
+                      height: 16,
+                      color: Colors.white,
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 8),
+                        Container(width: 80, height: 12, color: Colors.white),
+                        SizedBox(height: 8),
+                        Container(width: 100, height: 12, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
         }
 
         if (snapshot.hasError) {

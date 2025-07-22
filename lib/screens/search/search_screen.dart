@@ -211,14 +211,15 @@ class _SearchScreenState extends State<SearchScreen> {
                                 press: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => ProductDetailsScreen(
-                                        key: Key(product.id),
-                                        productId: product.id,
-                                      ),
+                                      builder: (context) =>
+                                          ProductDetailsScreen(
+                                            key: Key(product.id),
+                                            productId: product.id,
+                                          ),
                                     ),
                                   );
                                 },
-                                showDiscountTag:  false ,
+                                showDiscountTag: false,
                               ),
                               Positioned(
                                 bottom: isSearching ? 10 : 4,
@@ -271,14 +272,12 @@ class _SearchScreenState extends State<SearchScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Container(
-                                  height: 140,
-                                  color: Colors.grey[300],
-                                ),
+                                Container(height: 140, color: Colors.grey[300]),
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Container(
                                         width: double.infinity,

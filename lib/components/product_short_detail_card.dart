@@ -3,6 +3,7 @@ import 'package:nexoeshopee/services/database/product_database_helper.dart';
 import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../constants.dart';
 import '../size_config.dart';
@@ -112,7 +113,49 @@ class ProductShortDetailCard extends StatelessWidget {
               ),
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            // Shimmer placeholder for product short detail card
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: SizedBox(
+                height: 80,
+                child: Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          color: Colors.grey[300],
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: double.infinity,
+                              height: 16,
+                              color: Colors.grey[300],
+                            ),
+                            SizedBox(height: 8),
+                            Container(
+                              width: 80,
+                              height: 14,
+                              color: Colors.grey[300],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
           } else if (snapshot.hasError) {
             final errorMessage = snapshot.error.toString();
             Logger().e(errorMessage);

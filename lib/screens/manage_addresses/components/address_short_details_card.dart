@@ -1,3 +1,4 @@
+import 'package:shimmer/shimmer.dart';
 import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/models/Address.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
@@ -79,7 +80,38 @@ class AddressShortDetailsCard extends StatelessWidget {
                 ],
               );
             } else if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 18,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            height: 14,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (trailing != null) ...[
+                      const SizedBox(width: 8),
+                      Container(width: 24, height: 24, color: Colors.white),
+                    ],
+                  ],
+                ),
+              );
             } else if (snapshot.hasError) {
               final error = snapshot.error.toString();
               Logger().e(error);

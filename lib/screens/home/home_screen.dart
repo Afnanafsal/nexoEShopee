@@ -62,6 +62,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         );
+      } else if (addressIds.length == 1) {
+        // Only one address, set it directly
+        ref.read(selectedAddressIdProvider.notifier).state = addressIds.first;
       } else {
         String? selectedId;
         if (!mounted) return;

@@ -3,7 +3,9 @@ import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/providers/product_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:flutter_svg/svg.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../constants.dart';
 import '../../../size_config.dart';
@@ -72,7 +74,56 @@ class ProductReviewsSection extends ConsumerWidget {
                         },
                       );
                     },
-                    loading: () => Center(child: CircularProgressIndicator()),
+                    loading: () => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: 3,
+                        itemBuilder: (context, index) => Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 120,
+                                    height: 16,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    width: double.infinity,
+                                    height: 12,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    width: 80,
+                                    height: 12,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     error: (error, stack) => Center(
                       child: Column(
                         children: [

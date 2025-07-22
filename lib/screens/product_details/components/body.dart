@@ -1,3 +1,4 @@
+import 'package:shimmer/shimmer.dart';
 import 'package:nexoeshopee/constants.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/screens/product_details/components/product_actions_section.dart';
@@ -49,7 +50,6 @@ class Body extends StatelessWidget {
         ),
       );
     }
-    // If not cached, fallback to async fetch
     return SafeArea(
       child: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
@@ -92,7 +92,46 @@ class Body extends StatelessWidget {
                 ],
               );
             } else if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return Center(
+                child: Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        height: getProportionateScreenHeight(300),
+                        color: Colors.white,
+                        margin: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: getProportionateScreenWidth(
+                            screenPadding,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            SizedBox(height: getProportionateScreenHeight(20)),
+                            Container(
+                              width: double.infinity,
+                              height: 32,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: getProportionateScreenHeight(20)),
+                            Container(
+                              width: double.infinity,
+                              height: 120,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: getProportionateScreenHeight(20)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             } else if (snapshot.hasError) {
               final error = snapshot.error.toString();
               Logger().e(error);

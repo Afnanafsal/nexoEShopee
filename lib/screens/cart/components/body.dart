@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -580,7 +581,6 @@ class _BodyState extends ConsumerState<Body> {
       double totalPrice = 0;
       List<Widget> cartCards = [];
       for (int i = 0; i < cachedCartItems.length; i++) {
-        final cartItemId = cachedCartItems[i];
         final product = products[i];
         // For demo, assume quantity 1 (can be improved if CartItem is cached)
         totalPrice += product.discountPrice ?? product.originalPrice ?? 0;
@@ -1471,7 +1471,47 @@ class _BodyState extends ConsumerState<Body> {
               ],
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                margin: EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 16,
+                            color: Colors.white,
+                          ),
+                          SizedBox(height: 8),
+                          Container(width: 80, height: 12, color: Colors.white),
+                          SizedBox(height: 8),
+                          Container(width: 60, height: 12, color: Colors.white),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           } else if (snapshot.hasError) {
             final error = snapshot.error;
             Logger().w(error.toString());
