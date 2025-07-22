@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nexoeshopee/models/Product.dart';
 import 'package:nexoeshopee/models/Review.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
+import 'package:nexoeshopee/services/cache/hive_service.dart';
 
 class ProductDatabaseHelper {
   static const String PRODUCTS_COLLECTION_NAME = "products";
@@ -194,6 +195,8 @@ class ProductDatabaseHelper {
         .collection(PRODUCTS_COLLECTION_NAME)
         .doc(productId)
         .delete();
+    // Remove from Hive cache as well
+    await HiveService.instance.removeCachedProduct(productId);
     return true;
   }
 

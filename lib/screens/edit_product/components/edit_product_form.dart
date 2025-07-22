@@ -327,82 +327,108 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
             Consumer(
               builder: (context, ref, child) {
                 final productDetailsState = ref.watch(productDetailsProvider);
+                final productDetailsNotifier = ref.read(productDetailsProvider.notifier);
                 return Wrap(
                   spacing: 12,
                   runSpacing: 12,
                   children: List.generate(
                     productDetailsState.selectedImages.length,
-                    (index) => GestureDetector(
-                      onTap: () {
-                        addImageButtonCallback(index: index);
-                      },
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.grey[300]!,
-                            width: 2,
-                          ),
-                          color: Colors.grey[100],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child:
-                              productDetailsState
-                                      .selectedImages[index]
-                                      .imgType ==
-                                  ImageType.local
-                              ? kIsWeb
-                                    ? (productDetailsState
-                                                  .selectedImages[index]
-                                                  .xFile !=
-                                              null
-                                          ? FutureBuilder<Uint8List>(
-                                              future: productDetailsState
-                                                  .selectedImages[index]
-                                                  .xFile!
-                                                  .readAsBytes(),
-                                              builder: (context, snapshot) {
-                                                if (snapshot.hasData) {
-                                                  return Image.memory(
-                                                    snapshot.data!,
-                                                    fit: BoxFit.cover,
-                                                  );
-                                                } else {
-                                                  return Container(
-                                                    color: Colors.grey[300],
-                                                    child: Icon(
-                                                      Icons.image,
-                                                      color: Colors.grey[600],
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                            )
-                                          : Container(
-                                              color: Colors.grey[300],
-                                              child: Icon(
-                                                Icons.image,
-                                                color: Colors.grey[600],
-                                              ),
-                                            ))
-                                    : Image.file(
-                                        File(
-                                          productDetailsState
-                                              .selectedImages[index]
-                                              .path,
-                                        ),
-                                        fit: BoxFit.cover,
-                                      )
-                              : Base64ImageService().base64ToImage(
+                    (index) => Stack(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            addImageButtonCallback(index: index);
+                          },
+                          child: Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.grey[300]!,
+                                width: 2,
+                              ),
+                              color: Colors.grey[100],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child:
                                   productDetailsState
-                                      .selectedImages[index]
-                                      .path,
-                                ),
+                                          .selectedImages[index]
+                                          .imgType ==
+                                      ImageType.local
+                                  ? kIsWeb
+                                        ? (productDetailsState
+                                                      .selectedImages[index]
+                                                      .xFile !=
+                                                  null
+                                              ? FutureBuilder<Uint8List>(
+                                                  future: productDetailsState
+                                                      .selectedImages[index]
+                                                      .xFile!
+                                                      .readAsBytes(),
+                                                  builder: (context, snapshot) {
+                                                    if (snapshot.hasData) {
+                                                      return Image.memory(
+                                                        snapshot.data!,
+                                                        fit: BoxFit.cover,
+                                                      );
+                                                    } else {
+                                                      return Container(
+                                                        color: Colors.grey[300],
+                                                        child: Icon(
+                                                          Icons.image,
+                                                          color: Colors.grey[600],
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                                )
+                                              : Container(
+                                                  color: Colors.grey[300],
+                                                  child: Icon(
+                                                    Icons.image,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ))
+                                        : Image.file(
+                                            File(
+                                              productDetailsState
+                                                  .selectedImages[index]
+                                                  .path,
+                                            ),
+                                            fit: BoxFit.cover,
+                                          )
+                                  : Base64ImageService().base64ToImage(
+                                      productDetailsState
+                                          .selectedImages[index]
+                                          .path,
+                                    ),
+                            ),
+                          ),
                         ),
-                      ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () {
+                              productDetailsNotifier.removeSelectedImageAtIndex(index);
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              padding: EdgeInsets.all(4),
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -609,7 +635,7 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
     if (productDetailsState.productType == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Please select Product Type")));
+      ).showSnackBar(SnackBar(content: Text("Please select Product Category (Type)")));
       return;
     }
     String? productId;
@@ -675,28 +701,33 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
     // Always convert all selected images to base64 before uploading
     List<String> base64Images = [];
     for (final img in productDetailsState.selectedImages) {
-      if (img.imgType == ImageType.network) {
-        // Already base64
-        base64Images.add(img.path);
-      } else if (img.imgType == ImageType.local) {
-        String? base64Image;
-        try {
+      String? base64Image;
+      try {
+        if (img.imgType == ImageType.network) {
+          // Already base64
+          base64Image = img.path;
+        } else if (img.imgType == ImageType.local) {
           if (img.xFile != null) {
             base64Image = await Base64ImageService().xFileToBase64(img.xFile!);
-          } else if (!kIsWeb) {
-            base64Image = await Base64ImageService().fileToBase64(
-              File(img.path),
-            );
+          } else {
+            // Fallback to file path method for mobile/desktop
+            base64Image = await Base64ImageService().fileToBase64(File(img.path));
           }
-        } catch (e) {
-          Logger().w(
-            "Error converting image to base64 for Firestore upload: $e",
-          );
         }
-        if (base64Image != null) {
-          base64Images.add(base64Image);
-        }
+      } catch (e) {
+        Logger().w("Error converting image to base64 for Firestore upload: $e");
       }
+      // If conversion fails, use a placeholder image (never allow null)
+      if (base64Image == null || base64Image.isEmpty) {
+        base64Image = "PLACEHOLDER_IMAGE_URL_OR_BASE64";
+      }
+      base64Images.add(base64Image);
+    }
+    // Debug: print images and productId
+    Logger().i('Uploading images for productId: $productId');
+    Logger().i('base64Images: ${base64Images.length}');
+    for (var i = 0; i < base64Images.length; i++) {
+      Logger().i('Image $i: ${base64Images[i].substring(0, 30)}...');
     }
     bool productFinalizeUpdate = false;
     try {
@@ -733,6 +764,9 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       }
     }
     if (mounted) {
+      // Clear selected images after successful upload
+      final productDetailsNotifier = ref.read(productDetailsProvider.notifier);
+      productDetailsNotifier.clearSelectedImages();
       Navigator.pop(context);
     }
   }
@@ -748,27 +782,20 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
         );
         String? base64Image;
         try {
-          // Convert image to base64 - use XFile when available
-          if (productDetailsState.selectedImages[i].xFile != null) {
-            // Use XFile for conversion (works on all platforms)
-            base64Image = await Base64ImageService().xFileToBase64(
-              productDetailsState.selectedImages[i].xFile!,
-            );
+          // Always use XFile for base64 conversion if available (cross-platform)
+          final xFile = productDetailsState.selectedImages[i].xFile;
+          if (xFile != null) {
+            base64Image = await Base64ImageService().xFileToBase64(xFile);
           } else {
-            // Fallback to file path method
-            if (kIsWeb) {
-              Logger().w("No XFile available for web image, skipping");
-              base64Image = null;
-            } else {
-              // On mobile platforms, use File normally
-              final file = File(productDetailsState.selectedImages[i].path);
-              base64Image = await Base64ImageService().fileToBase64(file);
-            }
+            // Fallback to file path method (should rarely be needed)
+            final file = File(productDetailsState.selectedImages[i].path);
+            base64Image = await Base64ImageService().fileToBase64(file);
           }
         } catch (e) {
           Logger().w("Error converting image to base64: $e");
         } finally {
           if (base64Image != null) {
+            Logger().i("Base64 string length: "+base64Image.length.toString());
             productDetailsNotifier.setSelectedImageAtIndex(
               CustomImage(imgType: ImageType.network, path: base64Image),
               i,

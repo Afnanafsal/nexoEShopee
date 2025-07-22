@@ -66,6 +66,18 @@ class ProductDetailsNotifier extends StateNotifier<ProductDetailsState> {
     state = state.copyWith(selectedImages: updatedImages);
   }
 
+  void removeSelectedImageAtIndex(int index) {
+    final updatedImages = List<CustomImage>.from(state.selectedImages);
+    if (index >= 0 && index < updatedImages.length) {
+      updatedImages.removeAt(index);
+      state = state.copyWith(selectedImages: updatedImages);
+    }
+  }
+
+  void clearSelectedImages() {
+    state = state.copyWith(selectedImages: []);
+  }
+
   void setInitialProductType(ProductType type) {
     state = state.copyWith(productType: type);
   }
