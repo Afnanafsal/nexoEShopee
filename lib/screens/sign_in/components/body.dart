@@ -331,10 +331,13 @@ class _SignInCardContentState extends State<_SignInCardContent> {
                 try {
                   final authService = AuthentificationService();
                   final result = await authService.signInWithGoogle();
-                  if (result) {
+                  if (result == true) {
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(builder: (context) => HomeScreen()),
                     );
+                  } else if (result == 'signup') {
+                    // Redirect to signup page
+                    Navigator.of(context).pushReplacementNamed('/sign_up');
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Google sign-in failed")),

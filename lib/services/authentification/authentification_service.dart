@@ -119,26 +119,52 @@ class AuthentificationService {
   }
 
   // 🔵 Google Sign-In
-  Future<bool> signInWithGoogle() async {
+  /// Returns true if login successful, false if user cancelled, and 'signup' if email not registered.
+  Future<dynamic> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) return false; // user cancelled
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
+      final String googleEmail = googleUser.email;
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
-
-      return userCredential.user != null;
+      try {
+        final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+        return userCredential.user != null;
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'account-exists-with-different-credential') {
+          // The account exists with a different sign-in method (e.g., password)
+          // Return a special value so the UI can prompt for password and link
+          return {
+            'linkRequired': true,
+            'email': googleEmail,
+            'pendingCredential': credential,
+          };
+        } else if (e.code == 'user-disabled') {
+          return 'disabled';
+        } else {
+          print("Google Sign-In error: $e");
+          return false;
+        }
+      }
     } catch (e) {
       print("Google Sign-In error: $e");
+      return false;
+    }
+  }
+
+  /// Call this after user enters password to link Google to existing account
+  Future<bool> linkGoogleToPasswordAccount({required String email, required String password, required AuthCredential pendingCredential}) async {
+    try {
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
+      await userCredential.user?.linkWithCredential(pendingCredential);
+      return true;
+    } catch (e) {
+      print("Linking Google to password account failed: $e");
       return false;
     }
   }
