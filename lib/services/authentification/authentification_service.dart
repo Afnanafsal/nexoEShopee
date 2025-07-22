@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:nexoeshopee/exceptions/firebaseauth/credential_actions_exceptions.dart';
 import 'package:nexoeshopee/exceptions/firebaseauth/reauth_exceptions.dart';
 import 'package:nexoeshopee/exceptions/firebaseauth/signin_exceptions.dart';
@@ -113,6 +115,49 @@ class AuthentificationService {
         default:
           throw FirebaseSignInAuthException(message: e.code);
       }
+    }
+  }
+// 🔵 Google Sign-In
+  Future<bool> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return false; // user cancelled
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      return userCredential.user != null;
+    } catch (e) {
+      print("Google Sign-In error: $e");
+      return false;
+    }
+  }
+
+  // 🔵 Facebook Sign-In
+  Future<bool> signInWithFacebook() async {
+    try {
+      final LoginResult result = await FacebookAuth.instance.login();
+
+      if (result.status != LoginStatus.success) return false;
+
+      final OAuthCredential credential =
+          FacebookAuthProvider.credential(result.accessToken!.token);
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      return userCredential.user != null;
+    } catch (e) {
+      print("Facebook Sign-In error: $e");
+      return false;
     }
   }
 

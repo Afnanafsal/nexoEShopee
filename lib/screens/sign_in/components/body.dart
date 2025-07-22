@@ -323,22 +323,54 @@ class _SignInCardContentState extends State<_SignInCardContent> {
         // Social login buttons
         Column(
           children: [
-            _SocialButton(
-              icon: Icons.apple,
-              text: 'Continue with Apple',
-              onPressed: () {},
-            ),
+
             SizedBox(height: 12),
             _SocialButton(
               iconAsset: 'assets/icons/google-icon.png',
               text: 'Continue with Google',
-              onPressed: () {},
+              onPressed: () async {
+                try {
+                  final authService = AuthentificationService();
+                  final result = await authService.signInWithGoogle();
+                  if (result) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Google sign-in failed")),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Google sign-in error: $e")),
+                  );
+                }
+              },
             ),
             SizedBox(height: 12),
             _SocialButton(
               iconAsset: 'assets/icons/facebook.png',
               text: 'Continue with Facebook',
-              onPressed: () {},
+              onPressed: () async {
+                try {
+                  final authService = AuthentificationService();
+                  final result = await authService.signInWithFacebook();
+                  if (result) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Facebook sign-in failed")),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Facebook sign-in error: $e")),
+                  );
+                }
+              },
             ),
           ],
         ),

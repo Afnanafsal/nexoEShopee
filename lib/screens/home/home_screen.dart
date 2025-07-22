@@ -35,6 +35,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndPromptAddress();
+      // Pre-cache the banner image to prevent flicker
+      precacheImage(const AssetImage('assets/images/banner.png'), context);
     });
   }
 
@@ -249,7 +251,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       drawer: HomeScreenDrawer(key: Key('home_screen_drawer')),
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,
