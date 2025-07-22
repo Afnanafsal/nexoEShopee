@@ -186,62 +186,128 @@ class _SearchScreenState extends State<SearchScreen> {
               SizedBox(height: 8),
             ],
             if (isLoading)
-              Padding(
-                padding: const EdgeInsets.only(top: 24.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                  ),
-                  itemCount: 4,
-                  itemBuilder: (context, index) {
-                    return Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: Card(
-                        elevation: 4,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Container(
-                              height: 140,
-                              color: Colors.grey[300],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    height: 16,
-                                    color: Colors.grey[300],
-                                  ),
-                                  SizedBox(height: 8),
-                                  Container(
-                                    width: 80,
-                                    height: 14,
-                                    color: Colors.grey[300],
-                                  ),
-                                  SizedBox(height: 8),
-                                  Container(
-                                    width: 40,
-                                    height: 14,
-                                    color: Colors.grey[300],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+              Builder(
+                builder: (context) {
+                  // Show cached products instantly if available
+                  final products = !isSearching
+                      ? frequentlyBoughtProducts
+                      : searchResults;
+                  if (products.isNotEmpty) {
+                    return Expanded(
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
                         ),
+                        itemCount: products.length,
+                        itemBuilder: (context, index) {
+                          final product = products[index];
+                          return Stack(
+                            children: [
+                              ProductCard(
+                                productId: product.id,
+                                press: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => ProductDetailsScreen(
+                                        key: Key(product.id),
+                                        productId: product.id,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                showDiscountTag:  false ,
+                              ),
+                              Positioned(
+                                bottom: isSearching ? 10 : 4,
+                                right: isSearching ? 16 : 4,
+                                child: Material(
+                                  color: Colors.white,
+                                  shape: const CircleBorder(),
+                                  elevation: 2,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(24),
+                                    onTap: () {
+                                      addToCart(context, product.id);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Icon(
+                                        Icons.add,
+                                        size: 32,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     );
-                  },
-                ),
+                  }
+                  // Otherwise show shimmer
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 24.0),
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.75,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      itemCount: 4,
+                      itemBuilder: (context, index) {
+                        return Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Card(
+                            elevation: 4,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Container(
+                                  height: 140,
+                                  color: Colors.grey[300],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: double.infinity,
+                                        height: 16,
+                                        color: Colors.grey[300],
+                                      ),
+                                      SizedBox(height: 8),
+                                      Container(
+                                        width: 80,
+                                        height: 14,
+                                        color: Colors.grey[300],
+                                      ),
+                                      SizedBox(height: 8),
+                                      Container(
+                                        width: 40,
+                                        height: 14,
+                                        color: Colors.grey[300],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             if (!isSearching && !isLoading)
               Expanded(
