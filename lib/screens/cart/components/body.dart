@@ -415,7 +415,10 @@ class _BodyState extends ConsumerState<Body> {
         child: Column(
           children: [
             SizedBox(height: getProportionateScreenHeight(10)),
-            Text("Your Cart", style: headingStyle),
+            Align(
+              alignment: Alignment.center,
+              child: Text("Your Cart", style: headingStyle),
+            ),
             SizedBox(height: getProportionateScreenHeight(20)),
             // Address selector
             if (_addresses.length > 1)

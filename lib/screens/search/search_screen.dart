@@ -251,59 +251,68 @@ class _SearchScreenState extends State<SearchScreen> {
                     );
                   }
                   // Otherwise show shimmer
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 24.0),
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.75,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      itemCount: 4,
-                      itemBuilder: (context, index) {
-                        return Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: Card(
-                            elevation: 4,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Container(height: 140, color: Colors.grey[300]),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width: double.infinity,
-                                        height: 16,
-                                        color: Colors.grey[300],
-                                      ),
-                                      SizedBox(height: 8),
-                                      Container(
-                                        width: 80,
-                                        height: 14,
-                                        color: Colors.grey[300],
-                                      ),
-                                      SizedBox(height: 8),
-                                      Container(
-                                        width: 40,
-                                        height: 14,
-                                        color: Colors.grey[300],
-                                      ),
-                                    ],
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final cardWidth =
+                      (screenWidth - 10 * 3) / 2; // 2 cards, 3 spacings
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 24.0),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemCount: 4,
+                        itemBuilder: (context, index) {
+                          return Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Card(
+                              elevation: 4,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Container(
+                                    height: cardWidth * 0.7,
+                                    width: cardWidth,
+                                    color: Colors.grey[300],
                                   ),
-                                ),
-                              ],
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: cardWidth * 0.8,
+                                          height: 16,
+                                          color: Colors.grey[300],
+                                        ),
+                                        SizedBox(height: 8),
+                                        Container(
+                                          width: cardWidth * 0.5,
+                                          height: 14,
+                                          color: Colors.grey[300],
+                                        ),
+                                        SizedBox(height: 8),
+                                        Container(
+                                          width: cardWidth * 0.3,
+                                          height: 14,
+                                          color: Colors.grey[300],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   );
                 },
