@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fishkart/size_config.dart';
 
-const String appName = "E-Shopee";
+const String appName = "Fishkart";
 
 const kPrimaryColor = Color(0xFF4A6B7C);
 const kPrimaryLightColor = Color(0xFFFFECDF);
