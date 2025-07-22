@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../utils.dart';
 import '../components/home_header.dart';
 import 'product_type_box.dart';
@@ -254,8 +255,126 @@ class Body extends ConsumerWidget {
                                 ),
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
-                                    return Center(
-                                      child: CircularProgressIndicator(),
+                                    // Show shimmer effect while loading
+                                    return ListView.separated(
+                                      shrinkWrap: true,
+                                      physics: NeverScrollableScrollPhysics(),
+                                      itemCount: 6,
+                                      separatorBuilder: (context, index) =>
+                                          SizedBox(height: 20),
+                                      itemBuilder: (context, index) {
+                                        return Shimmer.fromColors(
+                                          baseColor: Colors.grey[300]!,
+                                          highlightColor: Colors.grey[100]!,
+                                          child: Container(
+                                            margin: EdgeInsets.symmetric(
+                                              horizontal: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black12,
+                                                  blurRadius: 16,
+                                                  offset: Offset(0, 8),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.all(
+                                                    12.0,
+                                                  ),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          16,
+                                                        ),
+                                                    child: Container(
+                                                      width: 80,
+                                                      height: 80,
+                                                      color: Colors.grey[200],
+                                                    ),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          vertical: 18.0,
+                                                          horizontal: 4.0,
+                                                        ),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Container(
+                                                          width:
+                                                              double.infinity,
+                                                          height: 18,
+                                                          color:
+                                                              Colors.grey[300],
+                                                        ),
+                                                        SizedBox(height: 8),
+                                                        Container(
+                                                          width: 80,
+                                                          height: 14,
+                                                          color:
+                                                              Colors.grey[300],
+                                                        ),
+                                                        SizedBox(height: 6),
+                                                        Row(
+                                                          children: [
+                                                            Container(
+                                                              width: 40,
+                                                              height: 16,
+                                                              color: Colors
+                                                                  .grey[300],
+                                                            ),
+                                                            SizedBox(width: 8),
+                                                            Container(
+                                                              width: 40,
+                                                              height: 14,
+                                                              color: Colors
+                                                                  .grey[300],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 16.0,
+                                                      ),
+                                                  child: Container(
+                                                    width: 56,
+                                                    height: 56,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      shape: BoxShape.circle,
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black12,
+                                                          blurRadius: 12,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     );
                                   }
                                   final products = snapshot.data!;
@@ -380,7 +499,7 @@ class Body extends ConsumerWidget {
                                                                 top: 2.0,
                                                               ),
                                                           child: Text(
-                                                            'Net weight: ${product.variant}',
+                                                            'Net weight:  24{product.variant}',
                                                             style: TextStyle(
                                                               fontSize: 13,
                                                               color: Colors

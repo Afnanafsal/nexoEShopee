@@ -11,6 +11,7 @@ import 'package:nexoeshopee/providers/providers.dart'; // Ensure cartProvider is
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:shimmer/shimmer.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -184,7 +185,64 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               SizedBox(height: 8),
             ],
-            if (isLoading) Center(child: CircularProgressIndicator()),
+            if (isLoading)
+              Padding(
+                padding: const EdgeInsets.only(top: 24.0),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemCount: 4,
+                  itemBuilder: (context, index) {
+                    return Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                      child: Card(
+                        elevation: 4,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Container(
+                              height: 140,
+                              color: Colors.grey[300],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: double.infinity,
+                                    height: 16,
+                                    color: Colors.grey[300],
+                                  ),
+                                  SizedBox(height: 8),
+                                  Container(
+                                    width: 80,
+                                    height: 14,
+                                    color: Colors.grey[300],
+                                  ),
+                                  SizedBox(height: 8),
+                                  Container(
+                                    width: 40,
+                                    height: 14,
+                                    color: Colors.grey[300],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             if (!isSearching && !isLoading)
               Expanded(
                 child: frequentlyBoughtProducts.isEmpty

@@ -15,6 +15,7 @@ import 'package:nexoeshopee/size_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:shimmer/shimmer.dart';
 
 // ...existing code...
 
@@ -466,12 +467,45 @@ class _BodyState extends State<Body> {
                           return FutureBuilder<Product?>(
                             future: _getProductWithCaching(pid),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                // Shimmer placeholder for product card
                                 return SizedBox(
                                   height: 70,
-                                  child: Center(
-                                    child: CircularProgressIndicator(),
+                                  child: Shimmer.fromColors(
+                                    baseColor: Colors.grey[300]!,
+                                    highlightColor: Colors.grey[100]!,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 70,
+                                          height: 70,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                        ),
+                                        SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                width: double.infinity,
+                                                height: 16,
+                                                color: Colors.grey[300],
+                                              ),
+                                              SizedBox(height: 8),
+                                              Container(
+                                                width: 80,
+                                                height: 12,
+                                                color: Colors.grey[300],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               }
@@ -643,13 +677,33 @@ class _BodyState extends State<Body> {
             }).toList(),
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
+          // Shimmer placeholder for main loading state
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularProgressIndicator(),
+                Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
                 SizedBox(height: 16),
-                Text('Loading your orders...'),
+                Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    width: 120,
+                    height: 16,
+                    color: Colors.grey[300],
+                  ),
+                ),
               ],
             ),
           );
@@ -812,7 +866,46 @@ class _BodyState extends State<Body> {
             ),
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          // Shimmer placeholder for product card (all loading states)
+          return SizedBox(
+            height: 70,
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Row(
+                children: [
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 16,
+                          color: Colors.grey[300],
+                        ),
+                        SizedBox(height: 8),
+                        Container(
+                          width: 80,
+                          height: 12,
+                          color: Colors.grey[300],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         } else if (snapshot.hasError) {
           final error = snapshot.error.toString();
           Logger().e(error);
