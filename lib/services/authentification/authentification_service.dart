@@ -117,7 +117,8 @@ class AuthentificationService {
       }
     }
   }
-// 🔵 Google Sign-In
+
+  // 🔵 Google Sign-In
   Future<bool> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
@@ -131,8 +132,9 @@ class AuthentificationService {
         idToken: googleAuth.idToken,
       );
 
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
 
       return userCredential.user != null;
     } catch (e) {
@@ -144,15 +146,19 @@ class AuthentificationService {
   // 🔵 Facebook Sign-In
   Future<bool> signInWithFacebook() async {
     try {
-      final LoginResult result = await FacebookAuth.instance.login();
+      final LoginResult result = await FacebookAuth.instance.login(
+        permissions: ['email', 'public_profile'],
+      );
 
       if (result.status != LoginStatus.success) return false;
 
-      final OAuthCredential credential =
-          FacebookAuthProvider.credential(result.accessToken!.token);
+      final OAuthCredential credential = FacebookAuthProvider.credential(
+        result.accessToken!.token,
+      );
 
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
 
       return userCredential.user != null;
     } catch (e) {

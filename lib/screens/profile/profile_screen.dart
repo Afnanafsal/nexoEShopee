@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:nexoeshopee/screens/sign_in/sign_in_screen.dart';
 import 'package:nexoeshopee/services/authentification/authentification_service.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
@@ -236,7 +237,7 @@ class _ProfileActions extends StatelessWidget {
             ),
           ],
         ),
-        
+
         const SizedBox(height: 16),
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
@@ -257,7 +258,13 @@ class _ProfileActions extends StatelessWidget {
               context,
               "Confirm Sign out ?",
             );
-            if (confirmation) AuthentificationService().signOut();
+            if (confirmation) {
+              await AuthentificationService().signOut();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => SignInScreen()),
+                (route) => false,
+              );
+            }
           },
         ),
       ],
