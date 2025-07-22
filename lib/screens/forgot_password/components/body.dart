@@ -23,14 +23,20 @@ class Body extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.2,
                   ),
-                  children: [
+                    children: [
                     TextSpan(
                       text: 'Fish',
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(
+                      color: Colors.black,
+                      fontSize: getProportionateScreenWidth(32),
+                      ),
                     ),
                     TextSpan(
                       text: 'Kart',
-                      style: TextStyle(color: Color(0xFF29465B)),
+                      style: TextStyle(
+                      color: Color(0xFF29465B),
+                      fontSize: getProportionateScreenWidth(32),
+                      ),
                     ),
                   ],
                 ),
