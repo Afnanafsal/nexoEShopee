@@ -1,11 +1,11 @@
-import 'package:nexoeshopee/components/nothingtoshow_container.dart';
-import 'package:nexoeshopee/components/product_card.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:fishkart/components/product_card.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
 
 class Body extends StatelessWidget {
   final String searchQuery;
@@ -35,16 +35,14 @@ class Body extends StatelessWidget {
       child: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding)),
+            horizontal: getProportionateScreenWidth(screenPadding),
+          ),
           child: SizedBox(
             width: double.infinity,
             child: Column(
               children: [
                 SizedBox(height: getProportionateScreenHeight(10)),
-                Text(
-                  "Search Result",
-                  style: headingStyle,
-                ),
+                Text("Search Result", style: headingStyle),
                 Text.rich(
                   TextSpan(
                     text: "$searchQuery",
@@ -87,10 +85,7 @@ class Body extends StatelessWidget {
 
   Widget buildProductsGrid() {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 16,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       decoration: BoxDecoration(
         color: Color(0xFFF5F6F9),
         borderRadius: BorderRadius.circular(15),

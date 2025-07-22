@@ -1,10 +1,10 @@
-import 'package:nexoeshopee/components/rounded_icon_button.dart';
-import 'package:nexoeshopee/components/search_field.dart';
+import 'package:fishkart/components/rounded_icon_button.dart';
+import 'package:fishkart/components/search_field.dart';
 import 'package:flutter/material.dart';
 
 import '../../../components/icon_button_with_counter.dart';
-import 'package:nexoeshopee/screens/home/components/delivery_address_bar.dart';
-import 'package:nexoeshopee/screens/search/search_screen.dart';
+import 'package:fishkart/screens/home/components/delivery_address_bar.dart';
+import 'package:fishkart/screens/search/search_screen.dart';
 
 class HomeHeader extends StatelessWidget {
   final ValueChanged<String> onSearchSubmitted;

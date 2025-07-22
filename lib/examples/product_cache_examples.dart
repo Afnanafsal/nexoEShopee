@@ -1,8 +1,8 @@
 // Example usage of enhanced product details caching
 // This file demonstrates how to use the new caching functionality
 
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
 
 class ProductCacheExamples {
   static final HiveService _hiveService = HiveService.instance;

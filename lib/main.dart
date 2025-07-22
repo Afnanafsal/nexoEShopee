@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:nexoeshopee/app.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:fishkart/app.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -79,7 +79,9 @@ Future<void> preloadAndCacheEssentialData() async {
     // Fetch and cache all ordered products for instant access
     if (orderedProductIds.isNotEmpty) {
       final orderedProducts = await Future.wait(
-        orderedProductIds.map((id) => ProductDatabaseHelper().getProductWithID(id)),
+        orderedProductIds.map(
+          (id) => ProductDatabaseHelper().getProductWithID(id),
+        ),
       );
       for (final product in orderedProducts) {
         if (product != null) {

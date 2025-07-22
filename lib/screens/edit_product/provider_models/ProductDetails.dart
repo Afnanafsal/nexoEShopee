@@ -1,4 +1,4 @@
-import 'package:nexoeshopee/models/Product.dart';
+import 'package:fishkart/models/Product.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 

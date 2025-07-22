@@ -1,6 +1,6 @@
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 

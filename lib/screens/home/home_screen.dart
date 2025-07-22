@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/providers/user_providers.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:fishkart/providers/user_providers.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 
 import '../../size_config.dart';
 

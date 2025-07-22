@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/models/Address.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/models/Address.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:string_validator/string_validator.dart';
@@ -10,10 +10,7 @@ import '../../../constants.dart';
 
 class AddressDetailsForm extends StatefulWidget {
   final Address? addressToEdit;
-  AddressDetailsForm({
-    Key? key,
-    this.addressToEdit,
-  }) : super(key: key);
+  AddressDetailsForm({Key? key, this.addressToEdit}) : super(key: key);
 
   @override
   _AddressDetailsFormState createState() => _AddressDetailsFormState();
@@ -310,12 +307,15 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
   Future<void> saveNewAddressButtonCallback() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      final Address newAddress = generateAddressObject(id: UniqueKey().toString());
+      final Address newAddress = generateAddressObject(
+        id: UniqueKey().toString(),
+      );
       bool status = false;
       String snackbarMessage = "";
       try {
-        status =
-            await UserDatabaseHelper().addAddressForCurrentUser(newAddress);
+        status = await UserDatabaseHelper().addAddressForCurrentUser(
+          newAddress,
+        );
         if (status == true) {
           snackbarMessage = "Address saved successfully";
         } else {
@@ -329,11 +329,9 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
         snackbarMessage = "Something went wrong";
       } finally {
         Logger().i(snackbarMessage);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(snackbarMessage),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
   }
@@ -341,14 +339,16 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
   Future<void> saveEditedAddressButtonCallback() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      final Address newAddress =
-          generateAddressObject(id: widget.addressToEdit!.id);
+      final Address newAddress = generateAddressObject(
+        id: widget.addressToEdit!.id,
+      );
 
       bool status = false;
       String snackbarMessage = "";
       try {
-        status =
-            await UserDatabaseHelper().updateAddressForCurrentUser(newAddress);
+        status = await UserDatabaseHelper().updateAddressForCurrentUser(
+          newAddress,
+        );
         if (status == true) {
           snackbarMessage = "Address updated successfully";
         } else {
@@ -362,11 +362,9 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
         snackbarMessage = "Something went wrong";
       } finally {
         Logger().i(snackbarMessage);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(snackbarMessage),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
   }

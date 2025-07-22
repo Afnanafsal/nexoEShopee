@@ -1,12 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nexoeshopee/models/Address.dart';
-import 'package:nexoeshopee/models/CartItem.dart';
-import 'package:nexoeshopee/models/OrderedProduct.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
+import 'package:fishkart/models/Address.dart';
+import 'package:fishkart/models/CartItem.dart';
+import 'package:fishkart/models/OrderedProduct.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
 
 class UserDatabaseHelper {
-  Future<CartItem?> getCartItemByProductAndAddress(String productId, String? addressId) async {
+  Future<CartItem?> getCartItemByProductAndAddress(
+    String productId,
+    String? addressId,
+  ) async {
     final uid = AuthentificationService().currentUser.uid;
     final cartRef = FirebaseFirestore.instance
         .collection(USERS_COLLECTION_NAME)
@@ -24,6 +27,7 @@ class UserDatabaseHelper {
     }
     return null;
   }
+
   static const String USERS_COLLECTION_NAME = "users";
   static const String ADDRESSES_COLLECTION_NAME = "addresses";
   static const String CART_COLLECTION_NAME = "cart";
@@ -73,8 +77,12 @@ class UserDatabaseHelper {
     final userDocRef = firestore.collection(USERS_COLLECTION_NAME).doc(uid);
 
     final cartCollectionRef = userDocRef.collection(CART_COLLECTION_NAME);
-    final addressCollectionRef = userDocRef.collection(ADDRESSES_COLLECTION_NAME);
-    final ordersCollectionRef = userDocRef.collection(ORDERED_PRODUCTS_COLLECTION_NAME);
+    final addressCollectionRef = userDocRef.collection(
+      ADDRESSES_COLLECTION_NAME,
+    );
+    final ordersCollectionRef = userDocRef.collection(
+      ORDERED_PRODUCTS_COLLECTION_NAME,
+    );
 
     for (final collection in [
       cartCollectionRef,
@@ -214,7 +222,13 @@ class UserDatabaseHelper {
     if (snapshot.exists) {
       await docRef.update({CartItem.ITEM_COUNT_KEY: FieldValue.increment(1)});
     } else {
-      await docRef.set(CartItem(productId: productId, itemCount: 1, addressId: effectiveAddressId).toMap());
+      await docRef.set(
+        CartItem(
+          productId: productId,
+          itemCount: 1,
+          addressId: effectiveAddressId,
+        ).toMap(),
+      );
     }
     return true;
   }
@@ -375,7 +389,10 @@ class UserDatabaseHelper {
   Future<bool> removeFavoriteProduct(String productId) async {
     String uid = AuthentificationService().currentUser.uid;
     try {
-      final userDoc = await firestore.collection(USERS_COLLECTION_NAME).doc(uid).get();
+      final userDoc = await firestore
+          .collection(USERS_COLLECTION_NAME)
+          .doc(uid)
+          .get();
       List<dynamic> favList = userDoc.data()?[FAV_PRODUCTS_KEY] ?? [];
       favList.remove(productId);
       await firestore.collection(USERS_COLLECTION_NAME).doc(uid).update({

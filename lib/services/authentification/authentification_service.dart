@@ -2,11 +2,11 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/credential_actions_exceptions.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/reauth_exceptions.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/signin_exceptions.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/signup_exceptions.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:fishkart/exceptions/firebaseauth/credential_actions_exceptions.dart';
+import 'package:fishkart/exceptions/firebaseauth/reauth_exceptions.dart';
+import 'package:fishkart/exceptions/firebaseauth/signin_exceptions.dart';
+import 'package:fishkart/exceptions/firebaseauth/signup_exceptions.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 
 class AuthentificationService {
   static const String USER_NOT_FOUND_EXCEPTION_CODE = "user-not-found";

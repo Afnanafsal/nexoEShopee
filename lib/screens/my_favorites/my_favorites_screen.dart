@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
-import 'package:nexoeshopee/size_config.dart';
-import 'package:nexoeshopee/providers/user_providers.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/size_config.dart';
+import 'package:fishkart/providers/user_providers.dart';
 import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -130,7 +130,8 @@ class _MyFavoritesScreenState extends ConsumerState<MyFavoritesScreen> {
                                 SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Container(
                                         width: double.infinity,

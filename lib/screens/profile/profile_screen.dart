@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:nexoeshopee/screens/sign_in/sign_in_screen.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/screens/sign_in/sign_in_screen.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
 import '../../constants.dart';
 import '../about_developer/about_developer_screen.dart';
 import '../change_display_picture/change_display_picture_screen.dart';
@@ -17,7 +17,7 @@ import '../my_orders/my_orders_screen.dart';
 import '../my_products/my_products_screen.dart';
 import '../../utils.dart';
 import '../change_display_name/change_display_name_screen.dart';
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
 
 import '../home/home_screen.dart';
 

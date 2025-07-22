@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 // ...existing code...
-import 'package:nexoeshopee/providers/user_providers.dart';
+import 'package:fishkart/providers/user_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/screens/manage_addresses/manage_addresses_screen.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/screens/manage_addresses/manage_addresses_screen.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/size_config.dart';
 
 final _addressesListProvider = FutureProvider<List<String>>((ref) async {
   return await UserDatabaseHelper().addressesList;

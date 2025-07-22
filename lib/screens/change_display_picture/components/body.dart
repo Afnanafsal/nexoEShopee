@@ -1,21 +1,21 @@
 import 'dart:typed_data';
 import 'package:hive/hive.dart';
 import 'dart:convert';
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/exceptions/local_files_handling/local_file_handling_exception.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
-import 'package:nexoeshopee/services/local_files_access/local_files_access_service.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/exceptions/local_files_handling/local_file_handling_exception.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/services/local_files_access/local_files_access_service.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-import 'package:nexoeshopee/providers/image_providers.dart';
+import 'package:fishkart/providers/image_providers.dart';
 
 class Body extends ConsumerStatefulWidget {
   const Body({Key? key}) : super(key: key);

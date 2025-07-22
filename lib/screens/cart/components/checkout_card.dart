@@ -1,4 +1,4 @@
-import 'package:nexoeshopee/components/default_button.dart';
+import 'package:fishkart/components/default_button.dart';
 import 'package:flutter/material.dart';
 
 import '../../../size_config.dart';
@@ -6,7 +6,11 @@ import '../../../size_config.dart';
 class CheckoutCard extends StatelessWidget {
   final VoidCallback onCheckoutPressed;
   final double totalPrice;
-  const CheckoutCard({required this.onCheckoutPressed, required this.totalPrice, super.key});
+  const CheckoutCard({
+    required this.onCheckoutPressed,
+    required this.totalPrice,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

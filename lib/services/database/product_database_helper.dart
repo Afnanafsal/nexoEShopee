@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/models/Review.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/models/Review.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
 
 class ProductDatabaseHelper {
   static const String PRODUCTS_COLLECTION_NAME = "products";

@@ -1,7 +1,7 @@
-import 'package:nexoeshopee/screens/sign_up/sign_up_screen.dart';
+import 'package:fishkart/screens/sign_up/sign_up_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:nexoeshopee/size_config.dart';
-import 'package:nexoeshopee/constants.dart';
+import 'package:fishkart/size_config.dart';
+import 'package:fishkart/constants.dart';
 
 class NoAccountText extends StatelessWidget {
   const NoAccountText({super.key});
@@ -13,14 +13,14 @@ class NoAccountText extends StatelessWidget {
       children: [
         Text(
           "Don't have an account? ",
-          style: TextStyle(
-            fontSize: getProportionateScreenWidth(16),
-          ),
+          style: TextStyle(fontSize: getProportionateScreenWidth(16)),
         ),
         GestureDetector(
           onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => SignUpScreen()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SignUpScreen()),
+            );
           },
           child: Text(
             "Sign Up",

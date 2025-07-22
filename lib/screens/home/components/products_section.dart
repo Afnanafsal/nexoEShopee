@@ -1,6 +1,6 @@
-import 'package:nexoeshopee/components/nothingtoshow_container.dart';
-import 'package:nexoeshopee/components/product_card.dart';
-import 'package:nexoeshopee/screens/home/components/section_tile.dart';
+import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:fishkart/components/product_card.dart';
+import 'package:fishkart/screens/home/components/section_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';

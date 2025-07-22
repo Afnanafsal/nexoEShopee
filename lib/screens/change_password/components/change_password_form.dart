@@ -1,11 +1,11 @@
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/components/custom_suffix_icon.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/credential_actions_exceptions.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/components/custom_suffix_icon.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
+import 'package:fishkart/exceptions/firebaseauth/credential_actions_exceptions.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -209,7 +209,8 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
                         ),
                         style: const TextStyle(fontSize: 16),
                         validator: (value) {
-                          if (confirmNewPasswordController.text != newPasswordController.text) {
+                          if (confirmNewPasswordController.text !=
+                              newPasswordController.text) {
                             return "Not matching with Password";
                           }
                           return null;
@@ -230,7 +231,8 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
                               ),
                             ),
                             onPressed: () {
-                              final updateFuture = changePasswordButtonCallback();
+                              final updateFuture =
+                                  changePasswordButtonCallback();
                               showDialog(
                                 context: context,
                                 builder: (context) {

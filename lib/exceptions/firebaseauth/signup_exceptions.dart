@@ -1,5 +1,4 @@
-
-import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
+import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
 
 class FirebaseSignUpAuthException extends MessagedFirebaseAuthException {
   FirebaseSignUpAuthException({
@@ -8,42 +7,41 @@ class FirebaseSignUpAuthException extends MessagedFirebaseAuthException {
   }) : super(code, message);
 }
 
-class FirebaseSignUpAuthEmailAlreadyInUseException extends FirebaseSignUpAuthException {
+class FirebaseSignUpAuthEmailAlreadyInUseException
+    extends FirebaseSignUpAuthException {
   FirebaseSignUpAuthEmailAlreadyInUseException()
-      : super(
-          code: "email-already-in-use",
-          message: "Email already in use",
-        );
+    : super(code: "email-already-in-use", message: "Email already in use");
 }
 
-class FirebaseSignUpAuthInvalidEmailException extends FirebaseSignUpAuthException {
+class FirebaseSignUpAuthInvalidEmailException
+    extends FirebaseSignUpAuthException {
   FirebaseSignUpAuthInvalidEmailException()
-      : super(
-          code: "invalid-email",
-          message: "Email is not valid",
-        );
+    : super(code: "invalid-email", message: "Email is not valid");
 }
 
-class FirebaseSignUpAuthOperationNotAllowedException extends FirebaseSignUpAuthException {
+class FirebaseSignUpAuthOperationNotAllowedException
+    extends FirebaseSignUpAuthException {
   FirebaseSignUpAuthOperationNotAllowedException()
-      : super(
-          code: "operation-not-allowed",
-          message: "Sign up is restricted for this user",
-        );
+    : super(
+        code: "operation-not-allowed",
+        message: "Sign up is restricted for this user",
+      );
 }
 
-class FirebaseSignUpAuthWeakPasswordException extends FirebaseSignUpAuthException {
+class FirebaseSignUpAuthWeakPasswordException
+    extends FirebaseSignUpAuthException {
   FirebaseSignUpAuthWeakPasswordException()
-      : super(
-          code: "weak-password",
-          message: "Weak password, try something better",
-        );
+    : super(
+        code: "weak-password",
+        message: "Weak password, try something better",
+      );
 }
 
-class FirebaseSignUpAuthUnknownReasonFailureException extends FirebaseSignUpAuthException {
+class FirebaseSignUpAuthUnknownReasonFailureException
+    extends FirebaseSignUpAuthException {
   FirebaseSignUpAuthUnknownReasonFailureException()
-      : super(
-          code: "sign-up-unknown-failure",
-          message: "Can't register due to unknown reason",
-        );
+    : super(
+        code: "sign-up-unknown-failure",
+        message: "Can't register due to unknown reason",
+      );
 }

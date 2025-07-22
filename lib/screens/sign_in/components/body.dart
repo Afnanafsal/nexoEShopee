@@ -1,12 +1,12 @@
-import 'package:nexoeshopee/constants.dart';
+import 'package:fishkart/constants.dart';
 import 'package:flutter/material.dart';
 import '../../../size_config.dart';
 import '../../../components/no_account_text.dart';
-import 'package:nexoeshopee/screens/sign_up/sign_up_screen.dart';
-import 'package:nexoeshopee/screens/forgot_password/forgot_password_screen.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
-import 'package:nexoeshopee/screens/home/home_screen.dart';
+import 'package:fishkart/screens/sign_up/sign_up_screen.dart';
+import 'package:fishkart/screens/forgot_password/forgot_password_screen.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
+import 'package:fishkart/screens/home/home_screen.dart';
 
 class Body extends StatelessWidget {
   @override
@@ -323,7 +323,6 @@ class _SignInCardContentState extends State<_SignInCardContent> {
         // Social login buttons
         Column(
           children: [
-
             SizedBox(height: 12),
             _SocialButton(
               iconAsset: 'assets/icons/google-icon.png',

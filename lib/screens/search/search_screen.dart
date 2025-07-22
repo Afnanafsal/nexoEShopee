@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/components/product_card.dart';
-import 'package:nexoeshopee/components/search_field.dart';
-import 'package:nexoeshopee/components/nothingtoshow_container.dart';
-import 'package:nexoeshopee/providers/providers.dart';
-import 'package:nexoeshopee/providers/providers.dart'; // Ensure cartProvider is imported
+import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/components/product_card.dart';
+import 'package:fishkart/components/search_field.dart';
+import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:fishkart/providers/providers.dart';
+import 'package:fishkart/providers/providers.dart'; // Ensure cartProvider is imported
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
 import 'package:shimmer/shimmer.dart';
 
 class SearchScreen extends StatefulWidget {

@@ -1,11 +1,11 @@
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logger/logger.dart';
 import '../constants.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
 
 class ProductCard extends StatelessWidget {
   final String productId;
@@ -50,8 +50,11 @@ class ProductCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
           child: FutureBuilder<Product?>(
             future: (() async {
-              final product = await ProductDatabaseHelper().getProductWithID(productId);
-              if (product != null) await HiveService.instance.cacheProduct(product);
+              final product = await ProductDatabaseHelper().getProductWithID(
+                productId,
+              );
+              if (product != null)
+                await HiveService.instance.cacheProduct(product);
               return product;
             })(),
             builder: (context, snapshot) {

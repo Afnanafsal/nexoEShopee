@@ -1,4 +1,4 @@
-import 'package:nexoeshopee/constants.dart';
+import 'package:fishkart/constants.dart';
 import '../components/change_password_form.dart';
 import 'package:flutter/material.dart';
 import '../../../size_config.dart';
@@ -11,15 +11,11 @@ class Body extends StatelessWidget {
         physics: BouncingScrollPhysics(),
         child: Padding(
           padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding)),
+            horizontal: getProportionateScreenWidth(screenPadding),
+          ),
           child: SizedBox(
             width: double.infinity,
-            child: Column(
-              children: [
-               
-                ChangePasswordForm(),
-              ],
-            ),
+            child: Column(children: [ChangePasswordForm()]),
           ),
         ),
       ),

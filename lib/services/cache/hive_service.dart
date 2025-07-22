@@ -1,8 +1,8 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:nexoeshopee/models/cached_product.dart';
-import 'package:nexoeshopee/models/cached_user.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/services/cache/duration_adapter.dart';
+import 'package:fishkart/models/cached_product.dart';
+import 'package:fishkart/models/cached_user.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/services/cache/duration_adapter.dart';
 
 class HiveService {
   // Cache a list of addresses (List<Map<String, dynamic>>) in Hive
@@ -12,10 +12,12 @@ class HiveService {
     };
     await _addressesBox?.putAll(addressesMap);
   }
+
   // Returns all cached addresses as a List<Map<String, dynamic>>
   List<Map<String, dynamic>> getCachedAddresses() {
     return (_addressesBox?.values.toList() ?? []).cast<Map<String, dynamic>>();
   }
+
   static const String _productsBoxName = 'products';
   static const String _usersBoxName = 'users';
   static const String _settingsBoxName = 'settings';

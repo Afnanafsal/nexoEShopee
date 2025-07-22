@@ -1,5 +1,5 @@
 import 'package:hive/hive.dart';
-import 'package:nexoeshopee/models/Product.dart';
+import 'package:fishkart/models/Product.dart';
 
 part 'cached_product.g.dart';
 

@@ -1,17 +1,17 @@
-import 'package:nexoeshopee/components/nothingtoshow_container.dart';
-import 'package:nexoeshopee/components/product_short_detail_card.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/OrderedProduct.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/models/Review.dart';
-import 'package:nexoeshopee/models/Address.dart';
-import 'package:nexoeshopee/screens/my_orders/components/product_review_dialog.dart';
-import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:fishkart/components/product_short_detail_card.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/OrderedProduct.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/models/Review.dart';
+import 'package:fishkart/models/Address.dart';
+import 'package:fishkart/screens/my_orders/components/product_review_dialog.dart';
+import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -467,7 +467,8 @@ class _BodyState extends State<Body> {
                           return FutureBuilder<Product?>(
                             future: _getProductWithCaching(pid),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
                                 // Shimmer placeholder for product card
                                 return SizedBox(
                                   height: 70,
@@ -481,14 +482,18 @@ class _BodyState extends State<Body> {
                                           height: 70,
                                           decoration: BoxDecoration(
                                             color: Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                           ),
                                         ),
                                         SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               Container(
                                                 width: double.infinity,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/size_config.dart';
 
 const String appName = "E-Shopee";
 

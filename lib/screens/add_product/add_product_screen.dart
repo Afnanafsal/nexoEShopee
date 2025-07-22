@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/size_config.dart';
 
 class AddProductScreen extends StatefulWidget {
   final Product? productToEdit;
@@ -20,7 +20,7 @@ class AddProductScreen extends StatefulWidget {
 class _AddProductScreenState extends State<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
-  
+
   List<String> _images = [];
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
@@ -32,11 +32,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
   void initState() {
     super.initState();
     // Initialize controllers with existing product data if editing
-    _titleController = TextEditingController(text: widget.productToEdit?.title ?? '');
-    _descriptionController = TextEditingController(text: widget.productToEdit?.description ?? '');
-    _priceController = TextEditingController(text: widget.productToEdit?.originalPrice?.toString() ?? '');
-    _discountPriceController = TextEditingController(text: widget.productToEdit?.discountPrice?.toString() ?? '');
-    
+    _titleController = TextEditingController(
+      text: widget.productToEdit?.title ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.productToEdit?.description ?? '',
+    );
+    _priceController = TextEditingController(
+      text: widget.productToEdit?.originalPrice?.toString() ?? '',
+    );
+    _discountPriceController = TextEditingController(
+      text: widget.productToEdit?.discountPrice?.toString() ?? '',
+    );
+
     if (widget.productToEdit != null) {
       _images = widget.productToEdit!.images ?? [];
       _selectedType = widget.productToEdit!.productType ?? ProductType.Others;
@@ -54,9 +62,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Future<void> _addImage() async {
     if (_images.length >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Maximum 3 images allowed')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Maximum 3 images allowed')));
       return;
     }
 
@@ -76,7 +84,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     });
   }
 
-
   Future<void> _saveProduct() async {
     if (!_formKey.currentState!.validate()) return;
     if (_images.isEmpty) {
@@ -93,7 +100,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         title: _titleController.text,
         description: _descriptionController.text,
         originalPrice: double.parse(_priceController.text),
-        discountPrice: _discountPriceController.text.isNotEmpty 
+        discountPrice: _discountPriceController.text.isNotEmpty
             ? double.parse(_discountPriceController.text)
             : null,
         productType: _selectedType,
@@ -103,25 +110,23 @@ class _AddProductScreenState extends State<AddProductScreen> {
       if (widget.productToEdit == null) {
         // Add new product
         await ProductDatabaseHelper().addUsersProduct(product);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Product added successfully')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Product added successfully')));
       } else {
         // Update existing product
         await ProductDatabaseHelper().updateUsersProduct(product);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Product updated successfully')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Product updated successfully')));
       }
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving product: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving product: $e')));
     }
   }
-
-
 
   Widget _buildImagePicker() {
     return Column(
@@ -170,7 +175,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       color: kPrimaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.add_photo_alternate, color: kPrimaryColor),
+                    child: Icon(
+                      Icons.add_photo_alternate,
+                      color: kPrimaryColor,
+                    ),
                   ),
                 ),
             ],
@@ -251,7 +259,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 if (double.tryParse(value) == null) {
                   return 'Please enter valid price';
                 }
-                if (double.parse(value) >= double.parse(_priceController.text)) {
+                if (double.parse(value) >=
+                    double.parse(_priceController.text)) {
                   return 'Discount price should be less than original price';
                 }
               }
@@ -266,9 +275,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget _buildProductTypeDropdown() {
     return DropdownButtonFormField<ProductType>(
       value: _selectedType,
-      decoration: InputDecoration(
-        labelText: 'Product Category',
-      ),
+      decoration: InputDecoration(labelText: 'Product Category'),
       items: ProductType.values.map((type) {
         return DropdownMenuItem(
           value: type,
@@ -287,7 +294,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.productToEdit != null ? 'Edit Product' : 'Add Product'),
+        title: Text(
+          widget.productToEdit != null ? 'Edit Product' : 'Add Product',
+        ),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(getProportionateScreenWidth(20)),
@@ -307,7 +316,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
               _buildProductTypeDropdown(),
               SizedBox(height: getProportionateScreenHeight(30)),
               DefaultButton(
-                text: widget.productToEdit != null ? 'Update Product' : 'Add Product',
+                text: widget.productToEdit != null
+                    ? 'Update Product'
+                    : 'Add Product',
                 press: _saveProduct,
               ),
               SizedBox(height: getProportionateScreenHeight(20)),

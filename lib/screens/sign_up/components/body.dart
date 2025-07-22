@@ -1,6 +1,6 @@
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/screens/sign_up/components/sign_up_form.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/screens/sign_up/components/sign_up_form.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 
 class Body extends StatelessWidget {
@@ -70,7 +70,7 @@ class Body extends StatelessWidget {
                               onPressed: () {
                                 Navigator.pushNamed(context, '/sign_in');
                               },
-                                child: Text(
+                              child: Text(
                                 "Already have an account?",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,

@@ -1,5 +1,5 @@
-import 'package:nexoeshopee/services/data_streams/data_stream.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:fishkart/services/data_streams/data_stream.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 
 class AddressesStream extends DataStream<List<String>> {
   @override

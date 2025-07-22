@@ -1,14 +1,7 @@
 import 'package:enum_to_string/enum_to_string.dart';
-import 'package:nexoeshopee/models/Model.dart';
+import 'package:fishkart/models/Model.dart';
 
-enum ProductType {
-  Freshwater,
-  Saltwater,
-  Shellfish,
-  Exotic,
-  Others,
-  Dried,
-}
+enum ProductType { Freshwater, Saltwater, Shellfish, Exotic, Others, Dried }
 
 class Product extends Model {
   static const String IMAGES_KEY = "images";
@@ -76,9 +69,12 @@ class Product extends Model {
       description: map[DESCRIPTION_KEY],
       seller: map[SELLER_KEY],
       owner: map[OWNER_KEY],
-      productType:
-          EnumToString.fromString(ProductType.values, map[PRODUCT_TYPE_KEY]),
-      searchTags: (map[SEARCH_TAGS_KEY] as List<dynamic>?)?.cast<String>() ?? [],
+      productType: EnumToString.fromString(
+        ProductType.values,
+        map[PRODUCT_TYPE_KEY],
+      ),
+      searchTags:
+          (map[SEARCH_TAGS_KEY] as List<dynamic>?)?.cast<String>() ?? [],
       dateAdded: map[DATE_ADDED_KEY] != null
           ? DateTime.tryParse(map[DATE_ADDED_KEY])
           : null,

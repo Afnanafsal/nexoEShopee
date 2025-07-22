@@ -3,14 +3,14 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/exceptions/local_files_handling/local_file_handling_exception.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/screens/edit_product/provider_models/ProductDetails.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
-import 'package:nexoeshopee/services/local_files_access/local_files_access_service.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/exceptions/local_files_handling/local_file_handling_exception.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/screens/edit_product/provider_models/ProductDetails.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/services/local_files_access/local_files_access_service.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -327,7 +327,9 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
             Consumer(
               builder: (context, ref, child) {
                 final productDetailsState = ref.watch(productDetailsProvider);
-                final productDetailsNotifier = ref.read(productDetailsProvider.notifier);
+                final productDetailsNotifier = ref.read(
+                  productDetailsProvider.notifier,
+                );
                 return Wrap(
                   spacing: 12,
                   runSpacing: 12,
@@ -378,7 +380,8 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
                                                         color: Colors.grey[300],
                                                         child: Icon(
                                                           Icons.image,
-                                                          color: Colors.grey[600],
+                                                          color:
+                                                              Colors.grey[600],
                                                         ),
                                                       );
                                                     }
@@ -412,7 +415,9 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
                           right: 0,
                           child: GestureDetector(
                             onTap: () {
-                              productDetailsNotifier.removeSelectedImageAtIndex(index);
+                              productDetailsNotifier.removeSelectedImageAtIndex(
+                                index,
+                              );
                             },
                             child: Container(
                               decoration: BoxDecoration(
@@ -633,9 +638,9 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
       return;
     }
     if (productDetailsState.productType == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Please select Product Category (Type)")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please select Product Category (Type)")),
+      );
       return;
     }
     String? productId;
@@ -711,7 +716,9 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
             base64Image = await Base64ImageService().xFileToBase64(img.xFile!);
           } else {
             // Fallback to file path method for mobile/desktop
-            base64Image = await Base64ImageService().fileToBase64(File(img.path));
+            base64Image = await Base64ImageService().fileToBase64(
+              File(img.path),
+            );
           }
         }
       } catch (e) {
@@ -795,7 +802,9 @@ class _EditProductFormState extends ConsumerState<EditProductForm> {
           Logger().w("Error converting image to base64: $e");
         } finally {
           if (base64Image != null) {
-            Logger().i("Base64 string length: "+base64Image.length.toString());
+            Logger().i(
+              "Base64 string length: " + base64Image.length.toString(),
+            );
             productDetailsNotifier.setSelectedImageAtIndex(
               CustomImage(imgType: ImageType.network, path: base64Image),
               i,

@@ -1,6 +1,6 @@
-import 'package:nexoeshopee/components/top_rounded_container.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/providers/product_providers.dart';
+import 'package:fishkart/components/top_rounded_container.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/providers/product_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
