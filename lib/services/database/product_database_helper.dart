@@ -16,20 +16,35 @@ class ProductDatabaseHelper {
   late final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   FirebaseFirestore get firestore => _firebaseFirestore;
 
-  Future<List<String>> getProductIdsByCategory(ProductType productType) async {
+  /// Get product IDs by category with pagination and caching
+  Future<List<String>> getProductIdsByCategory(
+    ProductType productType, {
+    int limit = 20,
+    DocumentSnapshot? startAfter,
+    bool forceRefresh = false,
+  }) async {
+    final productTypeStr = productType.toString().split('.').last;
+    // Try cache first
+    if (!forceRefresh) {
+      final cached = HiveService.instance.getCachedProductsByType(productType);
+      if (cached.isNotEmpty) {
+        return cached.map((p) => p.id).toList();
+      }
+    }
     try {
-      // Use simple enum name that matches how we store it
-      final productTypeStr = productType.toString().split('.').last;
-      print("Getting products for category: $productTypeStr");
-
-      final productsQuery = await _firebaseFirestore
+      Query query = _firebaseFirestore
           .collection(PRODUCTS_COLLECTION_NAME)
           .where(Product.PRODUCT_TYPE_KEY, isEqualTo: productTypeStr)
-          .get();
-
-      print(
-        "Found ${productsQuery.docs.length} products for category: $productTypeStr",
-      );
+          .limit(limit);
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      final productsQuery = await query.get();
+      // Optionally update cache
+      if (productsQuery.docs.isNotEmpty) {
+        // You may want to cache the products here
+        // HiveService.instance.cacheProducts(productsQuery.docs.map((doc) => Product.fromMap(doc.data(), id: doc.id)).toList());
+      }
       return productsQuery.docs.map((doc) => doc.id).toList();
     } catch (e) {
       print("Error getting products by category: $e");
@@ -218,24 +233,19 @@ class ProductDatabaseHelper {
     return docRef.id;
   }
 
-  Future<List<String>> getCategoryProductsList(ProductType productType) async {
-    try {
-      final productTypeString = productType.toString().split('.').last;
-      print("Querying for product type: $productTypeString");
-
-      final queryResult = await firestore
-          .collection(PRODUCTS_COLLECTION_NAME)
-          .where(Product.PRODUCT_TYPE_KEY, isEqualTo: productTypeString)
-          .get();
-
-      print(
-        "Found ${queryResult.docs.length} products for category: $productTypeString",
-      );
-      return queryResult.docs.map((doc) => doc.id).toList();
-    } catch (e) {
-      print("Error in getCategoryProductsList: $e");
-      return [];
-    }
+  /// Get category products list with pagination and caching
+  Future<List<String>> getCategoryProductsList(
+    ProductType productType, {
+    int limit = 20,
+    DocumentSnapshot? startAfter,
+    bool forceRefresh = false,
+  }) async {
+    return getProductIdsByCategory(
+      productType,
+      limit: limit,
+      startAfter: startAfter,
+      forceRefresh: forceRefresh,
+    );
   }
 
   Future<List<String>> get usersProductsList async {
@@ -264,11 +274,25 @@ class ProductDatabaseHelper {
     return true;
   }
 
-  Future<List<String>> getAllProducts() async {
+  /// Get all products with pagination and caching
+  Future<List<String>> getAllProducts({int limit = 20, DocumentSnapshot? startAfter, bool forceRefresh = false}) async {
+    // Try cache first
+    if (!forceRefresh) {
+      final cached = HiveService.instance.getCachedProducts();
+      if (cached.isNotEmpty) {
+        return cached.map((p) => p.id).toList();
+      }
+    }
     try {
-      final querySnapshot = await _firebaseFirestore
-          .collection(PRODUCTS_COLLECTION_NAME)
-          .get();
+      Query query = _firebaseFirestore.collection(PRODUCTS_COLLECTION_NAME).limit(limit);
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      final querySnapshot = await query.get();
+      // Optionally update cache
+      if (querySnapshot.docs.isNotEmpty) {
+        // HiveService.instance.cacheProducts(querySnapshot.docs.map((doc) => Product.fromMap(doc.data(), id: doc.id)).toList());
+      }
       return querySnapshot.docs.map((doc) => doc.id).toList();
     } catch (e) {
       print("Error getting all products: $e");

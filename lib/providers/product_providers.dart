@@ -72,8 +72,18 @@ final latestProductsProvider = FutureProvider.family<List<String>, int>((
   ref,
   limit,
 ) async {
-  final productHelper = ref.watch(productDatabaseHelperProvider);
-  return await productHelper.getLatestProducts(limit);
+  // Try cache first
+  final cachedProducts = HiveService.instance.getCachedProducts();
+  if (cachedProducts.isNotEmpty) {
+    return cachedProducts.take(limit).map((p) => p.id).toList();
+  }
+  // Fallback to backend with pagination
+  final productHelper = ref.read(productDatabaseHelperProvider);
+  final products = await productHelper.getAllProducts(limit: limit);
+  // Cache products
+  // Optionally, you can cache here if needed
+  // await HiveService.instance.cacheProducts(products.map((id) => Product(id)).toList());
+  return products;
 });
 
 final productProvider = FutureProvider.family<Product?, String>((

@@ -176,11 +176,16 @@ class Body extends ConsumerWidget {
   }
 
   Widget buildProductsGrid(List<String> productIds) {
+    // Filter out any null or empty productIds
+    final filteredIds = productIds.where((id) => id.isNotEmpty).toList();
+    if (filteredIds.isEmpty) {
+      return Center(child: Text('No valid products to show.'));
+    }
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-      itemCount: productIds.length,
+      itemCount: filteredIds.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.75,
@@ -191,14 +196,14 @@ class Body extends ConsumerWidget {
         return Consumer(
           builder: (context, ref, child) {
             return ProductCard(
-              productId: productIds[index],
+              productId: filteredIds[index],
               press: () =>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ProductDetailsScreen(
                         key: UniqueKey(),
-                        productId: productIds[index],
+                        productId: filteredIds[index],
                       ),
                     ),
                   ).then((_) {
@@ -226,8 +231,7 @@ class Body extends ConsumerWidget {
       case ProductType.Others:
         return "assets/icons/canned.png";
       // Add other cases as needed
-      default:
-        return "assets/icons/canned.png";
+      // Removed redundant default clause as previous cases cover all possibilities.
     }
   }
 }

@@ -78,6 +78,12 @@ class ProductCard extends StatelessWidget {
   }
 
   Column buildProductCardItems(Product product) {
+    // Null safety and fallback values for all fields
+    final images = product.images ?? [];
+    final image = (images.isNotEmpty && images[0].isNotEmpty) ? images[0] : null;
+    final title = product.title ?? 'Unknown';
+    final discountPrice = product.discountPrice ?? 0.0;
+    final originalPrice = product.originalPrice ?? 0.0;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -85,9 +91,9 @@ class ProductCard extends StatelessWidget {
           flex: 2,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: product.images!.isNotEmpty
+            child: image != null
                 ? Base64ImageService().base64ToImage(
-                    product.images![0],
+                    image,
                     fit: BoxFit.contain,
                   )
                 : Container(
@@ -105,7 +111,7 @@ class ProductCard extends StatelessWidget {
               Flexible(
                 flex: 1,
                 child: Text(
-                  "${product.title}\n",
+                  "$title\n",
                   style: TextStyle(
                     color: kTextColor,
                     fontSize: 13,
@@ -125,7 +131,7 @@ class ProductCard extends StatelessWidget {
                       flex: 5,
                       child: Text.rich(
                         TextSpan(
-                          text: "\₹${product.discountPrice}\n",
+                          text: "\₹${discountPrice}\n",
                           style: TextStyle(
                             color: kPrimaryColor,
                             fontWeight: FontWeight.w700,
@@ -133,7 +139,7 @@ class ProductCard extends StatelessWidget {
                           ),
                           children: [
                             TextSpan(
-                              text: "\₹${product.originalPrice}",
+                              text: originalPrice > 0 ? "\₹${originalPrice}" : '',
                               style: TextStyle(
                                 color: kTextColor,
                                 decoration: TextDecoration.lineThrough,
