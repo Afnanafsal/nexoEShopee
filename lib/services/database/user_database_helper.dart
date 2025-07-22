@@ -212,6 +212,19 @@ class UserDatabaseHelper {
         effectiveAddressId = addresses.first;
       }
     }
+    // Fetch product and check stock
+    final productDoc = await FirebaseFirestore.instance
+        .collection('products')
+        .doc(productId)
+        .get();
+    final productData = productDoc.data();
+    if (productData == null) return false;
+    final int stock = productData['stock'] ?? 0;
+    if (stock <= 0) {
+      // Out of stock
+      return false;
+    }
+    // Proceed to add to cart
     final compositeId = '${productId}_${effectiveAddressId ?? ""}';
     final docRef = firestore
         .collection(USERS_COLLECTION_NAME)
@@ -230,6 +243,11 @@ class UserDatabaseHelper {
         ).toMap(),
       );
     }
+    // Decrement stock in Firestore
+    await FirebaseFirestore.instance
+        .collection('products')
+        .doc(productId)
+        .update({'stock': stock - 1});
     return true;
   }
 
@@ -282,6 +300,17 @@ class UserDatabaseHelper {
         .doc(uid)
         .collection(CART_COLLECTION_NAME)
         .doc(cartItemID);
+    // Get productId from cart item
+    final doc = await ref.get();
+    final productId = doc.data()?[CartItem.PRODUCT_ID_KEY];
+    if (productId == null) return false;
+    // Check product stock
+    final productRef = firestore.collection('products').doc(productId);
+    final productDoc = await productRef.get();
+    final stock = productDoc.data()?['stock'] ?? 0;
+    if (stock <= 0) return false;
+    // Decrement stock
+    await productRef.update({'stock': stock - 1});
     await ref.update({CartItem.ITEM_COUNT_KEY: FieldValue.increment(1)});
     return true;
   }
@@ -295,10 +324,16 @@ class UserDatabaseHelper {
         .doc(cartItemID);
     final doc = await ref.get();
     final currentCount = doc.data()?[CartItem.ITEM_COUNT_KEY] ?? 1;
+    final productId = doc.data()?[CartItem.PRODUCT_ID_KEY];
+    if (productId == null) return false;
+    final productRef = firestore.collection('products').doc(productId);
     if (currentCount <= 1) {
+      // Remove cart item and increment stock by 1
       await ref.delete();
+      await productRef.update({'stock': FieldValue.increment(1)});
     } else {
       await ref.update({CartItem.ITEM_COUNT_KEY: FieldValue.increment(-1)});
+      await productRef.update({'stock': FieldValue.increment(1)});
     }
     return true;
   }

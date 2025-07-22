@@ -4,6 +4,7 @@ import 'package:fishkart/models/Model.dart';
 enum ProductType { Freshwater, Saltwater, Shellfish, Exotic, Others, Dried }
 
 class Product extends Model {
+  static const String STOCK_KEY = "stock";
   static const String IMAGES_KEY = "images";
   static const String TITLE_KEY = "title";
   static const String VARIANT_KEY = "variant";
@@ -31,6 +32,7 @@ class Product extends Model {
   ProductType? productType;
   List<String>? searchTags;
   DateTime? dateAdded;
+  int stock;
 
   Product(
     String id, {
@@ -47,7 +49,9 @@ class Product extends Model {
     this.productType,
     this.searchTags,
     this.dateAdded,
-  }) : super(id);
+    int? stock,
+  })  : stock = stock ?? 0,
+        super(id);
 
   int calculatePercentageDiscount() {
     if (originalPrice == null || discountPrice == null || originalPrice == 0) {
@@ -78,6 +82,7 @@ class Product extends Model {
       dateAdded: map[DATE_ADDED_KEY] != null
           ? DateTime.tryParse(map[DATE_ADDED_KEY])
           : null,
+      stock: map[STOCK_KEY] ?? 0,
     );
   }
 
@@ -99,8 +104,8 @@ class Product extends Model {
           : null,
       SEARCH_TAGS_KEY: searchTags,
       DATE_ADDED_KEY: dateAdded?.toIso8601String(),
+      STOCK_KEY: stock,
     };
-
     return map;
   }
 
@@ -142,6 +147,7 @@ class Product extends Model {
     ProductType? productType,
     List<String>? searchTags,
     DateTime? dateAdded,
+    int? stock,
   }) {
     return Product(
       id ?? this.id,
@@ -158,6 +164,7 @@ class Product extends Model {
       productType: productType ?? this.productType,
       searchTags: searchTags ?? this.searchTags,
       dateAdded: dateAdded ?? this.dateAdded,
+      stock: stock ?? this.stock,
     );
   }
 }

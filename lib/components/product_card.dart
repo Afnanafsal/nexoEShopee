@@ -84,6 +84,7 @@ class ProductCard extends StatelessWidget {
     final title = product.title ?? 'Unknown';
     final discountPrice = product.discountPrice ?? 0.0;
     final originalPrice = product.originalPrice ?? 0.0;
+    final stock = product.stock;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -119,6 +120,16 @@ class ProductCard extends StatelessWidget {
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(height: 5),
+              // Stock count display
+              Text(
+                stock > 0 ? 'In Stock: $stock' : 'Stock Out',
+                style: TextStyle(
+                  color: stock > 0 ? Colors.green : Colors.red,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: 5),
@@ -175,6 +186,24 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                   ],
+                ),
+              ),
+              SizedBox(height: 8),
+              // Add to Cart or Stock Out button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: stock > 0 ? press : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: stock > 0 ? kPrimaryColor : Colors.grey,
+                  ),
+                  child: Text(
+                    stock > 0 ? 'Add to Cart' : 'Stock Out',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],
