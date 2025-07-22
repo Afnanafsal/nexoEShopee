@@ -901,8 +901,7 @@ class _BodyState extends ConsumerState<Body> {
                                     product.id,
                                     _selectedAddressId,
                                   );
-                                  // Auto-refresh after add
-                                  await refreshPage();
+                                  // Removed redundant refreshPage();
                                 },
                               ),
                               SizedBox(height: 8),
@@ -931,8 +930,7 @@ class _BodyState extends ConsumerState<Body> {
                                     product.id,
                                     _selectedAddressId,
                                   );
-                                  // Auto-refresh after remove
-                                  await refreshPage();
+                                  // Removed redundant refreshPage();
                                 },
                               ),
                             ],
