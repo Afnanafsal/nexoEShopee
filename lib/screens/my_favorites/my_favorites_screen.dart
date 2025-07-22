@@ -30,7 +30,6 @@ class _MyFavoritesScreenState extends ConsumerState<MyFavoritesScreen> {
 
   Widget buildFavoritesList() {
     final favoritesAsync = ref.watch(favouriteProductsProvider);
-
     return favoritesAsync.when(
       data: (favoriteIds) {
         if (favoriteIds.isEmpty) {
@@ -41,8 +40,7 @@ class _MyFavoritesScreenState extends ConsumerState<MyFavoritesScreen> {
             ),
           );
         }
-
-        // Batch fetch products from cache first
+        // Try to get all products from cache synchronously
         List<Product> cachedProducts = [];
         List<String> missingIds = [];
         for (final id in favoriteIds) {
@@ -53,60 +51,87 @@ class _MyFavoritesScreenState extends ConsumerState<MyFavoritesScreen> {
             missingIds.add(id);
           }
         }
-
-        return FutureBuilder<List<Product>>(
-          future: () async {
-            List<Product> allProducts = List.from(cachedProducts);
-            if (missingIds.isNotEmpty) {
-              final fetched = await Future.wait(
-                missingIds.map(
-                  (id) => ProductDatabaseHelper().getProductWithID(id),
-                ),
-              );
-              for (int i = 0; i < fetched.length; i++) {
-                final product = fetched[i];
-                if (product != null) {
-                  allProducts.add(product);
-                  await HiveService.instance.cacheProduct(product);
+        if (missingIds.isEmpty) {
+          // All products are cached, show instantly
+          return ListView.builder(
+            padding: EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: getProportionateScreenWidth(screenPadding),
+            ),
+            itemCount: cachedProducts.length,
+            itemBuilder: (context, index) {
+              return buildFavoriteProductItem(cachedProducts[index]);
+            },
+          );
+        } else {
+          // Some products missing, fetch them
+          return FutureBuilder<List<Product>>(
+            future: () async {
+              List<Product> allProducts = List.from(cachedProducts);
+              if (missingIds.isNotEmpty) {
+                final fetched = await Future.wait(
+                  missingIds.map(
+                    (id) => ProductDatabaseHelper().getProductWithID(id),
+                  ),
+                );
+                for (int i = 0; i < fetched.length; i++) {
+                  final product = fetched[i];
+                  if (product != null) {
+                    allProducts.add(product);
+                    await HiveService.instance.cacheProduct(product);
+                  }
                 }
               }
-            }
-            return allProducts;
-          }(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              Logger().w(snapshot.error.toString());
-              return Center(
-                child: Text(
-                  "Something went wrong",
-                  style: TextStyle(fontSize: 16, color: kTextColor),
+              return allProducts;
+            }(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                // Show cached products instantly while waiting for missing
+                if (cachedProducts.isNotEmpty) {
+                  return ListView.builder(
+                    padding: EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: getProportionateScreenWidth(screenPadding),
+                    ),
+                    itemCount: cachedProducts.length,
+                    itemBuilder: (context, index) {
+                      return buildFavoriteProductItem(cachedProducts[index]);
+                    },
+                  );
+                }
+                return Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                Logger().w(snapshot.error.toString());
+                return Center(
+                  child: Text(
+                    "Something went wrong",
+                    style: TextStyle(fontSize: 16, color: kTextColor),
+                  ),
+                );
+              }
+              final products = snapshot.data ?? [];
+              if (products.isEmpty) {
+                return Center(
+                  child: Text(
+                    "No favorites yet",
+                    style: TextStyle(fontSize: 16, color: kTextColor),
+                  ),
+                );
+              }
+              return ListView.builder(
+                padding: EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: getProportionateScreenWidth(screenPadding),
                 ),
+                itemCount: products.length,
+                itemBuilder: (context, index) {
+                  return buildFavoriteProductItem(products[index]);
+                },
               );
-            }
-            final products = snapshot.data ?? [];
-            if (products.isEmpty) {
-              return Center(
-                child: Text(
-                  "No favorites yet",
-                  style: TextStyle(fontSize: 16, color: kTextColor),
-                ),
-              );
-            }
-            return ListView.builder(
-              padding: EdgeInsets.symmetric(
-                vertical: 16,
-                horizontal: getProportionateScreenWidth(screenPadding),
-              ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                return buildFavoriteProductItem(products[index]);
-              },
-            );
-          },
-        );
+            },
+          );
+        }
       },
       loading: () => Center(child: CircularProgressIndicator()),
       error: (error, stackTrace) {

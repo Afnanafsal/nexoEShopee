@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nexoeshopee/app.dart';
 import 'package:nexoeshopee/services/cache/hive_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:nexoeshopee/services/database/product_database_helper.dart';
 import 'package:nexoeshopee/services/database/user_database_helper.dart';
 import 'firebase_options.dart';
 
@@ -40,21 +41,52 @@ Future<void> preloadAndCacheEssentialData() async {
   final cartItems = await userHelper.allCartItemsList;
   await HiveService.instance.updateUserCart(userId, cartItems);
 
-  // Preload and cache favourite products
+  // Preload and cache favourite products (IDs and full product data)
   final favs = await userHelper.usersFavouriteProductsList;
   await HiveService.instance.updateUserFavorites(userId, favs);
+  if (favs.isNotEmpty) {
+    final favProducts = await Future.wait(
+      favs.map((id) => ProductDatabaseHelper().getProductWithID(id)),
+    );
+    for (final product in favProducts) {
+      if (product != null) {
+        await HiveService.instance.cacheProduct(product);
+      }
+    }
+  }
 
-  // Preload and cache ordered products (full order data)
+  // Preload and cache all orders and their products for instant access
   final ordersSnapshot = await userHelper.firestore
       .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
       .doc(userId)
       .collection(UserDatabaseHelper.ORDERED_PRODUCTS_COLLECTION_NAME)
       .get();
   if (ordersSnapshot.docs.isNotEmpty) {
+    // Store all orders in Hive
     await Hive.box<dynamic>('orders').putAll({
       for (var doc in ordersSnapshot.docs)
         doc.id: {'id': doc.id, 'userId': userId, ...doc.data()},
     });
+
+    // Collect all unique product IDs from orders
+    final orderedProductIds = ordersSnapshot.docs
+        .map((doc) => doc.data()['product_uid'] as String?)
+        .where((id) => id != null)
+        .cast<String>()
+        .toSet()
+        .toList();
+
+    // Fetch and cache all ordered products for instant access
+    if (orderedProductIds.isNotEmpty) {
+      final orderedProducts = await Future.wait(
+        orderedProductIds.map((id) => ProductDatabaseHelper().getProductWithID(id)),
+      );
+      for (final product in orderedProducts) {
+        if (product != null) {
+          await HiveService.instance.cacheProduct(product);
+        }
+      }
+    }
   }
 
   // Preload and cache addresses
