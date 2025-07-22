@@ -1,24 +1,18 @@
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/models/AppReview.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/models/AppReview.dart';
 import 'package:flutter/material.dart';
 
 import '../../../size_config.dart';
 
 class AppReviewDialog extends StatelessWidget {
   final AppReview appReview;
-  AppReviewDialog({
-    required Key key,
-    required this.appReview,
-  }) : super(key: key);
+  AppReviewDialog({required Key key, required this.appReview})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: Center(
-        child: Text(
-          "Feedback",
-        ),
-      ),
+      title: Center(child: Text("Feedback")),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       children: [
         Center(
@@ -46,10 +40,7 @@ class AppReviewDialog extends StatelessWidget {
           ),
         ),
       ],
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 24,
-      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
     );
   }
 }

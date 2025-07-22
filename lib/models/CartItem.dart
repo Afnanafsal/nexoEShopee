@@ -1,4 +1,4 @@
-import 'package:nexoeshopee/models/Model.dart';
+import 'package:fishkart/models/Model.dart';
 
 class CartItem extends Model {
   static const String PRODUCT_ID_KEY = "product_id";
@@ -9,12 +9,8 @@ class CartItem extends Model {
   int itemCount;
   String? addressId;
 
-  CartItem({
-    String? id,
-    this.productId,
-    this.itemCount = 0,
-    this.addressId,
-  }) : super(id ?? '');
+  CartItem({String? id, this.productId, this.itemCount = 0, this.addressId})
+    : super(id ?? '');
 
   factory CartItem.fromMap(Map<String, dynamic> map, {String? id}) {
     return CartItem(
@@ -45,11 +41,7 @@ class CartItem extends Model {
     return map;
   }
 
-  CartItem copyWith({
-    String? id,
-    String? productId,
-    int? itemCount,
-  }) {
+  CartItem copyWith({String? id, String? productId, int? itemCount}) {
     return CartItem(
       id: id ?? this.id,
       productId: productId ?? this.productId,

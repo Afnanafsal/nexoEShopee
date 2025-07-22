@@ -1,7 +1,7 @@
-import 'package:nexoeshopee/models/Product.dart';
+import 'package:fishkart/models/Product.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/providers/product_edit_providers.dart';
+import 'package:fishkart/providers/product_edit_providers.dart';
 import 'components/body.dart';
 
 class EditProductScreen extends ConsumerWidget {

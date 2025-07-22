@@ -1,10 +1,10 @@
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/size_config.dart';
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/size_config.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/providers/user_providers.dart';
+import 'package:fishkart/providers/user_providers.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logger/logger.dart';
 import '../../../utils.dart';
@@ -15,7 +15,8 @@ import '../../../constants.dart';
 import 'expandable_text.dart';
 
 class ProductDescription extends ConsumerStatefulWidget {
-  const ProductDescription({required Key key, required this.product}) : super(key: key);
+  const ProductDescription({required Key key, required this.product})
+    : super(key: key);
 
   final Product product;
 
@@ -75,8 +76,16 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
     String snackbarMessage = "";
     // Get selected address from provider
     final selectedAddressId = ref.read(selectedAddressIdProvider);
-    final addFutures = List.generate(cartCount, (_) => UserDatabaseHelper().addProductToCart(widget.product.id, addressId: selectedAddressId));
-    Logger().i('Attempting to add product to cart: id=${widget.product.id}, count=$cartCount, addressId=$selectedAddressId');
+    final addFutures = List.generate(
+      cartCount,
+      (_) => UserDatabaseHelper().addProductToCart(
+        widget.product.id,
+        addressId: selectedAddressId,
+      ),
+    );
+    Logger().i(
+      'Attempting to add product to cart: id=${widget.product.id}, count=$cartCount, addressId=$selectedAddressId',
+    );
     bool allAdded = true;
     await showDialog(
       context: context,
@@ -101,7 +110,9 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
       snackbarMessage = "Something went wrong";
     } finally {
       Logger().i(snackbarMessage);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
     }
   }
 
@@ -296,24 +307,43 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
           SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF42526E),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 18),
-              ),
-              onPressed: _proceedToCheckout,
-              child: Text(
-                'Proceed To Checkout',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+            child: widget.product.stock == 0
+                ? ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[300],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 18),
+                    ),
+                    onPressed: null,
+                    child: Text(
+                      'Stock Out',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                : ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF42526E),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 18),
+                    ),
+                    onPressed: _proceedToCheckout,
+                    child: Text(
+                      'Proceed To Checkout',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
           ),
           SizedBox(height: 16),
         ],

@@ -1,6 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:nexoeshopee/models/cached_product.dart';
-import 'package:nexoeshopee/models/cached_user.dart';
+import 'package:fishkart/models/cached_product.dart';
+import 'package:fishkart/models/cached_user.dart';
 
 class LegacyHiveService {
   /// Removes all unwanted files/keys from all Hive boxes, keeping only essential data.

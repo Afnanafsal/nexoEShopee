@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/size_config.dart';
 
 class SplashScreen extends StatefulWidget {
   @override

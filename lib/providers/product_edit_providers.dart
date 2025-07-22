@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/screens/edit_product/provider_models/ProductDetails.dart';
-import 'package:nexoeshopee/providers/product_providers.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/screens/edit_product/provider_models/ProductDetails.dart';
+import 'package:fishkart/providers/product_providers.dart';
 
 // State for product editing/creation
 class ProductEditState {

@@ -1,7 +1,8 @@
-import 'package:nexoeshopee/models/CartItem.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:fishkart/models/CartItem.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -73,7 +74,36 @@ class CartItemCard extends StatelessWidget {
             ],
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: getProportionateScreenWidth(88),
+                  child: AspectRatio(
+                    aspectRatio: 0.88,
+                    child: Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: getProportionateScreenWidth(20)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(width: 120, height: 16, color: Colors.white),
+                    SizedBox(height: 10),
+                    Container(width: 80, height: 14, color: Colors.white),
+                  ],
+                ),
+              ],
+            ),
+          );
         } else if (snapshot.hasError) {
           final error = snapshot.error;
           Logger().w(error.toString());

@@ -1,6 +1,6 @@
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/Address.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/Address.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 

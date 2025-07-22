@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,25 +7,25 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
 import 'package:shimmer/shimmer.dart';
 
-import 'package:nexoeshopee/components/nothingtoshow_container.dart';
-import 'package:nexoeshopee/components/product_short_detail_card.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/CartItem.dart';
-import 'package:nexoeshopee/models/OrderedProduct.dart';
-import 'package:nexoeshopee/models/Address.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/providers/user_providers.dart';
-import 'package:nexoeshopee/screens/cart/components/checkout_card.dart';
-import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:fishkart/components/product_short_detail_card.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/CartItem.dart';
+import 'package:fishkart/models/OrderedProduct.dart';
+import 'package:fishkart/models/Address.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/providers/user_providers.dart';
+import 'package:fishkart/screens/cart/components/checkout_card.dart';
+import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/size_config.dart';
 import '../../../utils.dart';
 
 // Formatter for MM/YY expiry
@@ -414,7 +415,10 @@ class _BodyState extends ConsumerState<Body> {
         child: Column(
           children: [
             SizedBox(height: getProportionateScreenHeight(10)),
-            Text("Your Cart", style: headingStyle),
+            Align(
+              alignment: Alignment.center,
+              child: Text("Your Cart", style: headingStyle),
+            ),
             SizedBox(height: getProportionateScreenHeight(20)),
             // Address selector
             if (_addresses.length > 1)
@@ -580,7 +584,6 @@ class _BodyState extends ConsumerState<Body> {
       double totalPrice = 0;
       List<Widget> cartCards = [];
       for (int i = 0; i < cachedCartItems.length; i++) {
-        final cartItemId = cachedCartItems[i];
         final product = products[i];
         // For demo, assume quantity 1 (can be improved if CartItem is cached)
         totalPrice += product.discountPrice ?? product.originalPrice ?? 0;
@@ -1471,7 +1474,47 @@ class _BodyState extends ConsumerState<Body> {
               ],
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                margin: EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 16,
+                            color: Colors.white,
+                          ),
+                          SizedBox(height: 8),
+                          Container(width: 80, height: 12, color: Colors.white),
+                          SizedBox(height: 8),
+                          Container(width: 60, height: 12, color: Colors.white),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           } else if (snapshot.hasError) {
             final error = snapshot.error;
             Logger().w(error.toString());

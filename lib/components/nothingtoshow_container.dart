@@ -1,5 +1,5 @@
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 

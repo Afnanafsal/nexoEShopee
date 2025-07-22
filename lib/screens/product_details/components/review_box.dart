@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:nexoeshopee/models/Review.dart';
+import 'package:fishkart/models/Review.dart';
 import 'package:flutter/material.dart';
 // import '../../../constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

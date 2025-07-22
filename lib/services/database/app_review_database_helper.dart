@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nexoeshopee/models/AppReview.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
+import 'package:fishkart/models/AppReview.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
 
 class AppReviewDatabaseHelper {
   static const String APP_REVIEW_COLLECTION_NAME = "app_reviews";
@@ -14,7 +14,6 @@ class AppReviewDatabaseHelper {
   FirebaseFirestore? _firebaseFirestore;
   FirebaseFirestore get firestore =>
       _firebaseFirestore ??= FirebaseFirestore.instance;
-
 
   Future<bool> editAppReview(AppReview appReview) async {
     final uid = AuthentificationService().currentUser.uid;

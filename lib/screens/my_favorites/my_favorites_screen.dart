@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
-import 'package:nexoeshopee/size_config.dart';
-import 'package:nexoeshopee/providers/user_providers.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/size_config.dart';
+import 'package:fishkart/providers/user_providers.dart';
 import 'package:logger/logger.dart';
+import 'package:shimmer/shimmer.dart';
 
 class MyFavoritesScreen extends ConsumerStatefulWidget {
   @override
@@ -29,7 +31,6 @@ class _MyFavoritesScreenState extends ConsumerState<MyFavoritesScreen> {
 
   Widget buildFavoritesList() {
     final favoritesAsync = ref.watch(favouriteProductsProvider);
-
     return favoritesAsync.when(
       data: (favoriteIds) {
         if (favoriteIds.isEmpty) {
@@ -40,19 +41,224 @@ class _MyFavoritesScreenState extends ConsumerState<MyFavoritesScreen> {
             ),
           );
         }
-
-        return ListView.builder(
-          padding: EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: getProportionateScreenWidth(screenPadding),
-          ),
-          itemCount: favoriteIds.length,
-          itemBuilder: (context, index) {
-            return buildFavoriteItem(favoriteIds[index]);
-          },
-        );
+        // Try to get all products from cache synchronously
+        List<Product> cachedProducts = [];
+        List<String> missingIds = [];
+        for (final id in favoriteIds) {
+          final cached = HiveService.instance.getCachedProduct(id);
+          if (cached != null) {
+            cachedProducts.add(cached);
+          } else {
+            missingIds.add(id);
+          }
+        }
+        if (missingIds.isEmpty) {
+          // All products are cached, show instantly
+          return ListView.builder(
+            padding: EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: getProportionateScreenWidth(screenPadding),
+            ),
+            itemCount: cachedProducts.length,
+            itemBuilder: (context, index) {
+              return buildFavoriteProductItem(cachedProducts[index]);
+            },
+          );
+        } else {
+          // Some products missing, fetch them
+          return FutureBuilder<List<Product>>(
+            future: () async {
+              List<Product> allProducts = List.from(cachedProducts);
+              if (missingIds.isNotEmpty) {
+                final fetched = await Future.wait(
+                  missingIds.map(
+                    (id) => ProductDatabaseHelper().getProductWithID(id),
+                  ),
+                );
+                for (int i = 0; i < fetched.length; i++) {
+                  final product = fetched[i];
+                  if (product != null) {
+                    allProducts.add(product);
+                    await HiveService.instance.cacheProduct(product);
+                  }
+                }
+              }
+              return allProducts;
+            }(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                // Show cached products instantly while waiting for missing
+                if (cachedProducts.isNotEmpty) {
+                  return ListView.builder(
+                    padding: EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: getProportionateScreenWidth(screenPadding),
+                    ),
+                    itemCount: cachedProducts.length,
+                    itemBuilder: (context, index) {
+                      return buildFavoriteProductItem(cachedProducts[index]);
+                    },
+                  );
+                }
+                // Shimmer placeholder for favorite products loading
+                return ListView.builder(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: getProportionateScreenWidth(screenPadding),
+                  ),
+                  itemCount: 4,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Card(
+                          elevation: 4,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    width: 80,
+                                    height: 80,
+                                    color: Colors.grey[300],
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: double.infinity,
+                                        height: 16,
+                                        color: Colors.grey[300],
+                                      ),
+                                      SizedBox(height: 4),
+                                      Container(
+                                        width: 100,
+                                        height: 14,
+                                        color: Colors.grey[300],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }
+              if (snapshot.hasError) {
+                Logger().w(snapshot.error.toString());
+                return Center(
+                  child: Text(
+                    "Something went wrong",
+                    style: TextStyle(fontSize: 16, color: kTextColor),
+                  ),
+                );
+              }
+              final products = snapshot.data ?? [];
+              if (products.isEmpty) {
+                return Center(
+                  child: Text(
+                    "No favorites yet",
+                    style: TextStyle(fontSize: 16, color: kTextColor),
+                  ),
+                );
+              }
+              return ListView.builder(
+                padding: EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: getProportionateScreenWidth(screenPadding),
+                ),
+                itemCount: products.length,
+                itemBuilder: (context, index) {
+                  return buildFavoriteProductItem(products[index]);
+                },
+              );
+            },
+          );
+        }
       },
-      loading: () => Center(child: CircularProgressIndicator()),
+      loading: () => ListView.builder(
+        padding: EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: getProportionateScreenWidth(screenPadding),
+        ),
+        itemCount: 4,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Card(
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          color: Colors.grey[300],
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: double.infinity,
+                              height: 16,
+                              color: Colors.grey[300],
+                            ),
+                            SizedBox(height: 4),
+                            Container(
+                              width: 100,
+                              height: 14,
+                              color: Colors.grey[300],
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
       error: (error, stackTrace) {
         Logger().w(error.toString());
         return Center(
@@ -62,6 +268,102 @@ class _MyFavoritesScreenState extends ConsumerState<MyFavoritesScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget buildFavoriteProductItem(Product product) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Card(
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  child: product.images != null && product.images!.isNotEmpty
+                      ? Image(
+                          image: Base64ImageService().base64ToImageProvider(
+                            product.images![0],
+                          ),
+                          fit: BoxFit.cover,
+                        )
+                      : Icon(Icons.image_not_supported),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.title ?? "No Title",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      "${product.variant ?? ""} - ₹${product.discountPrice ?? product.originalPrice}",
+                      style: TextStyle(
+                        color: kPrimaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.favorite, color: kPrimaryColor),
+                onPressed: () async {
+                  bool? confirmRemove = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text("Remove from Favorites?"),
+                      content: Text(
+                        "Are you sure you want to remove this item from your favorites?",
+                      ),
+                      actions: [
+                        TextButton(
+                          child: Text("Cancel"),
+                          onPressed: () => Navigator.of(context).pop(false),
+                        ),
+                        TextButton(
+                          child: Text(
+                            "Remove",
+                            style: TextStyle(color: Colors.red),
+                          ),
+                          onPressed: () => Navigator.of(context).pop(true),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirmRemove == true) {
+                    await showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AsyncProgressDialog(
+                          UserDatabaseHelper().removeFavoriteProduct(
+                            product.id,
+                          ),
+                          message: Text("Removing from favorites"),
+                        );
+                      },
+                    );
+                    await refreshPage();
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -181,7 +483,60 @@ class _MyFavoritesScreenState extends ConsumerState<MyFavoritesScreen> {
             ),
           );
         }
-        return Center(child: CircularProgressIndicator());
+        // Shimmer placeholder for single favorite product loading
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        color: Colors.grey[300],
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: 16,
+                            color: Colors.grey[300],
+                          ),
+                          SizedBox(height: 4),
+                          Container(
+                            width: 100,
+                            height: 14,
+                            color: Colors.grey[300],
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
       },
     );
   }

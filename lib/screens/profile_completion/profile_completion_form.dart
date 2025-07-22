@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:nexoeshopee/components/custom_suffix_icon.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/size_config.dart';
-import 'package:nexoeshopee/screens/home/home_screen.dart';
+import 'package:fishkart/components/custom_suffix_icon.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/size_config.dart';
+import 'package:fishkart/screens/home/home_screen.dart';
 
 class ProfileCompletionForm extends StatefulWidget {
   @override

@@ -1,18 +1,25 @@
 // Provider for selected address ID (for cart filtering)
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
 import 'package:hive/hive.dart';
-final selectedAddressIdProvider = StateProvider.autoDispose<String?>((ref) => null);
 
-final userDatabaseHelperProvider = Provider.autoDispose<UserDatabaseHelper>((ref) {
+final selectedAddressIdProvider = StateProvider.autoDispose<String?>(
+  (ref) => null,
+);
+
+final userDatabaseHelperProvider = Provider.autoDispose<UserDatabaseHelper>((
+  ref,
+) {
   return UserDatabaseHelper();
 });
 
-final authServiceProvider = Provider.autoDispose<AuthentificationService>((ref) {
+final authServiceProvider = Provider.autoDispose<AuthentificationService>((
+  ref,
+) {
   return AuthentificationService();
 });
 
@@ -68,17 +75,15 @@ class FormStateNotifier extends StateNotifier<FormState> {
   }
 }
 
-final signInFormProvider = StateNotifierProvider.autoDispose<FormStateNotifier, FormState>((
-  ref,
-) {
-  return FormStateNotifier();
-});
+final signInFormProvider =
+    StateNotifierProvider.autoDispose<FormStateNotifier, FormState>((ref) {
+      return FormStateNotifier();
+    });
 
-final signUpFormProvider = StateNotifierProvider.autoDispose<FormStateNotifier, FormState>((
-  ref,
-) {
-  return FormStateNotifier();
-});
+final signUpFormProvider =
+    StateNotifierProvider.autoDispose<FormStateNotifier, FormState>((ref) {
+      return FormStateNotifier();
+    });
 
 // Sign up form data provider
 class SignUpFormData {
@@ -142,7 +147,9 @@ class SignUpFormNotifier extends StateNotifier<SignUpFormData> {
 }
 
 final signUpFormDataProvider =
-    StateNotifierProvider.autoDispose<SignUpFormNotifier, SignUpFormData>((ref) {
+    StateNotifierProvider.autoDispose<SignUpFormNotifier, SignUpFormData>((
+      ref,
+    ) {
       return SignUpFormNotifier();
     });
 
@@ -164,7 +171,9 @@ final cartItemsProvider = FutureProvider.autoDispose<List<String>>((ref) async {
   return items;
 });
 
-final favouriteProductsProvider = FutureProvider.autoDispose<List<String>>((ref) async {
+final favouriteProductsProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
   final userId = FirebaseAuth.instance.currentUser?.uid;
   if (userId != null) {
     final cachedUser = HiveService.instance.getCachedUser(userId);
@@ -184,11 +193,14 @@ final favouriteProductsProvider = FutureProvider.autoDispose<List<String>>((ref)
 extension HiveOrderCacheExtension on HiveService {
   List<Map<String, dynamic>> getOrdersCache() {
     try {
-      return Hive.box<dynamic>('orders').values.toList().cast<Map<String, dynamic>>();
+      return Hive.box<dynamic>(
+        'orders',
+      ).values.toList().cast<Map<String, dynamic>>();
     } catch (_) {
       return [];
     }
   }
+
   Future<void> setOrdersCache(List<Map<String, dynamic>> orders) async {
     try {
       final Map<String, Map<String, dynamic>> ordersMap = {
@@ -199,13 +211,17 @@ extension HiveOrderCacheExtension on HiveService {
   }
 }
 
-final orderedProductsProvider = FutureProvider.autoDispose<List<String>>((ref) async {
+final orderedProductsProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
   final userId = FirebaseAuth.instance.currentUser?.uid;
   // Optimized: cache orders per user for instant load
   if (userId != null) {
     final cachedOrders = HiveService.instance.getOrdersCache();
     // Only return orders for current user
-    final userOrders = cachedOrders.where((order) => order['userId'] == userId).toList();
+    final userOrders = cachedOrders
+        .where((order) => order['userId'] == userId)
+        .toList();
     if (userOrders.isNotEmpty) {
       return userOrders.map((order) => order['id'] as String).toList();
     }
@@ -225,7 +241,9 @@ final orderedProductsProvider = FutureProvider.autoDispose<List<String>>((ref) a
 final cartTotalProvider = FutureProvider.autoDispose<num>((ref) async {
   // Try cache first
   final userId = FirebaseAuth.instance.currentUser?.uid;
-  final cachedUser = userId != null ? HiveService.instance.getCachedUser(userId) : null;
+  final cachedUser = userId != null
+      ? HiveService.instance.getCachedUser(userId)
+      : null;
   if (cachedUser != null && cachedUser.cartItems.isNotEmpty) {
     // You may want to cache cart total separately for more accuracy
     // For now, fallback to backend
@@ -236,20 +254,19 @@ final cartTotalProvider = FutureProvider.autoDispose<num>((ref) async {
   return total;
 });
 
-final isProductFavouriteProvider = FutureProvider.autoDispose.family<bool, String>((
-  ref,
-  productId,
-) async {
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  if (userId != null) {
-    final cachedUser = HiveService.instance.getCachedUser(userId);
-    if (cachedUser != null && cachedUser.favoriteProducts.contains(productId)) {
-      return true;
-    }
-  }
-  final userHelper = ref.read(userDatabaseHelperProvider);
-  return await userHelper.isProductFavourite(productId);
-});
+final isProductFavouriteProvider = FutureProvider.autoDispose
+    .family<bool, String>((ref, productId) async {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        final cachedUser = HiveService.instance.getCachedUser(userId);
+        if (cachedUser != null &&
+            cachedUser.favoriteProducts.contains(productId)) {
+          return true;
+        }
+      }
+      final userHelper = ref.read(userDatabaseHelperProvider);
+      return await userHelper.isProductFavourite(productId);
+    });
 
 // Cart stream provider
 final cartItemsStreamProvider = StreamProvider.autoDispose<List<String>>((ref) {

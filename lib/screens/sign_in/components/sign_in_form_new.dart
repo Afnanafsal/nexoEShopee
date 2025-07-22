@@ -1,15 +1,15 @@
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/components/custom_suffix_icon.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/signup_exceptions.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/components/custom_suffix_icon.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
+import 'package:fishkart/exceptions/firebaseauth/signup_exceptions.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import '../../../constants.dart';
 import '../../home/home_screen.dart';
-import 'package:nexoeshopee/providers/user_providers.dart' as user_providers;
+import 'package:fishkart/providers/user_providers.dart' as user_providers;
 
 class SignUpForm extends ConsumerStatefulWidget {
   @override

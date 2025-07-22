@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/providers/user_providers.dart';
+import 'package:fishkart/providers/user_providers.dart';
 
 // State for product image swiper
 class ProductImageSwiperState {

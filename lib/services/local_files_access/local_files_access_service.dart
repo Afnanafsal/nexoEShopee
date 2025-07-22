@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:nexoeshopee/exceptions/local_files_handling/image_picking_exceptions.dart';
-import 'package:nexoeshopee/exceptions/local_files_handling/local_file_handling_exception.dart';
+import 'package:fishkart/exceptions/local_files_handling/image_picking_exceptions.dart';
+import 'package:fishkart/exceptions/local_files_handling/local_file_handling_exception.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';

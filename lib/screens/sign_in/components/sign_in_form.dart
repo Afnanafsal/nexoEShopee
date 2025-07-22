@@ -1,9 +1,9 @@
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/signin_exceptions.dart';
-import 'package:nexoeshopee/screens/forgot_password/forgot_password_screen.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/providers/user_providers.dart' as user_providers;
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
+import 'package:fishkart/exceptions/firebaseauth/signin_exceptions.dart';
+import 'package:fishkart/screens/forgot_password/forgot_password_screen.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/providers/user_providers.dart' as user_providers;
 import 'package:logger/logger.dart';
 
 import '../../../components/custom_suffix_icon.dart';

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 

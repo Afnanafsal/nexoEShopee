@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/providers/user_providers.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:fishkart/providers/user_providers.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 
 import '../../size_config.dart';
 
@@ -35,6 +35,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndPromptAddress();
+      // Pre-cache the banner image to prevent flicker
+      precacheImage(const AssetImage('assets/images/banner.png'), context);
     });
   }
 
@@ -55,13 +57,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  Navigator.pushNamed(context, '/manage_addresses');
+                  Navigator.pushNamed(context, '/add_address');
                 },
                 child: Text('Add Address'),
               ),
             ],
           ),
         );
+      } else if (addressIds.length == 1) {
+        // Only one address, set it directly
+        ref.read(selectedAddressIdProvider.notifier).state = addressIds.first;
       } else {
         String? selectedId;
         if (!mounted) return;
@@ -246,7 +251,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       drawer: HomeScreenDrawer(key: Key('home_screen_drawer')),
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,

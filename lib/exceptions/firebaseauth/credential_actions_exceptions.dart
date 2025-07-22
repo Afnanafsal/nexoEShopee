@@ -1,4 +1,4 @@
-import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
+import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
 
 class FirebaseCredentialActionAuthException
     extends MessagedFirebaseAuthException {
@@ -35,9 +35,10 @@ class FirebaseCredentialActionAuthRequiresRecentLoginException
 
 class FirebaseCredentialActionAuthUnknownReasonFailureException
     extends FirebaseCredentialActionAuthException {
-  FirebaseCredentialActionAuthUnknownReasonFailureException({required String message})
-    : super(
-        code: "unknown-reason",
-        message: "The action couldn't be completed due to an unknown reason",
-      );
+  FirebaseCredentialActionAuthUnknownReasonFailureException({
+    required String message,
+  }) : super(
+         code: "unknown-reason",
+         message: "The action couldn't be completed due to an unknown reason",
+       );
 }

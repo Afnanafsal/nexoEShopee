@@ -1,13 +1,13 @@
-import 'package:nexoeshopee/components/nothingtoshow_container.dart';
-import 'package:nexoeshopee/components/product_card.dart';
-import 'package:nexoeshopee/components/rounded_icon_button.dart';
-import 'package:nexoeshopee/components/search_field.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
-import 'package:nexoeshopee/screens/search_result/search_result_screen.dart';
-import 'package:nexoeshopee/providers/providers.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:fishkart/components/product_card.dart';
+import 'package:fishkart/components/rounded_icon_button.dart';
+import 'package:fishkart/components/search_field.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import 'package:fishkart/screens/search_result/search_result_screen.dart';
+import 'package:fishkart/providers/providers.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -176,11 +176,16 @@ class Body extends ConsumerWidget {
   }
 
   Widget buildProductsGrid(List<String> productIds) {
+    // Filter out any null or empty productIds
+    final filteredIds = productIds.where((id) => id.isNotEmpty).toList();
+    if (filteredIds.isEmpty) {
+      return Center(child: Text('No valid products to show.'));
+    }
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-      itemCount: productIds.length,
+      itemCount: filteredIds.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.75,
@@ -191,14 +196,14 @@ class Body extends ConsumerWidget {
         return Consumer(
           builder: (context, ref, child) {
             return ProductCard(
-              productId: productIds[index],
+              productId: filteredIds[index],
               press: () =>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ProductDetailsScreen(
                         key: UniqueKey(),
-                        productId: productIds[index],
+                        productId: filteredIds[index],
                       ),
                     ),
                   ).then((_) {
@@ -226,8 +231,7 @@ class Body extends ConsumerWidget {
       case ProductType.Others:
         return "assets/icons/canned.png";
       // Add other cases as needed
-      default:
-        return "assets/icons/canned.png";
+      // Removed redundant default clause as previous cases cover all possibilities.
     }
   }
 }

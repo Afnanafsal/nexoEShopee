@@ -1,11 +1,11 @@
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logger/logger.dart';
 import '../constants.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
 
 class ProductCard extends StatelessWidget {
   final String productId;
@@ -50,8 +50,11 @@ class ProductCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
           child: FutureBuilder<Product?>(
             future: (() async {
-              final product = await ProductDatabaseHelper().getProductWithID(productId);
-              if (product != null) await HiveService.instance.cacheProduct(product);
+              final product = await ProductDatabaseHelper().getProductWithID(
+                productId,
+              );
+              if (product != null)
+                await HiveService.instance.cacheProduct(product);
               return product;
             })(),
             builder: (context, snapshot) {
@@ -75,6 +78,13 @@ class ProductCard extends StatelessWidget {
   }
 
   Column buildProductCardItems(Product product) {
+    // Null safety and fallback values for all fields
+    final images = product.images ?? [];
+    final image = (images.isNotEmpty && images[0].isNotEmpty) ? images[0] : null;
+    final title = product.title ?? 'Unknown';
+    final discountPrice = product.discountPrice ?? 0.0;
+    final originalPrice = product.originalPrice ?? 0.0;
+    final stock = product.stock;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -82,9 +92,9 @@ class ProductCard extends StatelessWidget {
           flex: 2,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: product.images!.isNotEmpty
+            child: image != null
                 ? Base64ImageService().base64ToImage(
-                    product.images![0],
+                    image,
                     fit: BoxFit.contain,
                   )
                 : Container(
@@ -102,7 +112,7 @@ class ProductCard extends StatelessWidget {
               Flexible(
                 flex: 1,
                 child: Text(
-                  "${product.title}\n",
+                  "$title\n",
                   style: TextStyle(
                     color: kTextColor,
                     fontSize: 13,
@@ -110,6 +120,16 @@ class ProductCard extends StatelessWidget {
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(height: 5),
+              // Stock count display
+              Text(
+                stock > 0 ? 'In Stock: $stock' : 'Stock Out',
+                style: TextStyle(
+                  color: stock > 0 ? Colors.green : Colors.red,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: 5),
@@ -122,7 +142,7 @@ class ProductCard extends StatelessWidget {
                       flex: 5,
                       child: Text.rich(
                         TextSpan(
-                          text: "\₹${product.discountPrice}\n",
+                          text: "\₹${discountPrice}\n",
                           style: TextStyle(
                             color: kPrimaryColor,
                             fontWeight: FontWeight.w700,
@@ -130,7 +150,7 @@ class ProductCard extends StatelessWidget {
                           ),
                           children: [
                             TextSpan(
-                              text: "\₹${product.originalPrice}",
+                              text: originalPrice > 0 ? "\₹${originalPrice}" : '',
                               style: TextStyle(
                                 color: kTextColor,
                                 decoration: TextDecoration.lineThrough,
@@ -166,6 +186,24 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                   ],
+                ),
+              ),
+              SizedBox(height: 8),
+              // Add to Cart or Stock Out button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: stock > 0 ? press : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: stock > 0 ? kPrimaryColor : Colors.grey,
+                  ),
+                  child: Text(
+                    stock > 0 ? 'Add to Cart' : 'Stock Out',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],

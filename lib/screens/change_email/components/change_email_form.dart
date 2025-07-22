@@ -1,11 +1,11 @@
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/components/custom_suffix_icon.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/credential_actions_exceptions.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/components/custom_suffix_icon.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/exceptions/firebaseauth/credential_actions_exceptions.dart';
+import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
 
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -115,7 +115,9 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
                             alignment: Alignment.centerLeft,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
-                              currentEmail.isNotEmpty ? currentEmail : "No email available",
+                              currentEmail.isNotEmpty
+                                  ? currentEmail
+                                  : "No email available",
                               style: TextStyle(
                                 color: Colors.grey.shade600,
                                 fontSize: 16,
@@ -163,9 +165,12 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
                         validator: (value) {
                           if (newEmailController.text.isEmpty) {
                             return kEmailNullError;
-                          } else if (!emailValidatorRegExp.hasMatch(newEmailController.text)) {
+                          } else if (!emailValidatorRegExp.hasMatch(
+                            newEmailController.text,
+                          )) {
                             return kInvalidEmailError;
-                          } else if (newEmailController.text == currentEmailController.text) {
+                          } else if (newEmailController.text ==
+                              currentEmailController.text) {
                             return "Email is already linked to account";
                           }
                           return null;
