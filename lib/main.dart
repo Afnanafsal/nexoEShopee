@@ -14,6 +14,9 @@ void main() async {
 
   await HiveService.instance.init();
 
+  // Clear product cache at startup for fresh Firestore fetch
+  await HiveService.instance.clearProductCache();
+
   try {
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(

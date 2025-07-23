@@ -173,7 +173,7 @@ class CachedProduct extends HiveObject {
       reviews: reviews,
       totalReviews: totalReviews,
       averageRating: averageRating,
-      stockQuantity: stockQuantity,
+      stockQuantity: stockQuantity ?? product.stock,
       isAvailable: isAvailable,
       specifications: specifications,
       relatedProductIds: relatedProductIds,
@@ -209,6 +209,7 @@ class CachedProduct extends HiveObject {
           : null,
       searchTags: searchTags,
       dateAdded: dateAdded,
+      stock: stockQuantity ?? 0,
     );
   }
 

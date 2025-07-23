@@ -37,7 +37,6 @@ class _BodyState extends State<Body> {
   @override
   Widget build(BuildContext context) {
     // Try to get cached addresses instantly
-    final cachedAddresses = HiveService.instance.getCachedAddresses();
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: refreshPage,
@@ -90,52 +89,7 @@ class _BodyState extends State<Body> {
                   ),
                   const SizedBox(height: 24),
                   // Address list (cache-first)
-                  if (cachedAddresses.isNotEmpty)
-                    Column(
-                      children: [
-                        ...cachedAddresses
-                            .map(
-                              (address) =>
-                                  buildAddressItemCard(address['id'] as String),
-                            )
-                            .toList(),
-                        const SizedBox(height: 32),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF34495E),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: EdgeInsets.zero,
-                            ),
-                            onPressed: () async {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => EditAddressScreen(
-                                    key: UniqueKey(),
-                                    addressIdToEdit: null,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              "Add New Address",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    )
-                  else
+                  
                     StreamBuilder<List<String>>(
                       stream: addressesStream.stream.cast<List<String>>(),
                       builder: (context, snapshot) {

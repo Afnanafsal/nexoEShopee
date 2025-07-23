@@ -28,9 +28,11 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
   int cartCount = 0;
 
   void _incrementCounter() {
-    setState(() {
-      cartCount++;
-    });
+    if (widget.product.stock > 0 && cartCount < widget.product.stock) {
+      setState(() {
+        cartCount++;
+      });
+    }
   }
 
   void _decrementCounter() {
@@ -119,6 +121,8 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
+    debugPrint('Product stock for ${product.title}: ${product.stock}');
+    final isOutOfStock = product.stock == 0;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1.0),
       child: Column(
@@ -196,12 +200,12 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                   children: [
                     IconButton(
                       icon: Icon(Icons.remove, color: Colors.black),
-                      onPressed: _decrementCounter,
+                      onPressed: isOutOfStock ? null : _decrementCounter,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
                       child: Text(
-                        '$cartCount',
+                        isOutOfStock ? '0' : '$cartCount',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -210,7 +214,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                     ),
                     IconButton(
                       icon: Icon(Icons.add, color: Colors.black),
-                      onPressed: _incrementCounter,
+                      onPressed: isOutOfStock ? null : _incrementCounter,
                     ),
                   ],
                 ),
@@ -309,15 +313,15 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF42526E),
+                backgroundColor: isOutOfStock ? Colors.grey : Color(0xFF42526E),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 padding: EdgeInsets.symmetric(vertical: 18),
               ),
-              onPressed: _proceedToCheckout,
+              onPressed: isOutOfStock ? null : _proceedToCheckout,
               child: Text(
-                'Proceed To Checkout',
+                isOutOfStock ? 'Stock Out' : 'Proceed To Checkout',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

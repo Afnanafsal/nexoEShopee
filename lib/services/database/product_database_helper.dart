@@ -35,6 +35,7 @@ class ProductDatabaseHelper {
       Query query = _firebaseFirestore
           .collection(PRODUCTS_COLLECTION_NAME)
           .where(Product.PRODUCT_TYPE_KEY, isEqualTo: productTypeStr)
+          .where(Product.STOCK_KEY, isGreaterThan: 0)
           .limit(limit);
       if (startAfter != null) {
         query = query.startAfterDocument(startAfter);
@@ -42,8 +43,8 @@ class ProductDatabaseHelper {
       final productsQuery = await query.get();
       // Optionally update cache
       if (productsQuery.docs.isNotEmpty) {
-        // You may want to cache the products here
-        // HiveService.instance.cacheProducts(productsQuery.docs.map((doc) => Product.fromMap(doc.data(), id: doc.id)).toList());
+        final products = productsQuery.docs.map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>, id: doc.id)).toList();
+        await HiveService.instance.cacheProducts(products);
       }
       return productsQuery.docs.map((doc) => doc.id).toList();
     } catch (e) {
@@ -74,12 +75,13 @@ class ProductDatabaseHelper {
 
     final querySearchInTags = await queryRef
         .where(Product.SEARCH_TAGS_KEY, arrayContains: query)
+        .where(Product.STOCK_KEY, isGreaterThan: 0)
         .get();
     for (final doc in querySearchInTags.docs) {
       productsId.add(doc.id);
     }
 
-    final queryDocs = await queryRef.get();
+    final queryDocs = await queryRef.where(Product.STOCK_KEY, isGreaterThan: 0).get();
     for (final doc in queryDocs.docs) {
       final product = Product.fromMap(
         doc.data() as Map<String, dynamic>,
@@ -284,14 +286,17 @@ class ProductDatabaseHelper {
       }
     }
     try {
-      Query query = _firebaseFirestore.collection(PRODUCTS_COLLECTION_NAME).limit(limit);
+      Query query = _firebaseFirestore.collection(PRODUCTS_COLLECTION_NAME)
+        .where(Product.STOCK_KEY, isGreaterThan: 0)
+        .limit(limit);
       if (startAfter != null) {
         query = query.startAfterDocument(startAfter);
       }
       final querySnapshot = await query.get();
       // Optionally update cache
       if (querySnapshot.docs.isNotEmpty) {
-        // HiveService.instance.cacheProducts(querySnapshot.docs.map((doc) => Product.fromMap(doc.data(), id: doc.id)).toList());
+        final products = querySnapshot.docs.map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>, id: doc.id)).toList();
+        await HiveService.instance.cacheProducts(products);
       }
       return querySnapshot.docs.map((doc) => doc.id).toList();
     } catch (e) {
@@ -304,6 +309,7 @@ class ProductDatabaseHelper {
     try {
       final querySnapshot = await _firebaseFirestore
           .collection(PRODUCTS_COLLECTION_NAME)
+          .where(Product.STOCK_KEY, isGreaterThan: 0)
           .orderBy(Product.DATE_ADDED_KEY, descending: true)
           .limit(limit)
           .get();

@@ -3,8 +3,10 @@ import 'package:fishkart/models/cached_product.dart';
 import 'package:fishkart/models/cached_user.dart';
 import 'package:fishkart/models/Product.dart';
 import 'package:fishkart/services/cache/duration_adapter.dart';
+import 'package:fishkart/app.dart';
 
 class HiveService {
+  /// Clear all cached products
   // Cache a list of addresses (List<Map<String, dynamic>>) in Hive
   Future<void> cacheAddresses(List<Map<String, dynamic>> addresses) async {
     final Map<String, Map<String, dynamic>> addressesMap = {

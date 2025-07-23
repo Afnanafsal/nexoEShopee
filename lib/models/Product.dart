@@ -4,6 +4,29 @@ import 'package:fishkart/models/Model.dart';
 enum ProductType { Freshwater, Saltwater, Shellfish, Exotic, Others, Dried }
 
 class Product extends Model {
+  int calculatePercentageDiscount() {
+    if (originalPrice == null || discountPrice == null || originalPrice == 0) {
+      return 0;
+    }
+    return (((originalPrice! - discountPrice!) * 100) / originalPrice!).round();
+  }
+  Product(
+    String id, {
+    this.images,
+    this.title,
+    this.variant,
+    this.discountPrice,
+    this.originalPrice,
+    this.rating = 0,
+    this.highlights,
+    this.description,
+    this.seller,
+    this.owner,
+    this.productType,
+    this.searchTags,
+    this.dateAdded,
+    this.stock = 0,
+  }) : super(id);
   static const String IMAGES_KEY = "images";
   static const String TITLE_KEY = "title";
   static const String VARIANT_KEY = "variant";
@@ -17,6 +40,7 @@ class Product extends Model {
   static const String PRODUCT_TYPE_KEY = "product_type";
   static const String SEARCH_TAGS_KEY = "search_tags";
   static const String DATE_ADDED_KEY = "dateAdded";
+  static const String STOCK_KEY = "stock";
 
   List<String>? images;
   String? title;
@@ -31,32 +55,19 @@ class Product extends Model {
   ProductType? productType;
   List<String>? searchTags;
   DateTime? dateAdded;
-
-  Product(
-    String id, {
-    this.images,
-    this.title,
-    this.variant,
-    this.discountPrice,
-    this.originalPrice,
-    this.rating = 0.0,
-    this.highlights,
-    this.description,
-    this.seller,
-    this.owner,
-    this.productType,
-    this.searchTags,
-    this.dateAdded,
-  }) : super(id);
-
-  int calculatePercentageDiscount() {
-    if (originalPrice == null || discountPrice == null || originalPrice == 0) {
-      return 0;
-    }
-    return (((originalPrice! - discountPrice!) * 100) / originalPrice!).round();
-  }
-
+  int stock;
   factory Product.fromMap(Map<String, dynamic> map, {required String id}) {
+    print('Raw Firestore stock value for product id $id: ${map[STOCK_KEY]}');
+    int parsedStock = 0;
+    if (map[STOCK_KEY] != null) {
+      if (map[STOCK_KEY] is int) {
+        parsedStock = map[STOCK_KEY];
+      } else if (map[STOCK_KEY] is String) {
+        parsedStock = int.tryParse(map[STOCK_KEY]) ?? 0;
+      } else if (map[STOCK_KEY] is double) {
+        parsedStock = (map[STOCK_KEY] as double).toInt();
+      }
+    }
     return Product(
       id,
       images: (map[IMAGES_KEY] as List<dynamic>?)?.cast<String>() ?? [],
@@ -69,19 +80,17 @@ class Product extends Model {
       description: map[DESCRIPTION_KEY],
       seller: map[SELLER_KEY],
       owner: map[OWNER_KEY],
-      productType: EnumToString.fromString(
-        ProductType.values,
-        map[PRODUCT_TYPE_KEY],
-      ),
+      productType: map[PRODUCT_TYPE_KEY] != null
+          ? EnumToString.fromString(ProductType.values, map[PRODUCT_TYPE_KEY])
+          : null,
       searchTags:
           (map[SEARCH_TAGS_KEY] as List<dynamic>?)?.cast<String>() ?? [],
       dateAdded: map[DATE_ADDED_KEY] != null
           ? DateTime.tryParse(map[DATE_ADDED_KEY])
           : null,
+      stock: parsedStock,
     );
   }
-
-  @override
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
       IMAGES_KEY: images,
@@ -99,8 +108,8 @@ class Product extends Model {
           : null,
       SEARCH_TAGS_KEY: searchTags,
       DATE_ADDED_KEY: dateAdded?.toIso8601String(),
+      STOCK_KEY: stock,
     };
-
     return map;
   }
 
@@ -123,7 +132,7 @@ class Product extends Model {
     }
     if (searchTags != null) map[SEARCH_TAGS_KEY] = searchTags;
     if (dateAdded != null) map[DATE_ADDED_KEY] = dateAdded?.toIso8601String();
-
+    map[STOCK_KEY] = stock;
     return map;
   }
 
@@ -142,6 +151,7 @@ class Product extends Model {
     ProductType? productType,
     List<String>? searchTags,
     DateTime? dateAdded,
+    int? stock,
   }) {
     return Product(
       id ?? this.id,
@@ -158,6 +168,7 @@ class Product extends Model {
       productType: productType ?? this.productType,
       searchTags: searchTags ?? this.searchTags,
       dateAdded: dateAdded ?? this.dateAdded,
+      stock: stock ?? this.stock,
     );
   }
 }

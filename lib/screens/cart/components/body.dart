@@ -888,49 +888,11 @@ class _BodyState extends ConsumerState<Body> {
                           SizedBox(width: 16),
                           Column(
                             children: [
-                              InkWell(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: kPrimaryColor.withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(Icons.add, color: kPrimaryColor),
-                                ),
-                                onTap: () async {
-                                  await arrowUpCallback(
-                                    product.id,
-                                    _selectedAddressId,
-                                  );
-                                  // Removed redundant refreshPage();
-                                },
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                "${cartItem.itemCount}",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: kPrimaryColor,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              InkWell(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: kPrimaryColor.withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    Icons.remove,
-                                    color: kPrimaryColor,
-                                  ),
-                                ),
-                                onTap: () async {
-                                  await arrowDownCallback(
-                                    product.id,
-                                    _selectedAddressId,
-                                  );
-                                  // Removed redundant refreshPage();
+                              IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () async {
+                                  await UserDatabaseHelper().removeProductFromCart(cartItemsId[i]);
+                                  await refreshPage();
                                 },
                               ),
                             ],
@@ -1677,11 +1639,12 @@ class _BodyState extends ConsumerState<Body> {
     // Remove bottom sheet handler since we're using modal bottom sheet
   }
 
-  Future<void> arrowUpCallback(String productId, String? addressId) async {
+  Future<void> arrowUpCallback(String cartItemId, String? addressId) async {
     shutBottomSheet();
-    // Find the cart item for the selected address and product
+    // Extract productId from cartItemId (format: productId_addressId)
+    final productIdOnly = cartItemId.split('_').first;
     final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
-      productId,
+      productIdOnly,
       addressId,
     );
     if (cartItem != null) {
@@ -1715,11 +1678,12 @@ class _BodyState extends ConsumerState<Body> {
     }
   }
 
-  Future<void> arrowDownCallback(String productId, String? addressId) async {
+  Future<void> arrowDownCallback(String cartItemId, String? addressId) async {
     shutBottomSheet();
-    // Find the cart item for the selected address and product
+    // Extract productId from cartItemId (format: productId_addressId)
+    final productIdOnly = cartItemId.split('_').first;
     final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
-      productId,
+      productIdOnly,
       addressId,
     );
     if (cartItem != null) {

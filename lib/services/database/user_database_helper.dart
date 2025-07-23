@@ -212,6 +212,11 @@ class UserDatabaseHelper {
         effectiveAddressId = addresses.first;
       }
     }
+    // Check product stock before adding
+    final product = await ProductDatabaseHelper().getProductWithID(productId);
+    if (product == null || product.stock == 0) {
+      throw Exception('Product is out of stock');
+    }
     final compositeId = '${productId}_${effectiveAddressId ?? ""}';
     final docRef = firestore
         .collection(USERS_COLLECTION_NAME)
