@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fishkart/models/Address.dart';
 import 'package:fishkart/models/CartItem.dart';
 import 'package:fishkart/models/OrderedProduct.dart';
+import 'package:fishkart/models/Product.dart';
 import 'package:fishkart/services/database/product_database_helper.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
 
@@ -226,6 +227,7 @@ class UserDatabaseHelper {
     final snapshot = await docRef.get();
     if (snapshot.exists) {
       await docRef.update({CartItem.ITEM_COUNT_KEY: FieldValue.increment(1)});
+      await Product.reserveStock(productId, 1);
     } else {
       await docRef.set(
         CartItem(
@@ -234,6 +236,7 @@ class UserDatabaseHelper {
           addressId: effectiveAddressId,
         ).toMap(),
       );
+      await Product.reserveStock(productId, 1);
     }
     return true;
   }
@@ -276,7 +279,15 @@ class UserDatabaseHelper {
         .doc(uid)
         .collection(CART_COLLECTION_NAME)
         .doc(cartItemID);
+    final doc = await ref.get();
+    final productId = doc.data()?[CartItem.PRODUCT_ID_KEY];
+    final itemCount = doc.data()?[CartItem.ITEM_COUNT_KEY] ?? 1;
+    print('[removeProductFromCart] cartItemID: $cartItemID, productId: $productId, itemCount: $itemCount');
     await ref.delete();
+    if (productId != null && itemCount > 0) {
+      print('[removeProductFromCart] Restoring stock for productId: $productId, qty: $itemCount');
+      await Product.restoreStockFromCart(productId, itemCount);
+    }
     return true;
   }
 
@@ -287,7 +298,12 @@ class UserDatabaseHelper {
         .doc(uid)
         .collection(CART_COLLECTION_NAME)
         .doc(cartItemID);
+    final doc = await ref.get();
+    final productId = doc.data()?[CartItem.PRODUCT_ID_KEY];
     await ref.update({CartItem.ITEM_COUNT_KEY: FieldValue.increment(1)});
+    if (productId != null) {
+      await Product.reserveStock(productId, 1);
+    }
     return true;
   }
 
@@ -299,11 +315,18 @@ class UserDatabaseHelper {
         .collection(CART_COLLECTION_NAME)
         .doc(cartItemID);
     final doc = await ref.get();
+    final productId = doc.data()?[CartItem.PRODUCT_ID_KEY];
     final currentCount = doc.data()?[CartItem.ITEM_COUNT_KEY] ?? 1;
     if (currentCount <= 1) {
       await ref.delete();
+      if (productId != null) {
+        await Product.unreserveStock(productId, 1);
+      }
     } else {
       await ref.update({CartItem.ITEM_COUNT_KEY: FieldValue.increment(-1)});
+      if (productId != null) {
+        await Product.unreserveStock(productId, 1);
+      }
     }
     return true;
   }

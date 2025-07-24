@@ -6,9 +6,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:url_launcher/url_launcher.dart';
 import 'package:fishkart/components/async_progress_dialog.dart';
-import 'package:shimmer/shimmer.dart';
+
 
 import 'package:fishkart/components/nothingtoshow_container.dart';
 import 'package:fishkart/components/product_short_detail_card.dart';
@@ -62,6 +62,38 @@ class Body extends ConsumerStatefulWidget {
 }
 
 class _BodyState extends ConsumerState<Body> {
+  Future<void> arrowDownCallback(String cartItemId, String? addressId) async {
+    shutBottomSheet();
+    // Extract productId from cartItemId (format: productId_addressId)
+    final productIdOnly = cartItemId.split('_').first;
+    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
+      productIdOnly,
+      addressId,
+    );
+    if (cartItem != null) {
+      try {
+        await UserDatabaseHelper().decreaseCartItemCount(cartItem.id);
+        // Optionally, update stock here if needed
+      } catch (e) {
+        Logger().e(e.toString());
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+      }
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AsyncProgressDialog(Future.value(true), message: Text("Please wait"));
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("This product is not in your selected address's cart."),
+        ),
+      );
+    }
+  }
   List<Map<String, dynamic>> savedCards = [];
   String? selectedUpiApp;
   bool showQrDialog = false;
@@ -1589,11 +1621,13 @@ class _BodyState extends ConsumerState<Body> {
     final dateTime = DateTime.now();
     final isoDateTime = dateTime.toIso8601String();
     List<OrderedProduct> orderedProducts = [];
+    // Update stock for each product in the order
     for (final doc in cartSnapshot.docs) {
       final data = doc.data();
-      final productId =
-          data[CartItem.PRODUCT_ID_KEY]; // Use actual product document ID
+      final productId = data[CartItem.PRODUCT_ID_KEY];
       final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
+      // Decrease reserved, increase ordered
+      await Product.orderStock(productId, quantity);
       orderedProducts.add(
         OrderedProduct(
           '',
@@ -1654,64 +1688,19 @@ class _BodyState extends ConsumerState<Body> {
       addressId,
     );
     if (cartItem != null) {
-      final future = UserDatabaseHelper().increaseCartItemCount(cartItem.id);
-      future
-          .then((status) async {
-            if (status) {
-              await refreshPage();
-            } else {
-              throw "Couldn't perform the operation due to some unknown issue";
-            }
-          })
-          .catchError((e) {
-            Logger().e(e.toString());
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Something went wrong")));
-          });
+      try {
+        await UserDatabaseHelper().increaseCartItemCount(cartItem.id);
+        // Optionally, update stock here if needed
+      } catch (e) {
+        Logger().e(e.toString());
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+      }
       await showDialog(
         context: context,
         builder: (context) {
-          return AsyncProgressDialog(future, message: Text("Please wait"));
-        },
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("This product is not in your selected address's cart."),
-        ),
-      );
-    }
-  }
-
-  Future<void> arrowDownCallback(String cartItemId, String? addressId) async {
-    shutBottomSheet();
-    // Extract productId from cartItemId (format: productId_addressId)
-    final productIdOnly = cartItemId.split('_').first;
-    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
-      productIdOnly,
-      addressId,
-    );
-    if (cartItem != null) {
-      final future = UserDatabaseHelper().decreaseCartItemCount(cartItem.id);
-      future
-          .then((status) async {
-            if (status) {
-              await refreshPage();
-            } else {
-              throw "Couldn't perform the operation due to some unknown issue";
-            }
-          })
-          .catchError((e) {
-            Logger().e(e.toString());
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Something went wrong")));
-          });
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AsyncProgressDialog(future, message: Text("Please wait"));
+          return AsyncProgressDialog(Future.value(true), message: Text("Please wait"));
         },
       );
     } else {
