@@ -64,11 +64,25 @@ class AuthentificationService {
         email: email,
         password: password,
       );
-      if (userCredential.user!.emailVerified) {
-        return true;
-      } else {
+      if (!userCredential.user!.emailVerified) {
         await userCredential.user!.sendEmailVerification();
         throw FirebaseSignInAuthUserNotVerifiedException();
+      }
+
+      // Check usertype in Firestore
+      // ...existing code...
+      final uid = userCredential.user!.uid;
+      final userDoc = await UserDatabaseHelper().firestore
+          .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+          .doc(uid)
+          .get();
+      final userType = userDoc.data()?['usertype'];
+      print('[DEBUG] userType for $uid: $userType');
+      if (userType != null && userType == 'customer') {
+        return true;
+      } else {
+        // Block login for missing, null, or non-customer usertype
+        throw FirebaseSignInAuthException(message: 'User not found');
       }
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
@@ -126,15 +140,30 @@ class AuthentificationService {
       if (googleUser == null) return false; // user cancelled
 
       final String googleEmail = googleUser.email;
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
       try {
-        final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-        return userCredential.user != null;
+        final userCredential = await FirebaseAuth.instance.signInWithCredential(
+          credential,
+        );
+        if (userCredential.user == null) return false;
+        // Check usertype in Firestore
+        final uid = userCredential.user!.uid;
+        final userDoc = await UserDatabaseHelper().firestore
+            .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+            .doc(uid)
+            .get();
+        final userType = userDoc.data()?['usertype'];
+        if (userType == 'customer') {
+          return true;
+        } else {
+          return 'signup'; // Signal to UI to redirect to signup
+        }
       } on FirebaseAuthException catch (e) {
         if (e.code == 'account-exists-with-different-credential') {
           // The account exists with a different sign-in method (e.g., password)
@@ -158,9 +187,16 @@ class AuthentificationService {
   }
 
   /// Call this after user enters password to link Google to existing account
-  Future<bool> linkGoogleToPasswordAccount({required String email, required String password, required AuthCredential pendingCredential}) async {
+  Future<bool> linkGoogleToPasswordAccount({
+    required String email,
+    required String password,
+    required AuthCredential pendingCredential,
+  }) async {
     try {
-      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       await userCredential.user?.linkWithCredential(pendingCredential);
       return true;
     } catch (e) {
@@ -185,8 +221,19 @@ class AuthentificationService {
       final userCredential = await FirebaseAuth.instance.signInWithCredential(
         credential,
       );
-
-      return userCredential.user != null;
+      if (userCredential.user == null) return false;
+      // Check usertype in Firestore
+      final uid = userCredential.user!.uid;
+      final userDoc = await UserDatabaseHelper().firestore
+          .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+          .doc(uid)
+          .get();
+      final userType = userDoc.data()?['usertype'];
+      if (userType == 'customer') {
+        return true;
+      } else {
+        return false;
+      }
     } catch (e) {
       print("Facebook Sign-In error: $e");
       return false;

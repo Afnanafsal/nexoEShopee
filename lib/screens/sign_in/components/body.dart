@@ -364,7 +364,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Facebook sign-in failed")),
+                      SnackBar(content: Text("Facebook sign-in failed or account is not registered as a customer. Please sign up as a customer.")),
                     );
                   }
                 } catch (e) {
