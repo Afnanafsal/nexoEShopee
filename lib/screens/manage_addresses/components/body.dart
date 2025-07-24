@@ -159,7 +159,7 @@ class _BodyState extends State<Body> {
                                     padding: EdgeInsets.zero,
                                   ),
                                   onPressed: () async {
-                                    Navigator.push(
+                                    final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => EditAddressScreen(
@@ -168,6 +168,11 @@ class _BodyState extends State<Body> {
                                         ),
                                       ),
                                     );
+                                    if (result == true) {
+                                      setState(() {
+                                        addressesStream.reload();
+                                      });
+                                    }
                                   },
                                   child: const Text(
                                     "Add New Address",
@@ -296,14 +301,18 @@ class _BodyState extends State<Body> {
     BuildContext context,
     String addressId,
   ) async {
-    await Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) =>
             EditAddressScreen(key: Key(addressId), addressIdToEdit: addressId),
       ),
     );
-    await refreshPage();
+    if (result == true) {
+      setState(() {
+        addressesStream.reload();
+      });
+    }
     return false;
   }
 
@@ -343,21 +352,7 @@ class _BodyState extends State<Body> {
           onTap: () async {
             await addressItemTapCallback(addressId);
           },
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.edit, color: Colors.grey[700]),
-              const SizedBox(width: 4),
-              const Text(
-                "Edit",
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 15,
-                ),
-              ),
-            ],
-          ),
+          // trailing removed, swipe to edit only
         ),
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.startToEnd) {

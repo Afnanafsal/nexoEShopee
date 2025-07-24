@@ -318,6 +318,7 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
         );
         if (status == true) {
           snackbarMessage = "Address saved successfully";
+          Navigator.of(context).pop(true); // Go back and trigger refresh
         } else {
           throw "Coundn't save the address due to unknown reason";
         }
@@ -351,6 +352,7 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
         );
         if (status == true) {
           snackbarMessage = "Address updated successfully";
+          Navigator.of(context).pop(true); // Go back and trigger refresh
         } else {
           throw "Couldn't update address due to unknown reason";
         }
