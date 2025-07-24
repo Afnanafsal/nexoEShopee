@@ -1,10 +1,51 @@
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:fishkart/models/Model.dart';
 
 enum ProductType { Freshwater, Saltwater, Shellfish, Exotic, Others, Dried }
-
 class Product extends Model {
+  // Helper: Is product in stock?
+  bool get isInStock => stock > 0;
+
+  // Helper: Check if all products in cart have enough stock
+  static Future<bool> cartHasSufficientStock(Map<String, int> cart) async {
+    // cart: {productId: qty}
+    final firestore = FirebaseFirestore.instance;
+    for (final entry in cart.entries) {
+      final doc = await firestore.collection('products').doc(entry.key).get();
+      final data = doc.data();
+      if (data == null || (data['stock'] ?? 0) < entry.value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Helper: Fast checkout dialog
+  static Future<void> showFastCheckoutDialog(BuildContext context, {required VoidCallback onProceed}) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Proceed to Checkout'),
+        content: const Text('Are you sure you want to checkout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              onProceed();
+            },
+            child: const Text('Proceed'),
+          ),
+        ],
+      ),
+    );
+  }
   // --- Firestore stock management methods ---
   /// Restore stock when an item is removed from cart (undo reservation)
   static Future<void> restoreStockFromCart(String productId, int qty) async {

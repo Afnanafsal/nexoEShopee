@@ -316,7 +316,7 @@ class Body extends ConsumerWidget {
                                       },
                                     );
                                   }
-                                  final products = snapshot.data ?? [];
+                                  final products = (snapshot.data ?? []).where((p) => p.isInStock).toList();
                                   HiveService.instance.cacheProducts(products);
                                   return ListView.separated(
                                     shrinkWrap: true,
