@@ -21,6 +21,7 @@ import 'package:fishkart/providers/user_providers.dart';
 import 'package:fishkart/screens/cart/components/checkout_card.dart';
 import 'package:fishkart/screens/product_details/product_details_screen.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
+import '../../../services/razorpay_service.dart';
 import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
 import 'package:fishkart/services/database/product_database_helper.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
@@ -65,6 +66,15 @@ class _BodyState extends ConsumerState<Body> {
   String? selectedUpiApp;
   bool showQrDialog = false;
   int? selectedCardIndex;
+  late RazorpayService _razorpayService;
+
+
+
+  @override
+  void dispose() {
+    _razorpayService.dispose();
+    super.dispose();
+  }
 
   void showAddCardDialog(
     BuildContext context, {
@@ -384,6 +394,7 @@ class _BodyState extends ConsumerState<Body> {
   @override
   void initState() {
     super.initState();
+    _razorpayService = RazorpayService();
     _fetchAddresses();
     fetchCardsFromFirestore();
   }
@@ -1271,6 +1282,7 @@ class _BodyState extends ConsumerState<Body> {
       builder: (context) {
         return CheckoutCard(
           onCheckoutPressed: checkoutButtonCallback,
+          onRazorpayPressed: () => checkoutButtonCallback(useRazorpay: true),
           totalPrice: totalPrice,
         );
       },
@@ -1535,7 +1547,7 @@ class _BodyState extends ConsumerState<Body> {
     return total;
   }
 
-  Future<void> checkoutButtonCallback() async {
+  Future<void> checkoutButtonCallback({bool useRazorpay = false}) async {
     shutBottomSheet();
     double amount = await getCartTotal();
     if (amount == 0) {
@@ -1544,33 +1556,27 @@ class _BodyState extends ConsumerState<Body> {
       );
       return;
     }
-    // If UPI app is selected, launch UPI intent
-    if (selectedUpiApp != null) {
-      String upiUrl =
-          'upi://pay?pa=afnnafsal@oksbi&pn=Afnan Afsal&am=${amount.toStringAsFixed(2)}&cu=INR';
-      // Use url_launcher to launch UPI intent
-      if (await canLaunchUrl(Uri.parse(upiUrl))) {
-        await launchUrl(
-          Uri.parse(upiUrl),
-          mode: LaunchMode.externalApplication,
-        );
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Could not launch UPI app')));
-      }
+
+    if (useRazorpay) {
+      // Replace with actual user details as needed
+      final user = FirebaseAuth.instance.currentUser;
+      final name = user?.displayName ?? 'NexoEShopee User';
+      final email = user?.email ?? 'user@example.com';
+      final contact = '9999999999'; // TODO: Replace with user's phone if available
+
+      // Open Razorpay checkout
+      _razorpayService.openCheckout(
+        amount: amount,
+        name: name,
+        description: 'Order Payment',
+        contact: contact,
+        email: email,
+      );
+      // TODO: On payment success, move order placement logic here
+      // You can listen to payment success in RazorpayService and call order placement
       return;
     }
-
-    // If card is selected, proceed with mock order
-    final confirmation = await showConfirmationDialog(
-      context,
-      "This is just a Project Testing App so, no actual Payment Interface is available.\nDo you want to proceed for Mock Ordering of Products?",
-    );
-    if (confirmation == false) {
-      return;
-    }
-
+    // Normal checkout logic (previous logic)
     // Fetch only cart items for the selected address BEFORE deleting
     String uid = AuthentificationService().currentUser.uid;
     final cartSnapshot = await FirebaseFirestore.instance

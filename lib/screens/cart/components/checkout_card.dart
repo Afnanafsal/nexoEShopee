@@ -3,32 +3,45 @@ import 'package:flutter/material.dart';
 
 import '../../../size_config.dart';
 
-class CheckoutCard extends StatelessWidget {
+class CheckoutCard extends StatefulWidget {
   final VoidCallback onCheckoutPressed;
+  final VoidCallback onRazorpayPressed;
   final double totalPrice;
   const CheckoutCard({
     required this.onCheckoutPressed,
+    required this.onRazorpayPressed,
     required this.totalPrice,
     super.key,
   });
 
   @override
+  State<CheckoutCard> createState() => _CheckoutCardState();
+}
+
+class _CheckoutCardState extends State<CheckoutCard> {
+  bool _visible = true;
+
+  void _handleNormalCheckout() {
+    setState(() => _visible = false);
+    widget.onCheckoutPressed();
+  }
+
+  void _handleRazorpayCheckout() {
+    setState(() => _visible = false);
+    widget.onRazorpayPressed();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (!_visible) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xFFDADADA).withOpacity(0.6),
-            offset: Offset(0, -15),
-            blurRadius: 20,
-          ),
-        ],
       ),
       child: SafeArea(
         child: Column(
@@ -43,8 +56,8 @@ class CheckoutCard extends StatelessWidget {
                     text: "Total\n",
                     children: [
                       TextSpan(
-                        text: "₹${totalPrice.toStringAsFixed(0)}",
-                        style: TextStyle(
+                        text: "₹${widget.totalPrice.toStringAsFixed(0)}",
+                        style: const TextStyle(
                           fontSize: 18,
                           color: Colors.black,
                           fontWeight: FontWeight.w700,
@@ -53,16 +66,20 @@ class CheckoutCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(
-                  width: getProportionateScreenWidth(190),
-                  child: DefaultButton(
-                    text: "Checkout",
-                    press: onCheckoutPressed,
-                  ),
-                ),
               ],
             ),
             SizedBox(height: getProportionateScreenHeight(20)),
+            DefaultButton(
+              text: "Checkout",
+              press: _handleNormalCheckout,
+            ),
+            SizedBox(height: getProportionateScreenHeight(10)),
+            DefaultButton(
+              text: "Checkout with Razorpay",
+              press: _handleRazorpayCheckout,
+              color: Colors.black,
+            ),
+            SizedBox(height: getProportionateScreenHeight(10)),
           ],
         ),
       ),
