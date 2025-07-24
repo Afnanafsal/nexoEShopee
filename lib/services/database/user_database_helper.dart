@@ -53,7 +53,7 @@ class UserDatabaseHelper {
       DP_KEY: null,
       PHONE_KEY: null,
       FAV_PRODUCTS_KEY: <String>[],
-      'usertype': 'customer',
+      'userType': 'customer',
     });
   }
 
@@ -67,7 +67,7 @@ class UserDatabaseHelper {
       PHONE_KEY: phoneNumber,
       DP_KEY: null,
       FAV_PRODUCTS_KEY: <String>[],
-      'usertype': 'customer',
+      'userType': 'customer',
     });
   }
 

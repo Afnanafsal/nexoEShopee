@@ -69,19 +69,19 @@ class AuthentificationService {
         throw FirebaseSignInAuthUserNotVerifiedException();
       }
 
-      // Check usertype in Firestore
+      // Check userType in Firestore
       // ...existing code...
       final uid = userCredential.user!.uid;
       final userDoc = await UserDatabaseHelper().firestore
           .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
           .doc(uid)
           .get();
-      final userType = userDoc.data()?['usertype'];
+      final userType = userDoc.data()?['userType'];
       print('[DEBUG] userType for $uid: $userType');
       if (userType != null && userType == 'customer') {
         return true;
       } else {
-        // Block login for missing, null, or non-customer usertype
+        // Block login for missing, null, or non-customer userType
         throw FirebaseSignInAuthException(message: 'User not found');
       }
     } on FirebaseAuthException catch (e) {
@@ -152,13 +152,13 @@ class AuthentificationService {
           credential,
         );
         if (userCredential.user == null) return false;
-        // Check usertype in Firestore
+        // Check userType in Firestore
         final uid = userCredential.user!.uid;
         final userDoc = await UserDatabaseHelper().firestore
             .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
             .doc(uid)
             .get();
-        final userType = userDoc.data()?['usertype'];
+        final userType = userDoc.data()?['userType'];
         if (userType == 'customer') {
           return true;
         } else {
@@ -222,13 +222,13 @@ class AuthentificationService {
         credential,
       );
       if (userCredential.user == null) return false;
-      // Check usertype in Firestore
+      // Check userType in Firestore
       final uid = userCredential.user!.uid;
       final userDoc = await UserDatabaseHelper().firestore
           .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
           .doc(uid)
           .get();
-      final userType = userDoc.data()?['usertype'];
+      final userType = userDoc.data()?['userType'];
       if (userType == 'customer') {
         return true;
       } else {

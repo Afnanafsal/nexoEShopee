@@ -14,28 +14,39 @@ class AuthentificationWrapper extends ConsumerWidget {
     return authState.when(
       data: (user) {
         if (user != null) {
-          // Check usertype in Firestore
+          // Check userType in Firestore
           return FutureBuilder(
-            future: ref.read(userDatabaseHelperProvider).firestore
+            future: ref
+                .read(userDatabaseHelperProvider)
+                .firestore
                 .collection('users')
                 .doc(user.uid)
                 .get(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Scaffold(body: Center(child: CircularProgressIndicator()));
+                return Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               }
               if (snapshot.hasError) {
-                return Scaffold(body: Center(child: Text('Error: ${snapshot.error}')));
+                return Scaffold(
+                  body: Center(child: Text('Error: ${snapshot.error}')),
+                );
               }
-              final userType = snapshot.data?.data()?['usertype'];
-              if (userType != null && userType == 'customer') {
+              final userType = snapshot.data?.data()?['userType'];
+              print('[DEBUG] userType for ${user.uid}: $userType');
+              if (userType == 'customer') {
                 return HomeScreen();
               } else {
                 // Sign out and show sign-in screen with message
                 WidgetsBinding.instance.addPostFrameCallback((_) async {
                   await ref.read(authServiceProvider).signOut();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('This account is not registered as a customer. Please sign up as a customer.')),
+                    SnackBar(
+                      content: Text(
+                        'This account is not registered as a customer (userType: $userType). Please sign up as a customer.',
+                      ),
+                    ),
                   );
                 });
                 return SignInScreen();
