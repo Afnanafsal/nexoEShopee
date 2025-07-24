@@ -284,10 +284,14 @@ class UserDatabaseHelper {
     final doc = await ref.get();
     final productId = doc.data()?[CartItem.PRODUCT_ID_KEY];
     final itemCount = doc.data()?[CartItem.ITEM_COUNT_KEY] ?? 1;
-    print('[removeProductFromCart] cartItemID: $cartItemID, productId: $productId, itemCount: $itemCount');
+    print(
+      '[removeProductFromCart] cartItemID: $cartItemID, productId: $productId, itemCount: $itemCount',
+    );
     await ref.delete();
     if (productId != null && itemCount > 0) {
-      print('[removeProductFromCart] Restoring stock for productId: $productId, qty: $itemCount');
+      print(
+        '[removeProductFromCart] Restoring stock for productId: $productId, qty: $itemCount',
+      );
       await Product.restoreStockFromCart(productId, itemCount);
     }
     return true;
@@ -361,6 +365,16 @@ class UserDatabaseHelper {
         .collection(ORDERED_PRODUCTS_COLLECTION_NAME);
     for (final order in orders) {
       await ref.add(order.toMap());
+      // Move reserved to ordered for each product
+      final productId = order.productUid;
+      final qty = order.quantity;
+      if (productId != null && qty > 0) {
+        final productRef = firestore.collection('products').doc(productId);
+        await productRef.update({
+          'reserved': FieldValue.increment(-qty),
+          'ordered': FieldValue.increment(qty),
+        });
+      }
     }
     return true;
   }
