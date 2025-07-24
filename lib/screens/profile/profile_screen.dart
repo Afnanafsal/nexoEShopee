@@ -4,6 +4,7 @@ import 'package:fishkart/screens/sign_in/sign_in_screen.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
 import '../../constants.dart';
 import '../about_developer/about_developer_screen.dart';
 import '../change_display_picture/change_display_picture_screen.dart';
@@ -260,6 +261,12 @@ class _ProfileActions extends StatelessWidget {
             );
             if (confirmation) {
               await AuthentificationService().signOut();
+              // Clear all user-related cache
+              await HiveService.instance.clearUserCache();
+              // Optionally clear all cache if needed
+              // await HiveService.instance.clearAllCache();
+              // Optionally clear product cache if user-specific
+              // await HiveService.instance.clearProductCache();
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => SignInScreen()),
                 (route) => false,
