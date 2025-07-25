@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:fishkart/providers/user_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fishkart/constants.dart';
-import 'package:fishkart/screens/manage_addresses/manage_addresses_screen.dart';
+// import 'package:fishkart/screens/manage_addresses/manage_addresses_screen.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/providers/product_providers.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:fishkart/size_config.dart';
 
@@ -32,6 +34,7 @@ class DeliveryAddressBar extends ConsumerWidget {
         if (addresses.length == 1 && selectedAddressId != addresses[0]) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref.read(selectedAddressIdProvider.notifier).state = addresses[0];
+            ref.invalidate(latestProductsProvider);
           });
         }
       },
@@ -146,13 +149,102 @@ class DeliveryAddressBar extends ConsumerWidget {
           if (addressesListAsync.value == null ||
               (addressesListAsync.value?.length ?? 0) > 1)
             InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ManageAddressesScreen(),
-                  ),
+              onTap: () async {
+                final addresses = addressesListAsync.value ?? [];
+                if (addresses.isEmpty) return;
+                final cachedAddresses = HiveService.instance.getCachedAddresses();
+                final selected = await showDialog<String>(
+                  context: context,
+                  builder: (context) {
+                    return Dialog(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.location_on, color: kPrimaryColor, size: 24),
+                                SizedBox(width: 8),
+                                Text('Select Delivery Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: kPrimaryColor)),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+                            ...addresses.map((addressId) {
+                              Map<String, dynamic>? addressMap;
+                              try {
+                                addressMap = cachedAddresses.firstWhere((a) => a['id'] == addressId);
+                              } catch (e) {
+                                addressMap = {};
+                              }
+                              final title = addressMap['title'] != null && addressMap['title'].toString().isNotEmpty
+                                  ? addressMap['title'].toString()
+                                  : addressId;
+                              final details = [
+                                addressMap['address_line_1'],
+                                addressMap['city'],
+                                addressMap['state'],
+                                addressMap['pincode'],
+                              ].whereType<String>().where((e) => e.isNotEmpty).join(', ');
+                              final isSelected = addressId == selectedAddressId;
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(12),
+                                    onTap: () {
+                                      Navigator.pop(context, addressId);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? kPrimaryColor.withOpacity(0.08) : Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isSelected ? kPrimaryColor : Colors.grey[300]!,
+                                          width: isSelected ? 2 : 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.home, color: isSelected ? kPrimaryColor : Colors.grey[500], size: 22),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isSelected ? kPrimaryColor : Colors.black)),
+                                                if (details.isNotEmpty)
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(top: 2.0),
+                                                    child: Text(details, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (isSelected)
+                                            Icon(Icons.check_circle, color: kPrimaryColor, size: 22),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 );
+                if (selected != null && selected != selectedAddressId) {
+                  ref.read(selectedAddressIdProvider.notifier).state = selected;
+                  ref.invalidate(latestProductsProvider);
+                }
               },
               child: Icon(
                 Icons.keyboard_arrow_down,
