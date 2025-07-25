@@ -1,5 +1,5 @@
 import 'package:fishkart/models/Product.dart';
-import 'package:fishkart/size_config.dart';
+import 'package:fishkart/models/Address.dart';
 import 'package:fishkart/components/async_progress_dialog.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
@@ -9,10 +9,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:logger/logger.dart';
 import '../../../utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-
-import '../../../constants.dart';
-import 'expandable_text.dart';
 
 class ProductDescription extends ConsumerStatefulWidget {
   const ProductDescription({required Key key, required this.product})
@@ -52,6 +48,21 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
       );
       return;
     }
+    // Get selected address from provider
+    final selectedAddressId = ref.read(selectedAddressIdProvider);
+    final address = selectedAddressId != null
+        ? await UserDatabaseHelper().getAddressFromId(selectedAddressId)
+        : null;
+    if (address == null ||
+        address.city == null ||
+        widget.product.areaLocation == null ||
+        address.city!.toLowerCase() !=
+            widget.product.areaLocation!.toLowerCase()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Product is not available in your area.')),
+      );
+      return;
+    }
     bool allowed = AuthentificationService().currentUserVerified;
     if (!allowed) {
       final reverify = await showConfirmationDialog(
@@ -76,8 +87,6 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
       return;
     }
     String snackbarMessage = "";
-    // Get selected address from provider
-    final selectedAddressId = ref.read(selectedAddressIdProvider);
     final addFutures = List.generate(
       cartCount,
       (_) => UserDatabaseHelper().addProductToCart(
@@ -123,6 +132,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
     final product = widget.product;
     debugPrint('Product stock for ${product.title}: ${product.stock}');
     final isOutOfStock = product.stock == 0;
+    final selectedAddressId = ref.watch(selectedAddressIdProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1.0),
       child: Column(
@@ -308,26 +318,53 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
               ),
             ],
           ),
+
           SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isOutOfStock ? Colors.grey : Color(0xFF42526E),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 18),
-              ),
-              onPressed: isOutOfStock ? null : _proceedToCheckout,
-              child: Text(
-                isOutOfStock ? 'Stock Out' : 'Proceed To Checkout',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+            child: FutureBuilder<Address?>(
+              future: selectedAddressId != null
+                  ? UserDatabaseHelper().getAddressFromId(selectedAddressId)
+                  : Future.value(null),
+              builder: (context, snapshot) {
+                final selectedAddress = snapshot.data;
+                final city = (selectedAddress?.city ?? '').trim().toLowerCase();
+                final areaLocation = (product.areaLocation ?? '')
+                    .trim()
+                    .toLowerCase();
+                print('Product areaLocation: "$areaLocation"');
+                print('User city: "$city"');
+                final isAreaAvailable =
+                    city.isNotEmpty &&
+                    areaLocation.isNotEmpty &&
+                    city == areaLocation;
+                return ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isOutOfStock || !isAreaAvailable
+                        ? Colors.grey
+                        : Color(0xFF42526E),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 18),
+                  ),
+                  onPressed: isOutOfStock || !isAreaAvailable
+                      ? null
+                      : _proceedToCheckout,
+                  child: Text(
+                    isOutOfStock
+                        ? 'Stock Out'
+                        : !isAreaAvailable
+                        ? 'Product not available in your area'
+                        : 'Proceed To Checkout',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           SizedBox(height: 16),

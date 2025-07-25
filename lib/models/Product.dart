@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fishkart/models/Model.dart';
 
 enum ProductType { Freshwater, Saltwater, Shellfish, Exotic, Others, Dried }
+
 class Product extends Model {
   // Helper: Is product in stock?
   bool get isInStock => stock > 0;
@@ -23,7 +24,10 @@ class Product extends Model {
   }
 
   // Helper: Fast checkout dialog
-  static Future<void> showFastCheckoutDialog(BuildContext context, {required VoidCallback onProceed}) async {
+  static Future<void> showFastCheckoutDialog(
+    BuildContext context, {
+    required VoidCallback onProceed,
+  }) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -46,129 +50,158 @@ class Product extends Model {
       ),
     );
   }
+
   // --- Firestore stock management methods ---
   /// Restore stock when an item is removed from cart (undo reservation)
   static Future<void> restoreStockFromCart(String productId, int qty) async {
-    final productRef = FirebaseFirestore.instance.collection('products').doc(productId);
+    final productRef = FirebaseFirestore.instance
+        .collection('products')
+        .doc(productId);
     print('[restoreStockFromCart] productId: $productId, qty: $qty');
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      final snapshot = await transaction.get(productRef);
-      final data = snapshot.data();
-      print('[restoreStockFromCart] Firestore data: $data');
-      if (data == null) throw Exception('Product not found');
-      final currentStock = (data['stock'] ?? 0) as int;
-      final reserved = (data['reserved'] ?? 0) as int;
-      print('[restoreStockFromCart] Before update: stock=$currentStock, reserved=$reserved');
-      int newStock = currentStock + qty;
-      int newReserved = reserved - qty;
-      if (newReserved < 0) {
-        print('[restoreStockFromCart] Warning: reserved would go negative, setting to 0');
-        newReserved = 0;
-      }
-      transaction.update(productRef, {
-        'stock': newStock,
-        'reserved': newReserved,
-      });
-      print('[restoreStockFromCart] After update: stock=$newStock, reserved=$newReserved');
-    }).catchError((e) {
-      print('[restoreStockFromCart] Error: $e');
-      throw e;
-    });
+    await FirebaseFirestore.instance
+        .runTransaction((transaction) async {
+          final snapshot = await transaction.get(productRef);
+          final data = snapshot.data();
+          print('[restoreStockFromCart] Firestore data: $data');
+          if (data == null) throw Exception('Product not found');
+          final currentStock = (data['stock'] ?? 0) as int;
+          final reserved = (data['reserved'] ?? 0) as int;
+          print(
+            '[restoreStockFromCart] Before update: stock=$currentStock, reserved=$reserved',
+          );
+          int newStock = currentStock + qty;
+          int newReserved = reserved - qty;
+          if (newReserved < 0) {
+            print(
+              '[restoreStockFromCart] Warning: reserved would go negative, setting to 0',
+            );
+            newReserved = 0;
+          }
+          transaction.update(productRef, {
+            'stock': newStock,
+            'reserved': newReserved,
+          });
+          print(
+            '[restoreStockFromCart] After update: stock=$newStock, reserved=$newReserved',
+          );
+        })
+        .catchError((e) {
+          print('[restoreStockFromCart] Error: $e');
+          throw e;
+        });
   }
 
   static Future<void> reserveStock(String productId, int qty) async {
-    final productRef = FirebaseFirestore.instance.collection('products').doc(productId);
+    final productRef = FirebaseFirestore.instance
+        .collection('products')
+        .doc(productId);
     print('[reserveStock] productId: $productId, qty: $qty');
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      final snapshot = await transaction.get(productRef);
-      final data = snapshot.data();
-      print('[reserveStock] Firestore data: $data');
-      if (data == null) throw Exception('Product not found');
-      final currentStock = (data['stock'] ?? 0) as int;
-      final reserved = (data['reserved'] ?? 0) as int;
-      if (currentStock < qty) {
-        print('[reserveStock] Not enough stock: $currentStock < $qty');
-        throw Exception('Not enough stock');
-      }
-      transaction.update(productRef, {
-        'stock': currentStock - qty,
-        'reserved': reserved + qty,
-      });
-      print('[reserveStock] Updated stock: ${currentStock - qty}, reserved: ${reserved + qty}');
-    }).catchError((e) {
-      print('[reserveStock] Error: $e');
-      throw e;
-    });
+    await FirebaseFirestore.instance
+        .runTransaction((transaction) async {
+          final snapshot = await transaction.get(productRef);
+          final data = snapshot.data();
+          print('[reserveStock] Firestore data: $data');
+          if (data == null) throw Exception('Product not found');
+          final currentStock = (data['stock'] ?? 0) as int;
+          final reserved = (data['reserved'] ?? 0) as int;
+          if (currentStock < qty) {
+            print('[reserveStock] Not enough stock: $currentStock < $qty');
+            throw Exception('Not enough stock');
+          }
+          transaction.update(productRef, {
+            'stock': currentStock - qty,
+            'reserved': reserved + qty,
+          });
+          print(
+            '[reserveStock] Updated stock: ${currentStock - qty}, reserved: ${reserved + qty}',
+          );
+        })
+        .catchError((e) {
+          print('[reserveStock] Error: $e');
+          throw e;
+        });
   }
 
   static Future<void> unreserveStock(String productId, int qty) async {
-    final productRef = FirebaseFirestore.instance.collection('products').doc(productId);
+    final productRef = FirebaseFirestore.instance
+        .collection('products')
+        .doc(productId);
     print('[unreserveStock] productId: $productId, qty: $qty');
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      final snapshot = await transaction.get(productRef);
-      final data = snapshot.data();
-      print('[unreserveStock] Firestore data: $data');
-      if (data == null) throw Exception('Product not found');
-      final reserved = (data['reserved'] ?? 0) as int;
-      transaction.update(productRef, {
-        'reserved': reserved - qty,
-      });
-      print('[unreserveStock] Updated reserved: ${reserved - qty}');
-    }).catchError((e) {
-      print('[unreserveStock] Error: $e');
-      throw e;
-    });
+    await FirebaseFirestore.instance
+        .runTransaction((transaction) async {
+          final snapshot = await transaction.get(productRef);
+          final data = snapshot.data();
+          print('[unreserveStock] Firestore data: $data');
+          if (data == null) throw Exception('Product not found');
+          final reserved = (data['reserved'] ?? 0) as int;
+          transaction.update(productRef, {'reserved': reserved - qty});
+          print('[unreserveStock] Updated reserved: ${reserved - qty}');
+        })
+        .catchError((e) {
+          print('[unreserveStock] Error: $e');
+          throw e;
+        });
   }
 
   static Future<void> orderStock(String productId, int qty) async {
-    final productRef = FirebaseFirestore.instance.collection('products').doc(productId);
+    final productRef = FirebaseFirestore.instance
+        .collection('products')
+        .doc(productId);
     print('[orderStock] productId: $productId, qty: $qty');
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      final snapshot = await transaction.get(productRef);
-      final data = snapshot.data();
-      print('[orderStock] Firestore data: $data');
-      if (data == null) throw Exception('Product not found');
-      final reserved = (data['reserved'] ?? 0) as int;
-      final ordered = (data['ordered'] ?? 0) as int;
-      if (reserved < qty) {
-        print('[orderStock] Not enough reserved stock: $reserved < $qty');
-        throw Exception('Not enough reserved stock');
-      }
-      transaction.update(productRef, {
-        'reserved': reserved - qty,
-        'ordered': ordered + qty,
-      });
-      print('[orderStock] Updated reserved: ${reserved - qty}, ordered: ${ordered + qty}');
-    }).catchError((e) {
-      print('[orderStock] Error: $e');
-      throw e;
-    });
+    await FirebaseFirestore.instance
+        .runTransaction((transaction) async {
+          final snapshot = await transaction.get(productRef);
+          final data = snapshot.data();
+          print('[orderStock] Firestore data: $data');
+          if (data == null) throw Exception('Product not found');
+          final reserved = (data['reserved'] ?? 0) as int;
+          final ordered = (data['ordered'] ?? 0) as int;
+          if (reserved < qty) {
+            print('[orderStock] Not enough reserved stock: $reserved < $qty');
+            throw Exception('Not enough reserved stock');
+          }
+          transaction.update(productRef, {
+            'reserved': reserved - qty,
+            'ordered': ordered + qty,
+          });
+          print(
+            '[orderStock] Updated reserved: ${reserved - qty}, ordered: ${ordered + qty}',
+          );
+        })
+        .catchError((e) {
+          print('[orderStock] Error: $e');
+          throw e;
+        });
   }
 
   static Future<void> completeOrderStock(String productId, int qty) async {
-    final productRef = FirebaseFirestore.instance.collection('products').doc(productId);
+    final productRef = FirebaseFirestore.instance
+        .collection('products')
+        .doc(productId);
     print('[completeOrderStock] productId: $productId, qty: $qty');
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      final snapshot = await transaction.get(productRef);
-      final data = snapshot.data();
-      print('[completeOrderStock] Firestore data: $data');
-      if (data == null) throw Exception('Product not found');
-      final ordered = (data['ordered'] ?? 0) as int;
-      transaction.update(productRef, {
-        'ordered': ordered - qty,
-      });
-      print('[completeOrderStock] Updated ordered: ${ordered - qty}');
-    }).catchError((e) {
-      print('[completeOrderStock] Error: $e');
-      throw e;
-    });
+    await FirebaseFirestore.instance
+        .runTransaction((transaction) async {
+          final snapshot = await transaction.get(productRef);
+          final data = snapshot.data();
+          print('[completeOrderStock] Firestore data: $data');
+          if (data == null) throw Exception('Product not found');
+          final ordered = (data['ordered'] ?? 0) as int;
+          transaction.update(productRef, {'ordered': ordered - qty});
+          print('[completeOrderStock] Updated ordered: ${ordered - qty}');
+        })
+        .catchError((e) {
+          print('[completeOrderStock] Error: $e');
+          throw e;
+        });
   }
+
   int calculatePercentageDiscount() {
     if (originalPrice == null || discountPrice == null || originalPrice == 0) {
       return 0;
     }
     return (((originalPrice! - discountPrice!) * 100) / originalPrice!).round();
   }
+
   Product(
     String id, {
     this.images,
@@ -185,6 +218,7 @@ class Product extends Model {
     this.searchTags,
     this.dateAdded,
     this.stock = 0,
+    this.areaLocation,
   }) : super(id);
   static const String IMAGES_KEY = "images";
   static const String TITLE_KEY = "title";
@@ -215,6 +249,7 @@ class Product extends Model {
   List<String>? searchTags;
   DateTime? dateAdded;
   int stock;
+  String? areaLocation;
   factory Product.fromMap(Map<String, dynamic> map, {required String id}) {
     print('Raw Firestore stock value for product id $id: ${map[STOCK_KEY]}');
     int parsedStock = 0;
@@ -248,6 +283,7 @@ class Product extends Model {
           ? DateTime.tryParse(map[DATE_ADDED_KEY])
           : null,
       stock: parsedStock,
+      areaLocation: map['areaLocation'],
     );
   }
   Map<String, dynamic> toMap() {
@@ -268,6 +304,7 @@ class Product extends Model {
       SEARCH_TAGS_KEY: searchTags,
       DATE_ADDED_KEY: dateAdded?.toIso8601String(),
       STOCK_KEY: stock,
+      'areaLocation': areaLocation,
     };
     return map;
   }
@@ -311,6 +348,7 @@ class Product extends Model {
     List<String>? searchTags,
     DateTime? dateAdded,
     int? stock,
+    String? areaLocation,
   }) {
     return Product(
       id ?? this.id,
@@ -328,6 +366,7 @@ class Product extends Model {
       searchTags: searchTags ?? this.searchTags,
       dateAdded: dateAdded ?? this.dateAdded,
       stock: stock ?? this.stock,
+      areaLocation: areaLocation ?? this.areaLocation,
     );
   }
 }

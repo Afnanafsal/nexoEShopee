@@ -316,7 +316,28 @@ class Body extends ConsumerWidget {
                                       },
                                     );
                                   }
-                                  final products = (snapshot.data ?? []).where((p) => p.isInStock).take(8).toList();
+                                  // Get user's selected address city
+                                  final selectedAddressId = ref.read(selectedAddressIdProvider);
+                                  String userCity = '';
+                                  if (selectedAddressId != null) {
+                                    final address = HiveService.instance.getCachedAddresses().firstWhere(
+                                      (a) => a['id'] == selectedAddressId,
+                                      orElse: () => <String, dynamic>{},
+                                    );
+                                    if (address['city'] != null) {
+                                      userCity = (address['city'] as String).trim().toLowerCase();
+                                    }
+                                  }
+                                  // Filter products by areaLocation
+                                  final products = (snapshot.data ?? [])
+                                    .where((p) {
+                                      final areaLocation = (p.areaLocation ?? '').trim().toLowerCase();
+                                      if (userCity.isEmpty || areaLocation.isEmpty) return true;
+                                      return areaLocation == userCity;
+                                    })
+                                    .where((p) => p.isInStock)
+                                    .take(8)
+                                    .toList();
                                   HiveService.instance.cacheProducts(products);
                                   return ListView.separated(
                                     shrinkWrap: true,
