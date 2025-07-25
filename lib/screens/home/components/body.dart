@@ -226,36 +226,31 @@ class Body extends ConsumerWidget {
                         builder: (context, ref, _) {
                           final allProductsAsync = ref.watch(
                             latestProductsProvider(
-                              12,
-                            ), // Reduced from 50 to 8 for faster load
+                              99999,
+                            ), // Fetch all products, no limit
                           );
                           return allProductsAsync.when(
                             data: (productIds) {
-                              // Show shimmer/placeholder while loading products
-                              // Only load a small batch for first-time users
+                              // Fetch all products and cache them immediately
                               return FutureBuilder<List<Product>>(
                                 future: Future.wait(
                                   productIds.map((id) async {
-                                    final cached = HiveService.instance
-                                        .getCachedProduct(id);
+                                    final cached = HiveService.instance.getCachedProduct(id);
                                     if (cached != null) return cached;
-                                    final product =
-                                        await ProductDatabaseHelper()
-                                            .getProductWithID(id);
-                                    if (product != null)
-                                      await HiveService.instance.cacheProduct(
-                                        product,
-                                      );
-                                    return product ??
-                                        Product(
-                                          id,
-                                          title: 'Unknown',
-                                          images: [],
-                                          discountPrice: 0,
-                                          originalPrice: 0,
-                                        );
+                                    final product = await ProductDatabaseHelper().getProductWithID(id);
+                                    return product ?? Product(
+                                      id,
+                                      title: 'Unknown',
+                                      images: [],
+                                      discountPrice: 0,
+                                      originalPrice: 0,
+                                    );
                                   }),
-                                ),
+                                ).then((products) async {
+                                  // Cache all products at once
+                                  await HiveService.instance.cacheProducts(products);
+                                  return products;
+                                }),
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
                                     // Show shimmer effect while loading
@@ -412,7 +407,6 @@ class Body extends ConsumerWidget {
                                         return areaLocation == userCity;
                                       })
                                       .where((p) => p.isInStock)
-                                      .take(8)
                                       .toList();
                                   HiveService.instance.cacheProducts(products);
                                   if (products.isEmpty) {

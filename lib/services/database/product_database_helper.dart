@@ -287,13 +287,12 @@ class ProductDatabaseHelper {
     }
     try {
       Query query = _firebaseFirestore.collection(PRODUCTS_COLLECTION_NAME)
-        .where(Product.STOCK_KEY, isGreaterThan: 0)
-        .limit(limit);
+        .where(Product.STOCK_KEY, isGreaterThan: 0);
       if (startAfter != null) {
         query = query.startAfterDocument(startAfter);
       }
       final querySnapshot = await query.get();
-      // Optionally update cache
+      // Update cache with all products
       if (querySnapshot.docs.isNotEmpty) {
         final products = querySnapshot.docs.map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>, id: doc.id)).toList();
         await HiveService.instance.cacheProducts(products);
