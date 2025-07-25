@@ -225,7 +225,9 @@ class Body extends ConsumerWidget {
                       Consumer(
                         builder: (context, ref, _) {
                           final allProductsAsync = ref.watch(
-                            latestProductsProvider(12), // Reduced from 50 to 8 for faster load
+                            latestProductsProvider(
+                              12,
+                            ), // Reduced from 50 to 8 for faster load
                           );
                           return allProductsAsync.when(
                             data: (productIds) {
@@ -234,11 +236,24 @@ class Body extends ConsumerWidget {
                               return FutureBuilder<List<Product>>(
                                 future: Future.wait(
                                   productIds.map((id) async {
-                                    final cached = HiveService.instance.getCachedProduct(id);
+                                    final cached = HiveService.instance
+                                        .getCachedProduct(id);
                                     if (cached != null) return cached;
-                                    final product = await ProductDatabaseHelper().getProductWithID(id);
-                                    if (product != null) await HiveService.instance.cacheProduct(product);
-                                    return product ?? Product(id, title: 'Unknown', images: [], discountPrice: 0, originalPrice: 0);
+                                    final product =
+                                        await ProductDatabaseHelper()
+                                            .getProductWithID(id);
+                                    if (product != null)
+                                      await HiveService.instance.cacheProduct(
+                                        product,
+                                      );
+                                    return product ??
+                                        Product(
+                                          id,
+                                          title: 'Unknown',
+                                          images: [],
+                                          discountPrice: 0,
+                                          originalPrice: 0,
+                                        );
                                   }),
                                 ),
                                 builder: (context, snapshot) {
@@ -248,27 +263,41 @@ class Body extends ConsumerWidget {
                                       shrinkWrap: true,
                                       physics: NeverScrollableScrollPhysics(),
                                       itemCount: 6,
-                                      separatorBuilder: (context, index) => SizedBox(height: 20),
+                                      separatorBuilder: (context, index) =>
+                                          SizedBox(height: 20),
                                       itemBuilder: (context, index) {
                                         return Shimmer.fromColors(
                                           baseColor: Colors.grey[300]!,
                                           highlightColor: Colors.grey[100]!,
                                           child: Container(
-                                            margin: EdgeInsets.symmetric(horizontal: 2),
+                                            margin: EdgeInsets.symmetric(
+                                              horizontal: 2,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: Colors.white,
-                                              borderRadius: BorderRadius.circular(24),
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
                                               boxShadow: [
-                                                BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, 8)),
+                                                BoxShadow(
+                                                  color: Colors.black12,
+                                                  blurRadius: 16,
+                                                  offset: Offset(0, 8),
+                                                ),
                                               ],
                                             ),
                                             child: Row(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
                                               children: [
                                                 Padding(
-                                                  padding: const EdgeInsets.all(12.0),
+                                                  padding: const EdgeInsets.all(
+                                                    12.0,
+                                                  ),
                                                   child: ClipRRect(
-                                                    borderRadius: BorderRadius.circular(16),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          16,
+                                                        ),
                                                     child: Container(
                                                       width: 80,
                                                       height: 80,
@@ -278,19 +307,46 @@ class Body extends ConsumerWidget {
                                                 ),
                                                 Expanded(
                                                   child: Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 4.0),
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          vertical: 18.0,
+                                                          horizontal: 4.0,
+                                                        ),
                                                     child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
-                                                        Container(width: double.infinity, height: 18, color: Colors.grey[300]),
+                                                        Container(
+                                                          width:
+                                                              double.infinity,
+                                                          height: 18,
+                                                          color:
+                                                              Colors.grey[300],
+                                                        ),
                                                         SizedBox(height: 8),
-                                                        Container(width: 80, height: 14, color: Colors.grey[300]),
+                                                        Container(
+                                                          width: 80,
+                                                          height: 14,
+                                                          color:
+                                                              Colors.grey[300],
+                                                        ),
                                                         SizedBox(height: 6),
                                                         Row(
                                                           children: [
-                                                            Container(width: 40, height: 16, color: Colors.grey[300]),
+                                                            Container(
+                                                              width: 40,
+                                                              height: 16,
+                                                              color: Colors
+                                                                  .grey[300],
+                                                            ),
                                                             SizedBox(width: 8),
-                                                            Container(width: 40, height: 14, color: Colors.grey[300]),
+                                                            Container(
+                                                              width: 40,
+                                                              height: 14,
+                                                              color: Colors
+                                                                  .grey[300],
+                                                            ),
                                                           ],
                                                         ),
                                                       ],
@@ -298,14 +354,22 @@ class Body extends ConsumerWidget {
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 16.0,
+                                                      ),
                                                   child: Container(
                                                     width: 56,
                                                     height: 56,
                                                     decoration: BoxDecoration(
                                                       color: Colors.white,
                                                       shape: BoxShape.circle,
-                                                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12)],
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black12,
+                                                          blurRadius: 12,
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                 ),
@@ -317,96 +381,232 @@ class Body extends ConsumerWidget {
                                     );
                                   }
                                   // Get user's selected address city
-                                  final selectedAddressId = ref.read(selectedAddressIdProvider);
+                                  final selectedAddressId = ref.read(
+                                    selectedAddressIdProvider,
+                                  );
                                   String userCity = '';
                                   if (selectedAddressId != null) {
-                                    final address = HiveService.instance.getCachedAddresses().firstWhere(
-                                      (a) => a['id'] == selectedAddressId,
-                                      orElse: () => <String, dynamic>{},
-                                    );
+                                    final address = HiveService.instance
+                                        .getCachedAddresses()
+                                        .firstWhere(
+                                          (a) => a['id'] == selectedAddressId,
+                                          orElse: () => <String, dynamic>{},
+                                        );
                                     if (address['city'] != null) {
-                                      userCity = (address['city'] as String).trim().toLowerCase();
+                                      userCity = (address['city'] as String)
+                                          .trim()
+                                          .toLowerCase();
                                     }
                                   }
                                   // Filter products by areaLocation
                                   final products = (snapshot.data ?? [])
-                                    .where((p) {
-                                      final areaLocation = (p.areaLocation ?? '').trim().toLowerCase();
-                                      if (userCity.isEmpty || areaLocation.isEmpty) return true;
-                                      return areaLocation == userCity;
-                                    })
-                                    .where((p) => p.isInStock)
-                                    .take(8)
-                                    .toList();
+                                      .where((p) {
+                                        final areaLocation =
+                                            (p.areaLocation ?? '')
+                                                .trim()
+                                                .toLowerCase();
+                                        // If userCity is not set, show all products
+                                        if (userCity.isEmpty) return true;
+                                        // Only show products if user's city matches product's areaLocation
+                                        if (areaLocation.isEmpty) return false;
+                                        return areaLocation == userCity;
+                                      })
+                                      .where((p) => p.isInStock)
+                                      .take(8)
+                                      .toList();
                                   HiveService.instance.cacheProducts(products);
+                                  if (products.isEmpty) {
+                                    return Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 32.0,
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.info_outline,
+                                              size: 48,
+                                              color: Colors.grey,
+                                            ),
+                                            SizedBox(height: 16),
+                                            Text(
+                                              'No products available in your area.',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.grey,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }
                                   return ListView.separated(
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
                                     itemCount: products.length,
-                                    separatorBuilder: (context, index) => SizedBox(height: 20),
+                                    separatorBuilder: (context, index) =>
+                                        SizedBox(height: 20),
                                     itemBuilder: (context, index) {
                                       final product = products[index];
                                       // Null safety and fallback values for all fields
-                                      final productTitle = product.title ?? 'Unknown';
-                                      final productImages = product.images ?? [];
-                                      final productImage = (productImages.isNotEmpty && productImages.first.isNotEmpty) ? productImages.first : null;
-                                      final productVariant = product.variant ?? '';
-                                      final discountPrice = product.discountPrice ?? 0.0;
-                                      final originalPrice = product.originalPrice ?? 0.0;
+                                      final productTitle =
+                                          product.title ?? 'Unknown';
+                                      final productImages =
+                                          product.images ?? [];
+                                      final productImage =
+                                          (productImages.isNotEmpty &&
+                                              productImages.first.isNotEmpty)
+                                          ? productImages.first
+                                          : null;
+                                      final productVariant =
+                                          product.variant ?? '';
+                                      final discountPrice =
+                                          product.discountPrice ?? 0.0;
+                                      final originalPrice =
+                                          product.originalPrice ?? 0.0;
                                       return InkWell(
                                         onTap: () {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => ProductDetailsScreen(key: UniqueKey(), productId: product.id),
+                                              builder: (context) =>
+                                                  ProductDetailsScreen(
+                                                    key: UniqueKey(),
+                                                    productId: product.id,
+                                                  ),
                                             ),
                                           );
                                         },
                                         borderRadius: BorderRadius.circular(24),
                                         child: Container(
-                                          margin: EdgeInsets.symmetric(horizontal: 2),
+                                          margin: EdgeInsets.symmetric(
+                                            horizontal: 2,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius: BorderRadius.circular(24),
-                                            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, 8))],
+                                            borderRadius: BorderRadius.circular(
+                                              24,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black12,
+                                                blurRadius: 16,
+                                                offset: Offset(0, 8),
+                                              ),
+                                            ],
                                           ),
                                           child: Row(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
                                             children: [
                                               Padding(
-                                                padding: const EdgeInsets.all(12.0),
+                                                padding: const EdgeInsets.all(
+                                                  12.0,
+                                                ),
                                                 child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(16),
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
                                                   child: Container(
                                                     width: 80,
                                                     height: 80,
                                                     color: Colors.grey[200],
                                                     child: productImage != null
-                                                        ? Base64ImageService().base64ToImage(productImage, fit: BoxFit.cover, width: 80, height: 80)
-                                                        : Center(child: Icon(Icons.image, color: Colors.grey, size: 40)),
+                                                        ? Base64ImageService()
+                                                              .base64ToImage(
+                                                                productImage,
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                                width: 80,
+                                                                height: 80,
+                                                              )
+                                                        : Center(
+                                                            child: Icon(
+                                                              Icons.image,
+                                                              color:
+                                                                  Colors.grey,
+                                                              size: 40,
+                                                            ),
+                                                          ),
                                                   ),
                                                 ),
                                               ),
                                               Expanded(
                                                 child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 4.0),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 18.0,
+                                                        horizontal: 4.0,
+                                                      ),
                                                   child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
-                                                      Text(productTitle, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17, color: Color(0xFF2B344F)), maxLines: 2, overflow: TextOverflow.ellipsis),
-                                                      if (productVariant.isNotEmpty)
+                                                      Text(
+                                                        productTitle,
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          fontSize: 17,
+                                                          color: Color(
+                                                            0xFF2B344F,
+                                                          ),
+                                                        ),
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                      if (productVariant
+                                                          .isNotEmpty)
                                                         Padding(
-                                                          padding: const EdgeInsets.only(top: 2.0),
-                                                          child: Text('Net weight: $productVariant', style: TextStyle(fontSize: 13, color: Colors.black54)),
+                                                          padding:
+                                                              const EdgeInsets.only(
+                                                                top: 2.0,
+                                                              ),
+                                                          child: Text(
+                                                            'Net weight: $productVariant',
+                                                            style: TextStyle(
+                                                              fontSize: 13,
+                                                              color: Colors
+                                                                  .black54,
+                                                            ),
+                                                          ),
                                                         ),
                                                       SizedBox(height: 6),
                                                       Row(
                                                         children: [
-                                                          Text('₹${discountPrice.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: Colors.black)),
+                                                          Text(
+                                                            '₹${discountPrice.toStringAsFixed(2)}',
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              fontSize: 16,
+                                                              color:
+                                                                  Colors.black,
+                                                            ),
+                                                          ),
                                                           if (originalPrice > 0)
                                                             Padding(
-                                                              padding: const EdgeInsets.only(left: 8.0),
-                                                              child: Text('₹${originalPrice.toStringAsFixed(2)}', style: TextStyle(fontSize: 14, color: Colors.black38, decoration: TextDecoration.lineThrough)),
+                                                              padding:
+                                                                  const EdgeInsets.only(
+                                                                    left: 8.0,
+                                                                  ),
+                                                              child: Text(
+                                                                '₹${originalPrice.toStringAsFixed(2)}',
+                                                                style: TextStyle(
+                                                                  fontSize: 14,
+                                                                  color: Colors
+                                                                      .black38,
+                                                                  decoration:
+                                                                      TextDecoration
+                                                                          .lineThrough,
+                                                                ),
+                                                              ),
                                                             ),
                                                         ],
                                                       ),
@@ -415,24 +615,71 @@ class Body extends ConsumerWidget {
                                                 ),
                                               ),
                                               Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16.0,
+                                                    ),
                                                 child: Material(
                                                   color: Colors.transparent,
                                                   child: InkWell(
-                                                    borderRadius: BorderRadius.circular(32),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          32,
+                                                        ),
                                                     onTap: () {
-                                                      final selectedAddressId = ref.read(selectedAddressIdProvider);
-                                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$productTitle added to cart!')));
-                                                      UserDatabaseHelper().addProductToCart(product.id, addressId: selectedAddressId).catchError((e) {
-                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add to cart: $e')));
-                                                        return false;
-                                                      });
+                                                      final selectedAddressId =
+                                                          ref.read(
+                                                            selectedAddressIdProvider,
+                                                          );
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            '$productTitle added to cart!',
+                                                          ),
+                                                        ),
+                                                      );
+                                                      UserDatabaseHelper()
+                                                          .addProductToCart(
+                                                            product.id,
+                                                            addressId:
+                                                                selectedAddressId,
+                                                          )
+                                                          .catchError((e) {
+                                                            ScaffoldMessenger.of(
+                                                              context,
+                                                            ).showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                  'Failed to add to cart: $e',
+                                                                ),
+                                                              ),
+                                                            );
+                                                            return false;
+                                                          });
                                                     },
                                                     child: Container(
                                                       width: 56,
                                                       height: 56,
-                                                      decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12)]),
-                                                      child: Icon(Icons.add, size: 36, color: Color(0xFF2B344F)),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        shape: BoxShape.circle,
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color:
+                                                                Colors.black12,
+                                                            blurRadius: 12,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.add,
+                                                        size: 36,
+                                                        color: Color(
+                                                          0xFF2B344F,
+                                                        ),
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
