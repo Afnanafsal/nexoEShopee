@@ -1656,6 +1656,7 @@ class _BodyState extends ConsumerState<Body> {
           addressId: _selectedAddressId,
           quantity: quantity,
           vendorId: vendorId,
+          userId: uid,
           status: 'pending',
         ),
       );
