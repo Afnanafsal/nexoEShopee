@@ -219,25 +219,25 @@ class _ProfileActions extends StatelessWidget {
           onTap: () => _handleVerifiedAction(context, MyOrdersScreen()),
         ),
         const SizedBox(height: 8),
-        _ProfileExpansion(
-          icon: Icons.business,
-          title: 'I am Seller',
-          children: [
-            _ProfileActionTile(
-              title: 'Add New Product',
-              icon: Icons.add_box,
-              onTap: () => _handleVerifiedAction(
-                context,
-                EditProductScreen(key: UniqueKey(), productToEdit: null),
-              ),
-            ),
-            _ProfileActionTile(
-              title: 'Manage My Products',
-              icon: Icons.inventory,
-              onTap: () => _handleVerifiedAction(context, MyProductsScreen()),
-            ),
-          ],
-        ),
+        // _ProfileExpansion(
+        //   icon: Icons.business,
+        //   title: 'I am Seller',
+        //   children: [
+        //     _ProfileActionTile(
+        //       title: 'Add New Product',
+        //       icon: Icons.add_box,
+        //       onTap: () => _handleVerifiedAction(
+        //         context,
+        //         EditProductScreen(key: UniqueKey(), productToEdit: null),
+        //       ),
+        //     ),
+        //     _ProfileActionTile(
+        //       title: 'Manage My Products',
+        //       icon: Icons.inventory,
+        //       onTap: () => _handleVerifiedAction(context, MyProductsScreen()),
+        //     ),
+        //   ],
+        // ),
 
         const SizedBox(height: 16),
         ElevatedButton.icon(

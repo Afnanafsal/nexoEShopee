@@ -57,7 +57,38 @@ class AuthentificationWrapper extends ConsumerWidget {
           return SignInScreen();
         }
       },
-      loading: () => Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 24),
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontFamily: 'Shadows Into Light Two',
+                    fontSize: 36,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.5,
+                  ),
+                  children: const [
+                    TextSpan(
+                      text: 'Fish',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    TextSpan(
+                      text: 'Kart',
+                      style: TextStyle(color: Color(0xFF29465B)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       error: (error, stack) =>
           Scaffold(body: Center(child: Text('Error: $error'))),
     );
