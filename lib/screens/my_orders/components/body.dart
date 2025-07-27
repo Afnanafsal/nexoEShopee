@@ -386,11 +386,51 @@ class _BodyState extends State<Body> {
               return addressId == _selectedAddressId;
             }).toList();
           }
-          if (_selectedTabIndex == 1) {
-            orderedProductsDocs = [];
-          } else if (_selectedTabIndex == 2) {
-            orderedProductsDocs = [];
+
+          // Normalize status for all docs (missing/empty = Pending, lowercase to title case)
+          String normalizeStatus(String? status) {
+            if (status == null || status.trim().isEmpty) return 'Pending';
+            final s = status.trim().toLowerCase();
+            if (s == 'completed') return 'Completed';
+            if (s == 'pending') return 'Pending';
+            if (s == 'cancelled') return 'Cancelled';
+            // fallback: capitalize first letter
+            return s[0].toUpperCase() + s.substring(1);
           }
+
+          // Filter by tab
+          if (_selectedTabIndex == 0) {
+            // Completed
+            orderedProductsDocs = orderedProductsDocs.where((doc) => normalizeStatus(doc.data()['status']) == 'Completed').toList();
+          } else if (_selectedTabIndex == 1) {
+            // Pending
+            orderedProductsDocs = orderedProductsDocs.where((doc) => normalizeStatus(doc.data()['status']) == 'Pending').toList();
+          } else if (_selectedTabIndex == 2) {
+            // Cancelled
+            orderedProductsDocs = orderedProductsDocs.where((doc) => normalizeStatus(doc.data()['status']) == 'Cancelled').toList();
+          }
+
+          // Sort by status, then by date descending
+          orderedProductsDocs.sort((a, b) {
+            String aStatus = normalizeStatus(a.data()['status']);
+            String bStatus = normalizeStatus(b.data()['status']);
+            const statusOrder = ['Pending', 'Completed', 'Cancelled'];
+            int aStatusIndex = statusOrder.indexOf(aStatus);
+            int bStatusIndex = statusOrder.indexOf(bStatus);
+            if (aStatusIndex == -1) aStatusIndex = statusOrder.length;
+            if (bStatusIndex == -1) bStatusIndex = statusOrder.length;
+            if (aStatusIndex != bStatusIndex) {
+              return aStatusIndex.compareTo(bStatusIndex);
+            }
+            // If status is the same, sort by date descending
+            final aDate = a.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
+            final bDate = b.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
+            if (aDate == null && bDate == null) return 0;
+            if (aDate == null) return 1;
+            if (bDate == null) return -1;
+            return bDate.compareTo(aDate);
+          });
+
           Logger().i(
             'Found ${orderedProductsDocs.length} orders for user $currentUserUid and address $_selectedAddressId',
           );
@@ -402,21 +442,10 @@ class _BodyState extends State<Body> {
               ),
             );
           }
-          // Sort by date descending
-          orderedProductsDocs.sort((a, b) {
-            final aDate = a.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
-            final bDate = b.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
-            if (aDate == null && bDate == null) return 0;
-            if (aDate == null) return 1;
-            if (bDate == null) return -1;
-            return bDate.compareTo(aDate);
-          });
           // Group by date
-          Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>
-          grouped = {};
+          Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>> grouped = {};
           for (var doc in orderedProductsDocs) {
-            final date =
-                doc.data()[OrderedProduct.ORDER_DATE_KEY] as String? ?? '';
+            final date = doc.data()[OrderedProduct.ORDER_DATE_KEY] as String? ?? '';
             grouped.putIfAbsent(date, () => []).add(doc);
           }
           return ListView(
@@ -424,11 +453,9 @@ class _BodyState extends State<Body> {
             children: grouped.entries.map((entry) {
               // Group products by productUid and count
               Map<String, int> productCounts = {};
-              Map<String, QueryDocumentSnapshot<Map<String, dynamic>>>
-              productDocs = {};
+              Map<String, QueryDocumentSnapshot<Map<String, dynamic>>> productDocs = {};
               for (var doc in entry.value) {
-                final pid =
-                    doc.data()[OrderedProduct.PRODUCT_UID_KEY] as String?;
+                final pid = doc.data()[OrderedProduct.PRODUCT_UID_KEY] as String?;
                 if (pid != null) {
                   productCounts[pid] = (productCounts[pid] ?? 0) + 1;
                   productDocs[pid] = doc;
@@ -467,8 +494,7 @@ class _BodyState extends State<Body> {
                           return FutureBuilder<Product?>(
                             future: _getProductWithCaching(pid),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
                                 // Shimmer placeholder for product card
                                 return SizedBox(
                                   height: 70,
@@ -482,18 +508,14 @@ class _BodyState extends State<Body> {
                                           height: 70,
                                           decoration: BoxDecoration(
                                             color: Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
+                                            borderRadius: BorderRadius.circular(12),
                                           ),
                                         ),
                                         SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
                                               Container(
                                                 width: double.infinity,
@@ -529,9 +551,7 @@ class _BodyState extends State<Body> {
                                         style: TextButton.styleFrom(
                                           backgroundColor: Color(0xFFF2F6FF),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
+                                            borderRadius: BorderRadius.circular(8),
                                           ),
                                           padding: EdgeInsets.symmetric(
                                             horizontal: 12,
@@ -539,22 +559,15 @@ class _BodyState extends State<Body> {
                                           ),
                                         ),
                                         onPressed: () async {
-                                          String currentUserUid =
-                                              AuthentificationService()
-                                                  .currentUser
-                                                  .uid;
+                                          String currentUserUid = AuthentificationService().currentUser.uid;
                                           Review? prevReview;
                                           try {
-                                            prevReview =
-                                                await ProductDatabaseHelper()
-                                                    .getProductReviewWithID(
-                                                      product.id,
-                                                      currentUserUid,
-                                                    );
-                                          } on FirebaseException catch (e) {
-                                            Logger().w(
-                                              "Firebase Exception: $e",
+                                            prevReview = await ProductDatabaseHelper().getProductReviewWithID(
+                                              product.id,
+                                              currentUserUid,
                                             );
+                                          } on FirebaseException catch (e) {
+                                            Logger().w("Firebase Exception: $e");
                                           } catch (e) {
                                             Logger().w("Unknown Exception: $e");
                                           }
@@ -575,40 +588,28 @@ class _BodyState extends State<Body> {
                                           );
                                           if (result is Review) {
                                             bool reviewAdded = false;
-                                            String snackbarMessage =
-                                                "Unknown error occurred";
+                                            String snackbarMessage = "Unknown error occurred";
                                             try {
-                                              reviewAdded =
-                                                  await ProductDatabaseHelper()
-                                                      .addProductReview(
-                                                        product.id,
-                                                        result,
-                                                      );
+                                              reviewAdded = await ProductDatabaseHelper().addProductReview(
+                                                product.id,
+                                                result,
+                                              );
                                               if (reviewAdded == true) {
-                                                snackbarMessage =
-                                                    "Product review added successfully";
+                                                snackbarMessage = "Product review added successfully";
                                               } else {
                                                 throw "Coulnd't add product review due to unknown reason";
                                               }
                                             } on FirebaseException catch (e) {
-                                              Logger().w(
-                                                "Firebase Exception: $e",
-                                              );
+                                              Logger().w("Firebase Exception: $e");
                                               snackbarMessage = e.toString();
                                             } catch (e) {
-                                              Logger().w(
-                                                "Unknown Exception: $e",
-                                              );
+                                              Logger().w("Unknown Exception: $e");
                                               snackbarMessage = e.toString();
                                             } finally {
                                               Logger().i(snackbarMessage);
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
+                                              ScaffoldMessenger.of(context).showSnackBar(
                                                 SnackBar(
-                                                  content: Text(
-                                                    snackbarMessage,
-                                                  ),
+                                                  content: Text(snackbarMessage),
                                                 ),
                                               );
                                             }
@@ -631,8 +632,7 @@ class _BodyState extends State<Body> {
                                       ),
                                     ),
                                     Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
                                           child: ProductShortDetailCard(
@@ -641,11 +641,10 @@ class _BodyState extends State<Body> {
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      ProductDetailsScreen(
-                                                        key: UniqueKey(),
-                                                        productId: product.id,
-                                                      ),
+                                                  builder: (context) => ProductDetailsScreen(
+                                                    key: UniqueKey(),
+                                                    productId: product.id,
+                                                  ),
                                                 ),
                                               ).then((_) async {
                                                 await refreshPage();
@@ -661,9 +660,7 @@ class _BodyState extends State<Body> {
                                           ),
                                           decoration: BoxDecoration(
                                             color: Color(0xFFEDF2FA),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
+                                            borderRadius: BorderRadius.circular(6),
                                           ),
                                         ),
                                       ],
