@@ -407,6 +407,7 @@ class Body extends ConsumerWidget {
                                         return areaLocation == userCity;
                                       })
                                       .where((p) => p.isInStock)
+                                      .where((p) => (p as dynamic).isAvailable == true)
                                       .toList();
                                   HiveService.instance.cacheProducts(products);
                                   if (products.isEmpty) {
