@@ -9,7 +9,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 // import 'package:url_launcher/url_launcher.dart';
 import 'package:fishkart/components/async_progress_dialog.dart';
 
-
 import 'package:fishkart/components/nothingtoshow_container.dart';
 import 'package:fishkart/components/product_short_detail_card.dart';
 import 'package:fishkart/constants.dart';
@@ -83,7 +82,10 @@ class _BodyState extends ConsumerState<Body> {
       await showDialog(
         context: context,
         builder: (context) {
-          return AsyncProgressDialog(Future.value(true), message: Text("Please wait"));
+          return AsyncProgressDialog(
+            Future.value(true),
+            message: Text("Please wait"),
+          );
         },
       );
     } else {
@@ -94,13 +96,12 @@ class _BodyState extends ConsumerState<Body> {
       );
     }
   }
+
   List<Map<String, dynamic>> savedCards = [];
   String? selectedUpiApp;
   bool showQrDialog = false;
   int? selectedCardIndex;
   late RazorpayService _razorpayService;
-
-
 
   @override
   void dispose() {
@@ -934,7 +935,8 @@ class _BodyState extends ConsumerState<Body> {
                               IconButton(
                                 icon: Icon(Icons.delete, color: Colors.red),
                                 onPressed: () async {
-                                  await UserDatabaseHelper().removeProductFromCart(cartItemsId[i]);
+                                  await UserDatabaseHelper()
+                                      .removeProductFromCart(cartItemsId[i]);
                                   await refreshPage();
                                 },
                               ),
@@ -1594,7 +1596,9 @@ class _BodyState extends ConsumerState<Body> {
       final user = FirebaseAuth.instance.currentUser;
       final name = user?.displayName ?? 'NexoEShopee User';
       final email = user?.email ?? 'user@example.com';
-      final contact = '9999999999'; // TODO: Replace with user's phone if available
+      final contact =
+          user?.phoneNumber ??
+          '9999999999'; // TODO: Replace with user's phone if available
 
       // Open Razorpay checkout
       _razorpayService.openCheckout(
@@ -1628,6 +1632,20 @@ class _BodyState extends ConsumerState<Body> {
       final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
       // Decrease reserved, increase ordered
       await Product.orderStock(productId, quantity);
+      // Get vendorId from product.owner
+      String? vendorId;
+      var cachedProduct = HiveService.instance.getCachedProduct(productId);
+      if (cachedProduct != null && cachedProduct.owner != null) {
+        vendorId = cachedProduct.owner;
+      } else {
+        // fallback: fetch from db if not cached
+        try {
+          final product = await ProductDatabaseHelper().getProductWithID(
+            productId,
+          );
+          vendorId = product?.owner;
+        } catch (_) {}
+      }
       orderedProducts.add(
         OrderedProduct(
           '',
@@ -1635,6 +1653,8 @@ class _BodyState extends ConsumerState<Body> {
           orderDate: isoDateTime,
           addressId: _selectedAddressId,
           quantity: quantity,
+          vendorId: vendorId,
+          status: 'pending',
         ),
       );
     }
@@ -1700,7 +1720,10 @@ class _BodyState extends ConsumerState<Body> {
       await showDialog(
         context: context,
         builder: (context) {
-          return AsyncProgressDialog(Future.value(true), message: Text("Please wait"));
+          return AsyncProgressDialog(
+            Future.value(true),
+            message: Text("Please wait"),
+          );
         },
       );
     } else {

@@ -8,6 +8,9 @@ enum ProductType { Freshwater, Saltwater, Shellfish, Exotic, Others, Dried }
 class Product extends Model {
   // Helper: Is product in stock?
   bool get isInStock => stock > 0;
+  // Helper: Is product available?
+  bool get isAvailable => _isAvailable ?? true;
+  final bool? _isAvailable;
 
   // Helper: Check if all products in cart have enough stock
   static Future<bool> cartHasSufficientStock(Map<String, int> cart) async {
@@ -219,7 +222,9 @@ class Product extends Model {
     this.dateAdded,
     this.stock = 0,
     this.areaLocation,
-  }) : super(id);
+    bool? isAvailable,
+  }) : _isAvailable = isAvailable,
+       super(id);
   static const String IMAGES_KEY = "images";
   static const String TITLE_KEY = "title";
   static const String VARIANT_KEY = "variant";
@@ -284,6 +289,7 @@ class Product extends Model {
           : null,
       stock: parsedStock,
       areaLocation: map['areaLocation'],
+      isAvailable: map['isAvailable'] is bool ? map['isAvailable'] : true,
     );
   }
   Map<String, dynamic> toMap() {
@@ -305,6 +311,7 @@ class Product extends Model {
       DATE_ADDED_KEY: dateAdded?.toIso8601String(),
       STOCK_KEY: stock,
       'areaLocation': areaLocation,
+      'isAvailable': isAvailable,
     };
     return map;
   }
@@ -349,6 +356,7 @@ class Product extends Model {
     DateTime? dateAdded,
     int? stock,
     String? areaLocation,
+    bool? isAvailable,
   }) {
     return Product(
       id ?? this.id,
@@ -367,6 +375,7 @@ class Product extends Model {
       dateAdded: dateAdded ?? this.dateAdded,
       stock: stock ?? this.stock,
       areaLocation: areaLocation ?? this.areaLocation,
+      isAvailable: isAvailable ?? _isAvailable,
     );
   }
 }

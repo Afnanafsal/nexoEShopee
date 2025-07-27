@@ -12,8 +12,9 @@ final productDatabaseHelperProvider = Provider<ProductDatabaseHelper>((ref) {
 final allProductsProvider = FutureProvider<List<String>>((ref) async {
   // Try cache first
   final cachedProducts = HiveService.instance.getCachedProducts();
-  if (cachedProducts.isNotEmpty) {
-    return cachedProducts.map((p) => p.id).toList();
+  final availableCached = cachedProducts.where((p) => p.isAvailable).toList();
+  if (availableCached.isNotEmpty) {
+    return availableCached.map((p) => p.id).toList();
   }
   // Fallback to backend
   final productHelper = ref.read(productDatabaseHelperProvider);
@@ -75,6 +76,12 @@ final latestProductsProvider = FutureProvider.family<List<String>, int>((
   // Always fetch from backend and update cache to ensure all products are shown
   final productHelper = ref.read(productDatabaseHelperProvider);
   final products = await productHelper.getAllProducts(forceRefresh: true);
+  // Filter by isAvailable in case cache is used
+  final cachedProducts = HiveService.instance.getCachedProducts();
+  final availableCached = cachedProducts.where((p) => p.isAvailable).toList();
+  if (availableCached.isNotEmpty) {
+    return availableCached.map((p) => p.id).toList();
+  }
   return products;
 });
 

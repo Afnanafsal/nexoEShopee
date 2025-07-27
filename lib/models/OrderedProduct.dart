@@ -5,18 +5,24 @@ class OrderedProduct extends Model {
   static const String ORDER_DATE_KEY = "order_date";
   static const String ADDRESS_ID_KEY = "address_id";
   static const String QUANTITY_KEY = "quantity";
+  static const String VENDOR_ID_KEY = "vendor_id";
+  static const String STATUS_KEY = "status";
 
   String? productUid;
   String? orderDate;
   String? addressId;
   int quantity;
+  String? vendorId;
+  String status;
 
   OrderedProduct(
     String id, {
     this.productUid,
     this.orderDate,
     this.addressId,
-    this.quantity = 1,
+    required this.quantity,
+    this.vendorId,
+    this.status = 'pending',
   }) : super(id);
 
   factory OrderedProduct.fromMap(
@@ -29,6 +35,8 @@ class OrderedProduct extends Model {
       orderDate: map[ORDER_DATE_KEY],
       addressId: map[ADDRESS_ID_KEY],
       quantity: map[QUANTITY_KEY] ?? 1,
+      vendorId: map[VENDOR_ID_KEY],
+      status: map[STATUS_KEY] ?? 'pending',
     );
   }
 
@@ -39,6 +47,8 @@ class OrderedProduct extends Model {
       ORDER_DATE_KEY: orderDate,
       ADDRESS_ID_KEY: addressId,
       QUANTITY_KEY: quantity,
+      VENDOR_ID_KEY: vendorId,
+      STATUS_KEY: status,
     };
   }
 
@@ -48,6 +58,9 @@ class OrderedProduct extends Model {
     if (productUid != null) map[PRODUCT_UID_KEY] = productUid;
     if (orderDate != null) map[ORDER_DATE_KEY] = orderDate;
     if (addressId != null) map[ADDRESS_ID_KEY] = addressId;
+    map[QUANTITY_KEY] = quantity;
+    if (vendorId != null) map[VENDOR_ID_KEY] = vendorId;
+    map[STATUS_KEY] = status;
     return map;
   }
 
@@ -57,6 +70,8 @@ class OrderedProduct extends Model {
     String? orderDate,
     String? addressId,
     int? quantity,
+    String? vendorId,
+    String? status,
   }) {
     return OrderedProduct(
       (id ?? this.id),
@@ -64,6 +79,8 @@ class OrderedProduct extends Model {
       orderDate: orderDate ?? this.orderDate,
       addressId: addressId ?? this.addressId,
       quantity: quantity ?? this.quantity,
+      vendorId: vendorId ?? this.vendorId,
+      status: status ?? this.status,
     );
   }
 }
