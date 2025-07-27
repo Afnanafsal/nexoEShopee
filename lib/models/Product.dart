@@ -217,6 +217,7 @@ class Product extends Model {
     this.description,
     this.seller,
     this.owner,
+    this.vendorId,
     this.productType,
     this.searchTags,
     this.dateAdded,
@@ -250,6 +251,7 @@ class Product extends Model {
   String? description;
   String? seller;
   String? owner;
+  String? vendorId;
   ProductType? productType;
   List<String>? searchTags;
   DateTime? dateAdded;
@@ -279,6 +281,7 @@ class Product extends Model {
       description: map[DESCRIPTION_KEY],
       seller: map[SELLER_KEY],
       owner: map[OWNER_KEY],
+      vendorId: map['vendorId'],
       productType: map[PRODUCT_TYPE_KEY] != null
           ? EnumToString.fromString(ProductType.values, map[PRODUCT_TYPE_KEY])
           : null,
@@ -312,6 +315,7 @@ class Product extends Model {
       STOCK_KEY: stock,
       'areaLocation': areaLocation,
       'isAvailable': isAvailable,
+      'vendorId': vendorId,
     };
     return map;
   }
@@ -351,6 +355,7 @@ class Product extends Model {
     String? description,
     String? seller,
     String? owner,
+    String? vendorId,
     ProductType? productType,
     List<String>? searchTags,
     DateTime? dateAdded,
@@ -370,6 +375,7 @@ class Product extends Model {
       description: description ?? this.description,
       seller: seller ?? this.seller,
       owner: owner ?? this.owner,
+      vendorId: vendorId ?? this.vendorId,
       productType: productType ?? this.productType,
       searchTags: searchTags ?? this.searchTags,
       dateAdded: dateAdded ?? this.dateAdded,

@@ -1632,18 +1632,20 @@ class _BodyState extends ConsumerState<Body> {
       final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
       // Decrease reserved, increase ordered
       await Product.orderStock(productId, quantity);
-      // Get vendorId from product.owner
+      // Get vendorId from product.vendorId
       String? vendorId;
       var cachedProduct = HiveService.instance.getCachedProduct(productId);
-      if (cachedProduct != null && cachedProduct.owner != null) {
-        vendorId = cachedProduct.owner;
+      if (cachedProduct != null && cachedProduct.toMap().containsKey('vendorId') && cachedProduct.toMap()['vendorId'] != null) {
+        vendorId = cachedProduct.toMap()['vendorId'];
       } else {
         // fallback: fetch from db if not cached
         try {
           final product = await ProductDatabaseHelper().getProductWithID(
             productId,
           );
-          vendorId = product?.owner;
+          if (product != null && product.toMap().containsKey('vendorId')) {
+            vendorId = product.toMap()['vendorId'];
+          }
         } catch (_) {}
       }
       orderedProducts.add(
