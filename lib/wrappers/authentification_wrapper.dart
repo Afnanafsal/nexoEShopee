@@ -43,9 +43,11 @@ class AuthentificationWrapper extends ConsumerWidget {
                   await ref.read(authServiceProvider).signOut();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        'This account is not registered as a customer (userType: $userType). Please sign up as a customer.',
+                      content: const Text(
+                        'This account is not registered as a customer. Please sign up as a customer first, then continue with Google.',
                       ),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
                     ),
                   );
                 });

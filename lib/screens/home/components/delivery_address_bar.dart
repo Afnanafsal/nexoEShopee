@@ -42,228 +42,390 @@ class DeliveryAddressBar extends ConsumerWidget {
       loading: () {},
       error: (err, stack) {},
     );
-    return Container(
-      padding: EdgeInsets.only(
-        right: getProportionateScreenWidth(10),
-        top: getProportionateScreenHeight(8),
-        bottom: getProportionateScreenHeight(8),
-      ),
-      decoration: BoxDecoration(color: Colors.white),
-      child: Row(
-        children: [
-          Icon(Icons.location_on, color: kPrimaryColor, size: 20),
-          SizedBox(width: getProportionateScreenWidth(8)),
-          Expanded(
-            child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ManageAddressesScreen(),
-                  ),
-                );
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  addressAsync.when(
-                    data: (address) {
-                      String title = "Address";
-                      if (address != null &&
-                          address.title != null &&
-                          address.title!.isNotEmpty) {
-                        title = address.title!;
-                      }
-                      return Text(
-                        "${title[0].toUpperCase()}${title.substring(1)}",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: kPrimaryColor,
-                          fontWeight: FontWeight.w600,
+    return addressesListAsync.when(
+      data: (addresses) {
+        if (addresses.isEmpty) {
+          // No addresses: show prompt to add address
+          return Container(
+            padding: EdgeInsets.only(
+              right: getProportionateScreenWidth(10),
+              top: getProportionateScreenHeight(8),
+              bottom: getProportionateScreenHeight(8),
+            ),
+            decoration: BoxDecoration(color: Colors.white),
+            child: Row(
+              children: [
+                Icon(Icons.location_on, color: kPrimaryColor, size: 20),
+                SizedBox(width: getProportionateScreenWidth(8)),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ManageAddressesScreen(),
                         ),
                       );
                     },
-                    loading: () => Text(
-                      "Loading...",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[400],
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    error: (err, stack) => Text(
-                      "Error loading address",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.red,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                  if (selectedAddressId == null)
-                    Text(
-                      "Add delivery address",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[600],
-                      ),
-                    )
-                  else
-                    addressAsync.when(
-                      data: (address) {
-                        String formattedAddress = selectedAddressId;
-                        if (address != null) {
-                          formattedAddress =
-                              [
-                                    address.addressLine1,
-                                    address.city,
-                                    address.state,
-                                    address.pincode,
-                                  ]
-                                  .whereType<String>()
-                                  .where((e) => e.isNotEmpty)
-                                  .join(', ');
-                        }
-                        return Text(
-                          formattedAddress,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "No address found",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: kPrimaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          "Please add a delivery address",
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            color: Colors.grey[600],
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        );
-                      },
-                      loading: () => Text(
-                        "Loading...",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[400],
                         ),
-                      ),
-                      error: (err, stack) => Text(
-                        "Error loading address",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.red,
-                        ),
-                      ),
+                      ],
                     ),
-                ],
-              ),
-            ),
-          ),
-          if (addressesListAsync.value == null ||
-              (addressesListAsync.value?.length ?? 0) > 1)
-            InkWell(
-              onTap: () async {
-                final addresses = addressesListAsync.value ?? [];
-                if (addresses.isEmpty) return;
-                final cachedAddresses = HiveService.instance.getCachedAddresses();
-                final selected = await showDialog<String>(
-                  context: context,
-                  builder: (context) {
-                    return Dialog(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.location_on, color: kPrimaryColor, size: 24),
-                                SizedBox(width: 8),
-                                Text('Select Delivery Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: kPrimaryColor)),
-                              ],
-                            ),
-                            SizedBox(height: 16),
-                            ...addresses.map((addressId) {
-                              Map<String, dynamic>? addressMap;
-                              try {
-                                addressMap = cachedAddresses.firstWhere((a) => a['id'] == addressId);
-                              } catch (e) {
-                                addressMap = {};
-                              }
-                              final title = addressMap['title'] != null && addressMap['title'].toString().isNotEmpty
-                                  ? addressMap['title'].toString()
-                                  : addressId;
-                              final details = [
-                                addressMap['address_line_1'],
-                                addressMap['city'],
-                                addressMap['state'],
-                                addressMap['pincode'],
-                              ].whereType<String>().where((e) => e.isNotEmpty).join(', ');
-                              final isSelected = addressId == selectedAddressId;
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 6),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(12),
-                                    onTap: () {
-                                      Navigator.pop(context, addressId);
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: isSelected ? kPrimaryColor.withOpacity(0.08) : Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: isSelected ? kPrimaryColor : Colors.grey[300]!,
-                                          width: isSelected ? 2 : 1,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.home, color: isSelected ? kPrimaryColor : Colors.grey[500], size: 22),
-                                          SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isSelected ? kPrimaryColor : Colors.black)),
-                                                if (details.isNotEmpty)
-                                                  Padding(
-                                                    padding: const EdgeInsets.only(top: 2.0),
-                                                    child: Text(details, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (isSelected)
-                                            Icon(Icons.check_circle, color: kPrimaryColor, size: 22),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ],
-                        ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.add_location_alt,
+                    color: kPrimaryColor,
+                    size: 22,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ManageAddressesScreen(),
                       ),
                     );
                   },
-                );
-                if (selected != null && selected != selectedAddressId) {
-                  ref.read(selectedAddressIdProvider.notifier).state = selected;
-                  ref.invalidate(latestProductsProvider);
-                }
-              },
-              child: Icon(
-                Icons.keyboard_arrow_down,
-                color: kPrimaryColor,
-                size: 20,
-              ),
+                  tooltip: 'Add Address',
+                ),
+              ],
             ),
-        ],
+          );
+        }
+        // ...existing code for when addresses exist...
+        return Container(
+          padding: EdgeInsets.only(
+            right: getProportionateScreenWidth(10),
+            top: getProportionateScreenHeight(8),
+            bottom: getProportionateScreenHeight(8),
+          ),
+          decoration: BoxDecoration(color: Colors.white),
+          child: Row(
+            children: [
+              Icon(Icons.location_on, color: kPrimaryColor, size: 20),
+              SizedBox(width: getProportionateScreenWidth(8)),
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ManageAddressesScreen(),
+                      ),
+                    );
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      addressAsync.when(
+                        data: (address) {
+                          String title = "Address";
+                          if (address != null &&
+                              address.title != null &&
+                              address.title!.isNotEmpty) {
+                            title = address.title!;
+                          }
+                          return Text(
+                            "${title[0].toUpperCase()}${title.substring(1)}",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: kPrimaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          );
+                        },
+                        loading: () => Text(
+                          "Loading...",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[400],
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        error: (err, stack) => Text(
+                          "Error loading address",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      if (selectedAddressId == null)
+                        Text(
+                          "Add delivery address",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[600],
+                          ),
+                        )
+                      else
+                        addressAsync.when(
+                          data: (address) {
+                            String formattedAddress = selectedAddressId;
+                            if (address != null) {
+                              formattedAddress =
+                                  [
+                                        address.addressLine1,
+                                        address.city,
+                                        address.state,
+                                        address.pincode,
+                                      ]
+                                      .whereType<String>()
+                                      .where((e) => e.isNotEmpty)
+                                      .join(', ');
+                            }
+                            return Text(
+                              formattedAddress,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            );
+                          },
+                          loading: () => Text(
+                            "Loading...",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                          error: (err, stack) => Text(
+                            "Error loading address",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              if (addressesListAsync.value == null ||
+                  (addressesListAsync.value?.length ?? 0) > 1)
+                InkWell(
+                  onTap: () async {
+                    final addresses = addressesListAsync.value ?? [];
+                    if (addresses.isEmpty) return;
+                    final cachedAddresses = HiveService.instance
+                        .getCachedAddresses();
+                    final selected = await showDialog<String>(
+                      context: context,
+                      builder: (context) {
+                        return Dialog(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 18,
+                              horizontal: 12,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on,
+                                      color: kPrimaryColor,
+                                      size: 24,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Select Delivery Address',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                        color: kPrimaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 16),
+                                ...addresses.map((addressId) {
+                                  Map<String, dynamic>? addressMap;
+                                  try {
+                                    addressMap = cachedAddresses.firstWhere(
+                                      (a) => a['id'] == addressId,
+                                    );
+                                  } catch (e) {
+                                    addressMap = {};
+                                  }
+                                  final title =
+                                      addressMap['title'] != null &&
+                                          addressMap['title']
+                                              .toString()
+                                              .isNotEmpty
+                                      ? addressMap['title'].toString()
+                                      : addressId;
+                                  final details =
+                                      [
+                                            addressMap['address_line_1'],
+                                            addressMap['city'],
+                                            addressMap['state'],
+                                            addressMap['pincode'],
+                                          ]
+                                          .whereType<String>()
+                                          .where((e) => e.isNotEmpty)
+                                          .join(', ');
+                                  final isSelected =
+                                      addressId == selectedAddressId;
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                    ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(12),
+                                        onTap: () {
+                                          Navigator.pop(context, addressId);
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? kPrimaryColor.withOpacity(
+                                                    0.08,
+                                                  )
+                                                : Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            border: Border.all(
+                                              color: isSelected
+                                                  ? kPrimaryColor
+                                                  : Colors.grey[300]!,
+                                              width: isSelected ? 2 : 1,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.home,
+                                                color: isSelected
+                                                    ? kPrimaryColor
+                                                    : Colors.grey[500],
+                                                size: 22,
+                                              ),
+                                              SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      title,
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 16,
+                                                        color: isSelected
+                                                            ? kPrimaryColor
+                                                            : Colors.black,
+                                                      ),
+                                                    ),
+                                                    if (details.isNotEmpty)
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets.only(
+                                                              top: 2.0,
+                                                            ),
+                                                        child: Text(
+                                                          details,
+                                                          style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: Colors
+                                                                .grey[700],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                              if (isSelected)
+                                                Icon(
+                                                  Icons.check_circle,
+                                                  color: kPrimaryColor,
+                                                  size: 22,
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                    if (selected != null && selected != selectedAddressId) {
+                      ref.read(selectedAddressIdProvider.notifier).state =
+                          selected;
+                      ref.invalidate(latestProductsProvider);
+                    }
+                  },
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: kPrimaryColor,
+                    size: 20,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+      loading: () => Container(
+        padding: EdgeInsets.all(16),
+        child: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 12),
+            Text('Loading addresses...'),
+          ],
+        ),
+      ),
+      error: (err, stack) => Container(
+        padding: EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.error, color: Colors.red),
+            SizedBox(width: 12),
+            Text('Error loading addresses'),
+          ],
+        ),
       ),
     );
   }

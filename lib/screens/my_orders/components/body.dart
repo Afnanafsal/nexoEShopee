@@ -393,7 +393,7 @@ class _BodyState extends State<Body> {
             final s = status.trim().toLowerCase();
             if (s == 'completed') return 'Completed';
             if (s == 'pending') return 'Pending';
-            if (s == 'cancelled') return 'Cancelled';
+            if (s == 'cancelled' || s == 'rejected') return 'Cancelled';
             // fallback: capitalize first letter
             return s[0].toUpperCase() + s.substring(1);
           }
@@ -401,13 +401,25 @@ class _BodyState extends State<Body> {
           // Filter by tab
           if (_selectedTabIndex == 0) {
             // Completed
-            orderedProductsDocs = orderedProductsDocs.where((doc) => normalizeStatus(doc.data()['status']) == 'Completed').toList();
+            orderedProductsDocs = orderedProductsDocs
+                .where(
+                  (doc) => normalizeStatus(doc.data()['status']) == 'Completed',
+                )
+                .toList();
           } else if (_selectedTabIndex == 1) {
             // Pending
-            orderedProductsDocs = orderedProductsDocs.where((doc) => normalizeStatus(doc.data()['status']) == 'Pending').toList();
+            orderedProductsDocs = orderedProductsDocs
+                .where(
+                  (doc) => normalizeStatus(doc.data()['status']) == 'Pending',
+                )
+                .toList();
           } else if (_selectedTabIndex == 2) {
             // Cancelled
-            orderedProductsDocs = orderedProductsDocs.where((doc) => normalizeStatus(doc.data()['status']) == 'Cancelled').toList();
+            orderedProductsDocs = orderedProductsDocs
+                .where(
+                  (doc) => normalizeStatus(doc.data()['status']) == 'Cancelled',
+                )
+                .toList();
           }
 
           // Sort by status, then by date descending
@@ -443,23 +455,71 @@ class _BodyState extends State<Body> {
             );
           }
           // Group by date
-          Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>> grouped = {};
+          Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+          grouped = {};
           for (var doc in orderedProductsDocs) {
-            final date = doc.data()[OrderedProduct.ORDER_DATE_KEY] as String? ?? '';
+            final date =
+                doc.data()[OrderedProduct.ORDER_DATE_KEY] as String? ?? '';
             grouped.putIfAbsent(date, () => []).add(doc);
           }
+          String formatOrderDate(String isoDate) {
+            try {
+              final dt = DateTime.parse(isoDate);
+              int hour = dt.hour;
+              final minute = dt.minute.toString().padLeft(2, '0');
+              final ampm = hour >= 12 ? 'PM' : 'AM';
+              hour = hour % 12;
+              if (hour == 0) hour = 12;
+              final hourStr = hour.toString().padLeft(2, '0');
+              final day = dt.day.toString().padLeft(2, '0');
+              final month = dt.month.toString().padLeft(2, '0');
+              final year = dt.year.toString().substring(2);
+              return '$hourStr:$minute $ampm $day-$month-$year';
+            } catch (e) {
+              return isoDate;
+            }
+          }
+
           return ListView(
             physics: BouncingScrollPhysics(),
             children: grouped.entries.map((entry) {
               // Group products by productUid and count
               Map<String, int> productCounts = {};
-              Map<String, QueryDocumentSnapshot<Map<String, dynamic>>> productDocs = {};
+              Map<String, QueryDocumentSnapshot<Map<String, dynamic>>>
+              productDocs = {};
               for (var doc in entry.value) {
-                final pid = doc.data()[OrderedProduct.PRODUCT_UID_KEY] as String?;
+                final pid =
+                    doc.data()[OrderedProduct.PRODUCT_UID_KEY] as String?;
                 if (pid != null) {
                   productCounts[pid] = (productCounts[pid] ?? 0) + 1;
                   productDocs[pid] = doc;
                 }
+              }
+              // Get the status of the first doc in the group for color
+              final firstDoc = entry.value.isNotEmpty
+                  ? entry.value.first
+                  : null;
+              final status = firstDoc != null
+                  ? normalizeStatus(firstDoc.data()['status'])
+                  : 'Pending';
+              Color statusBgColor;
+              Color statusTextColor;
+              switch (status) {
+                case 'Completed':
+                  statusBgColor = const Color(0xFFE6F9F0); // light green
+                  statusTextColor = const Color(0xFF1B8A5A); // green
+                  break;
+                case 'Pending':
+                  statusBgColor = const Color(0xFFFFF8E1); // light yellow
+                  statusTextColor = const Color(0xFFE6A100); // orange
+                  break;
+                case 'Cancelled':
+                  statusBgColor = const Color(0xFFFFEBEE); // light red
+                  statusTextColor = const Color(0xFFD32F2F); // red
+                  break;
+                default:
+                  statusBgColor = Colors.grey.shade200;
+                  statusTextColor = Colors.black54;
               }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -469,12 +529,49 @@ class _BodyState extends State<Body> {
                       vertical: 8.0,
                       horizontal: 4.0,
                     ),
-                    child: Text(
-                      'Ordered on: ${entry.key}',
-                      style: TextStyle(
-                        color: kPrimaryColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: statusBgColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Ordered on: ${formatOrderDate(entry.key)}',
+                            style: TextStyle(
+                              color: statusTextColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Icon(
+                                status == 'Completed'
+                                    ? Icons.check_circle
+                                    : status == 'Pending'
+                                    ? Icons.hourglass_bottom
+                                    : Icons.cancel,
+                                color: statusTextColor,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                status,
+                                style: TextStyle(
+                                  color: statusTextColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -494,7 +591,8 @@ class _BodyState extends State<Body> {
                           return FutureBuilder<Product?>(
                             future: _getProductWithCaching(pid),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
                                 // Shimmer placeholder for product card
                                 return SizedBox(
                                   height: 70,
@@ -508,14 +606,18 @@ class _BodyState extends State<Body> {
                                           height: 70,
                                           decoration: BoxDecoration(
                                             color: Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                           ),
                                         ),
                                         SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               Container(
                                                 width: double.infinity,
@@ -551,7 +653,9 @@ class _BodyState extends State<Body> {
                                         style: TextButton.styleFrom(
                                           backgroundColor: Color(0xFFF2F6FF),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           padding: EdgeInsets.symmetric(
                                             horizontal: 12,
@@ -559,15 +663,22 @@ class _BodyState extends State<Body> {
                                           ),
                                         ),
                                         onPressed: () async {
-                                          String currentUserUid = AuthentificationService().currentUser.uid;
+                                          String currentUserUid =
+                                              AuthentificationService()
+                                                  .currentUser
+                                                  .uid;
                                           Review? prevReview;
                                           try {
-                                            prevReview = await ProductDatabaseHelper().getProductReviewWithID(
-                                              product.id,
-                                              currentUserUid,
-                                            );
+                                            prevReview =
+                                                await ProductDatabaseHelper()
+                                                    .getProductReviewWithID(
+                                                      product.id,
+                                                      currentUserUid,
+                                                    );
                                           } on FirebaseException catch (e) {
-                                            Logger().w("Firebase Exception: $e");
+                                            Logger().w(
+                                              "Firebase Exception: $e",
+                                            );
                                           } catch (e) {
                                             Logger().w("Unknown Exception: $e");
                                           }
@@ -588,28 +699,40 @@ class _BodyState extends State<Body> {
                                           );
                                           if (result is Review) {
                                             bool reviewAdded = false;
-                                            String snackbarMessage = "Unknown error occurred";
+                                            String snackbarMessage =
+                                                "Unknown error occurred";
                                             try {
-                                              reviewAdded = await ProductDatabaseHelper().addProductReview(
-                                                product.id,
-                                                result,
-                                              );
+                                              reviewAdded =
+                                                  await ProductDatabaseHelper()
+                                                      .addProductReview(
+                                                        product.id,
+                                                        result,
+                                                      );
                                               if (reviewAdded == true) {
-                                                snackbarMessage = "Product review added successfully";
+                                                snackbarMessage =
+                                                    "Product review added successfully";
                                               } else {
                                                 throw "Coulnd't add product review due to unknown reason";
                                               }
                                             } on FirebaseException catch (e) {
-                                              Logger().w("Firebase Exception: $e");
+                                              Logger().w(
+                                                "Firebase Exception: $e",
+                                              );
                                               snackbarMessage = e.toString();
                                             } catch (e) {
-                                              Logger().w("Unknown Exception: $e");
+                                              Logger().w(
+                                                "Unknown Exception: $e",
+                                              );
                                               snackbarMessage = e.toString();
                                             } finally {
                                               Logger().i(snackbarMessage);
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 SnackBar(
-                                                  content: Text(snackbarMessage),
+                                                  content: Text(
+                                                    snackbarMessage,
+                                                  ),
                                                 ),
                                               );
                                             }
@@ -632,7 +755,8 @@ class _BodyState extends State<Body> {
                                       ),
                                     ),
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
                                           child: ProductShortDetailCard(
@@ -641,10 +765,11 @@ class _BodyState extends State<Body> {
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
-                                                  builder: (context) => ProductDetailsScreen(
-                                                    key: UniqueKey(),
-                                                    productId: product.id,
-                                                  ),
+                                                  builder: (context) =>
+                                                      ProductDetailsScreen(
+                                                        key: UniqueKey(),
+                                                        productId: product.id,
+                                                      ),
                                                 ),
                                               ).then((_) async {
                                                 await refreshPage();
@@ -660,7 +785,9 @@ class _BodyState extends State<Body> {
                                           ),
                                           decoration: BoxDecoration(
                                             color: Color(0xFFEDF2FA),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                         ),
                                       ],
