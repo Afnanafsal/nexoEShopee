@@ -66,6 +66,25 @@ class Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Show alert if user is not verified (only once per build)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      bool allowed = AuthentificationService().currentUserVerified;
+      if (!allowed && context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Email Not Verified'),
+            content: Text("You haven't verified your email address. Please verify to access all features."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    });
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: () => refreshPage(ref),
