@@ -20,11 +20,58 @@ final selectedAddressFutureProvider = FutureProvider((ref) async {
   return await UserDatabaseHelper().getAddressFromId(selectedAddressId);
 });
 
-class DeliveryAddressBar extends ConsumerWidget {
+class DeliveryAddressBar extends ConsumerStatefulWidget {
   const DeliveryAddressBar({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DeliveryAddressBar> createState() => _DeliveryAddressBarState();
+}
+
+class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar> with RouteAware {
+  bool _dialogShown = false;
+  @override
+  void initState() {
+    super.initState();
+    _startAutoRefresh();
+  }
+
+  void _startAutoRefresh() {
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 5));
+      if (!mounted) return false;
+      ref.invalidate(selectedAddressFutureProvider);
+      ref.invalidate(_addressesListProvider);
+      return mounted;
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final routeObserver = ModalRoute.of(context)?.navigator?.widget.observers
+        .whereType<RouteObserver<PageRoute>>()
+        .firstOrNull;
+    routeObserver?.subscribe(this, ModalRoute.of(context) as PageRoute);
+  }
+
+  @override
+  void dispose() {
+    final routeObserver = ModalRoute.of(context)?.navigator?.widget.observers
+        .whereType<RouteObserver<PageRoute>>()
+        .firstOrNull;
+    routeObserver?.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when coming back to this screen
+    ref.invalidate(selectedAddressFutureProvider);
+    ref.invalidate(_addressesListProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selectedAddressId = ref.watch(selectedAddressIdProvider);
     final addressAsync = ref.watch(selectedAddressFutureProvider);
     final addressesListAsync = ref.watch(_addressesListProvider);
@@ -45,73 +92,52 @@ class DeliveryAddressBar extends ConsumerWidget {
     return addressesListAsync.when(
       data: (addresses) {
         if (addresses.isEmpty) {
-          // No addresses: show prompt to add address
+          if (!_dialogShown) {
+            _dialogShown = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => AlertDialog(
+                  title: const Text("No address found"),
+                  content: const Text("Please add a delivery address to continue."),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ManageAddressesScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text("Add Address"),
+                    ),
+                  ],
+                ),
+              );
+            });
+          }
           return Container(
-            padding: EdgeInsets.only(
-              right: getProportionateScreenWidth(10),
-              top: getProportionateScreenHeight(8),
-              bottom: getProportionateScreenHeight(8),
-            ),
-            decoration: BoxDecoration(color: Colors.white),
+            padding: EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(Icons.location_on, color: kPrimaryColor, size: 20),
-                SizedBox(width: getProportionateScreenWidth(8)),
+                SizedBox(width: 8),
                 Expanded(
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ManageAddressesScreen(),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "No address found",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: kPrimaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          "Please add a delivery address",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: Text(
+                    "No address found. Please add a delivery address.",
+                    style: TextStyle(fontSize: 16, color: kPrimaryColor, fontWeight: FontWeight.w600),
                   ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.add_location_alt,
-                    color: kPrimaryColor,
-                    size: 22,
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ManageAddressesScreen(),
-                      ),
-                    );
-                  },
-                  tooltip: 'Add Address',
                 ),
               ],
             ),
           );
+        } else {
+          _dialogShown = false;
         }
-        // ...existing code for when addresses exist...
+        // Ensure address is not null and always fetches latest
         return Container(
           padding: EdgeInsets.only(
             right: getProportionateScreenWidth(10),
@@ -428,5 +454,6 @@ class DeliveryAddressBar extends ConsumerWidget {
         ),
       ),
     );
+    // Fallback in case when() does not return
   }
 }

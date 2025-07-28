@@ -34,218 +34,218 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAndPromptAddress();
+      // _checkAndPromptAddress();
       // Pre-cache the banner image to prevent flicker
       precacheImage(const AssetImage('assets/images/banner.png'), context);
     });
   }
 
-  Future<void> _checkAndPromptAddress() async {
-    final selectedAddressId = ref.read(selectedAddressIdProvider);
-    final localContext = context;
-    if (selectedAddressId == null) {
-      final addressIds = await UserDatabaseHelper().addressesList;
-      if (addressIds.isEmpty) {
-        // No addresses, prompt to add
-        if (!mounted) return;
-        showDialog(
-          context: localContext,
-          builder: (context) => AlertDialog(
-            title: Text('No delivery address found'),
-            content: Text('Please add a delivery address to continue.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.pushNamed(context, '/add_address');
-                },
-                child: Text('Add Address'),
-              ),
-            ],
-          ),
-        );
-      } else if (addressIds.length == 1) {
-        // Only one address, set it directly
-        ref.read(selectedAddressIdProvider.notifier).state = addressIds.first;
-      } else {
-        String? selectedId;
-        if (!mounted) return;
-        // Prefetch all address details in parallel
-        final addressDetails = await Future.wait(
-          addressIds.map((id) => UserDatabaseHelper().getAddressFromId(id)),
-        );
-        await showDialog(
-          context: localContext,
-          barrierDismissible: false,
-          builder: (context) {
-            return StatefulBuilder(
-              builder: (context, setState) {
-                final theme = Theme.of(context);
-                return Dialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  backgroundColor: theme.scaffoldBackgroundColor,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.primaryColor.withOpacity(0.08),
-                          blurRadius: 16,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: theme.primaryColor.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: EdgeInsets.all(8),
-                              child: Icon(
-                                Icons.location_on,
-                                color: theme.primaryColor,
-                                size: 28,
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'Select Delivery Address',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontFamily: 'Poppins',
-                                color: theme.primaryColor,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 18),
-                        ...List.generate(addressIds.length, (i) {
-                          final id = addressIds[i];
-                          final address = addressDetails[i];
-                          String display = id;
-                          display =
-                              [
-                                    address.addressLine1,
-                                    address.city,
-                                    address.state,
-                                    address.pincode,
-                                  ]
-                                  .whereType<String>()
-                                  .where((e) => e.isNotEmpty)
-                                  .join(', ');
-                          return Card(
-                            color: selectedId == id
-                                ? theme.primaryColor.withOpacity(0.08)
-                                : theme.cardColor,
-                            elevation: 0,
-                            margin: EdgeInsets.symmetric(vertical: 6),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: RadioListTile<String>(
-                              title: Text(
-                                display,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  fontFamily: 'Poppins',
-                                  color: selectedId == id
-                                      ? theme.primaryColor
-                                      : theme.textTheme.bodyLarge?.color,
-                                  fontWeight: selectedId == id
-                                      ? FontWeight.w500
-                                      : FontWeight.w400,
-                                ),
-                              ),
-                              value: id,
-                              groupValue: selectedId,
-                              onChanged: (val) {
-                                setState(() => selectedId = val);
-                              },
-                              secondary: Icon(
-                                Icons.home,
-                                color: selectedId == id
-                                    ? theme.primaryColor
-                                    : theme.iconTheme.color,
-                              ),
-                              activeColor: theme.primaryColor,
-                            ),
-                          );
-                        }),
-                        SizedBox(height: 18),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text(
-                                'Cancel',
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  fontFamily: 'Poppins',
-                                  color: theme.primaryColor,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            ElevatedButton.icon(
-                              onPressed: selectedId == null
-                                  ? null
-                                  : () {
-                                      ref
-                                              .read(
-                                                selectedAddressIdProvider
-                                                    .notifier,
-                                              )
-                                              .state =
-                                          selectedId;
-                                      Navigator.of(context).pop();
-                                    },
-                              icon: Icon(Icons.check, color: Colors.white),
-                              label: Text(
-                                'Select',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: theme.primaryColor,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        );
-      }
-    }
-  }
+  // Future<void> _checkAndPromptAddress() async {
+  //   final selectedAddressId = ref.read(selectedAddressIdProvider);
+  //   final localContext = context;
+  //   if (selectedAddressId == null) {
+  //     final addressIds = await UserDatabaseHelper().addressesList;
+  //     if (addressIds.isEmpty) {
+  //       // No addresses, prompt to add
+  //       if (!mounted) return;
+  //       showDialog(
+  //         context: localContext,
+  //         builder: (context) => AlertDialog(
+  //           title: Text('No delivery address found'),
+  //           content: Text('Please add a delivery address to continue.'),
+  //           actions: [
+  //             TextButton(
+  //               onPressed: () {
+  //                 Navigator.of(context).pop();
+  //                 Navigator.pushNamed(context, '/add_address');
+  //               },
+  //               child: Text('Add Address'),
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     } else if (addressIds.length == 1) {
+  //       // Only one address, set it directly
+  //       ref.read(selectedAddressIdProvider.notifier).state = addressIds.first;
+  //     } else {
+  //       String? selectedId;
+  //       if (!mounted) return;
+  //       // Prefetch all address details in parallel
+  //       final addressDetails = await Future.wait(
+  //         addressIds.map((id) => UserDatabaseHelper().getAddressFromId(id)),
+  //       );
+  //       await showDialog(
+  //         context: localContext,
+  //         barrierDismissible: false,
+  //         builder: (context) {
+  //           return StatefulBuilder(
+  //             builder: (context, setState) {
+  //               final theme = Theme.of(context);
+  //               return Dialog(
+  //                 shape: RoundedRectangleBorder(
+  //                   borderRadius: BorderRadius.circular(18),
+  //                 ),
+  //                 backgroundColor: theme.scaffoldBackgroundColor,
+  //                 child: Container(
+  //                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+  //                   decoration: BoxDecoration(
+  //                     color: theme.cardColor,
+  //                     borderRadius: BorderRadius.circular(18),
+  //                     boxShadow: [
+  //                       BoxShadow(
+  //                         color: theme.primaryColor.withOpacity(0.08),
+  //                         blurRadius: 16,
+  //                       ),
+  //                     ],
+  //                   ),
+  //                   child: Column(
+  //                     mainAxisSize: MainAxisSize.min,
+  //                     crossAxisAlignment: CrossAxisAlignment.start,
+  //                     children: [
+  //                       Row(
+  //                         children: [
+  //                           Container(
+  //                             decoration: BoxDecoration(
+  //                               color: theme.primaryColor.withOpacity(0.12),
+  //                               borderRadius: BorderRadius.circular(8),
+  //                             ),
+  //                             padding: EdgeInsets.all(8),
+  //                             child: Icon(
+  //                               Icons.location_on,
+  //                               color: theme.primaryColor,
+  //                               size: 28,
+  //                             ),
+  //                           ),
+  //                           SizedBox(width: 12),
+  //                           Text(
+  //                             'Select Delivery Address',
+  //                             style: theme.textTheme.titleMedium?.copyWith(
+  //                               fontFamily: 'Poppins',
+  //                               color: theme.primaryColor,
+  //                               fontWeight: FontWeight.w600,
+  //                               fontSize: 18,
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                       SizedBox(height: 18),
+  //                       ...List.generate(addressIds.length, (i) {
+  //                         final id = addressIds[i];
+  //                         final address = addressDetails[i];
+  //                         String display = id;
+  //                         display =
+  //                             [
+  //                                   address.addressLine1,
+  //                                   address.city,
+  //                                   address.state,
+  //                                   address.pincode,
+  //                                 ]
+  //                                 .whereType<String>()
+  //                                 .where((e) => e.isNotEmpty)
+  //                                 .join(', ');
+  //                         return Card(
+  //                           color: selectedId == id
+  //                               ? theme.primaryColor.withOpacity(0.08)
+  //                               : theme.cardColor,
+  //                           elevation: 0,
+  //                           margin: EdgeInsets.symmetric(vertical: 6),
+  //                           shape: RoundedRectangleBorder(
+  //                             borderRadius: BorderRadius.circular(12),
+  //                           ),
+  //                           child: RadioListTile<String>(
+  //                             title: Text(
+  //                               display,
+  //                               style: theme.textTheme.bodyLarge?.copyWith(
+  //                                 fontFamily: 'Poppins',
+  //                                 color: selectedId == id
+  //                                     ? theme.primaryColor
+  //                                     : theme.textTheme.bodyLarge?.color,
+  //                                 fontWeight: selectedId == id
+  //                                     ? FontWeight.w500
+  //                                     : FontWeight.w400,
+  //                               ),
+  //                             ),
+  //                             value: id,
+  //                             groupValue: selectedId,
+  //                             onChanged: (val) {
+  //                               setState(() => selectedId = val);
+  //                             },
+  //                             secondary: Icon(
+  //                               Icons.home,
+  //                               color: selectedId == id
+  //                                   ? theme.primaryColor
+  //                                   : theme.iconTheme.color,
+  //                             ),
+  //                             activeColor: theme.primaryColor,
+  //                           ),
+  //                         );
+  //                       }),
+  //                       SizedBox(height: 18),
+  //                       Row(
+  //                         mainAxisAlignment: MainAxisAlignment.end,
+  //                         children: [
+  //                           TextButton(
+  //                             onPressed: () {
+  //                               Navigator.of(context).pop();
+  //                             },
+  //                             child: Text(
+  //                               'Cancel',
+  //                               style: theme.textTheme.labelLarge?.copyWith(
+  //                                 fontFamily: 'Poppins',
+  //                                 color: theme.primaryColor,
+  //                                 fontWeight: FontWeight.w500,
+  //                               ),
+  //                             ),
+  //                           ),
+  //                           SizedBox(width: 8),
+  //                           ElevatedButton.icon(
+  //                             onPressed: selectedId == null
+  //                                 ? null
+  //                                 : () {
+  //                                     ref
+  //                                             .read(
+  //                                               selectedAddressIdProvider
+  //                                                   .notifier,
+  //                                             )
+  //                                             .state =
+  //                                         selectedId;
+  //                                     Navigator.of(context).pop();
+  //                                   },
+  //                             icon: Icon(Icons.check, color: Colors.white),
+  //                             label: Text(
+  //                               'Select',
+  //                               style: TextStyle(
+  //                                 fontFamily: 'Poppins',
+  //                                 color: Colors.white,
+  //                                 fontWeight: FontWeight.w600,
+  //                               ),
+  //                             ),
+  //                             style: ElevatedButton.styleFrom(
+  //                               backgroundColor: theme.primaryColor,
+  //                               foregroundColor: Colors.white,
+  //                               elevation: 0,
+  //                               shape: RoundedRectangleBorder(
+  //                                 borderRadius: BorderRadius.circular(8),
+  //                               ),
+  //                               padding: EdgeInsets.symmetric(
+  //                                 horizontal: 24,
+  //                                 vertical: 12,
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ),
+  //               );
+  //             },
+  //           );
+  //         },
+  //       );
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

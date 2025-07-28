@@ -12,26 +12,61 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../components/address_box.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
+import 'dart:async';
 
 class Body extends StatefulWidget {
   @override
   _BodyState createState() => _BodyState();
 }
 
-class _BodyState extends State<Body> {
+class _BodyState extends State<Body> with RouteAware {
   final AddressesStream addressesStream = AddressesStream();
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     addressesStream.init();
+    _reloadAndStartTimer();
+  }
+
+  void _reloadAndStartTimer() async {
     addressesStream.reload();
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      addressesStream.reload();
+      setState(() {});
+    });
+    setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final routeObserver = ModalRoute.of(context)?.navigator?.widget.observers
+        .whereType<RouteObserver<PageRoute>>()
+        .firstOrNull;
+    routeObserver?.subscribe(this, ModalRoute.of(context) as PageRoute);
+    _reloadAndStartTimer();
   }
 
   @override
   void dispose() {
-    super.dispose();
+    final routeObserver = ModalRoute.of(context)?.navigator?.widget.observers
+        .whereType<RouteObserver<PageRoute>>()
+        .firstOrNull;
+    routeObserver?.unsubscribe(this);
+    _refreshTimer?.cancel();
     addressesStream.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when coming back to this screen
+    _reloadAndStartTimer();
   }
 
   @override

@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:fishkart/providers/image_providers.dart';
+import 'package:fishkart/screens/profile/profile_screen.dart';
 
 class Body extends ConsumerStatefulWidget {
   const Body({Key? key}) : super(key: key);
@@ -396,6 +397,15 @@ class _BodyState extends ConsumerState<Body> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+      if (snackbarMessage == "Display Picture updated successfully") {
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => ProfileScreen()),
+            (route) => false,
+          );
+        }
+      }
     }
   }
 
