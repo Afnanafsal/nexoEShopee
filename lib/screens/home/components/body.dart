@@ -92,16 +92,18 @@ class Body extends ConsumerWidget {
                             final cachedIds = HiveService.instance
                                 .getCachedSearchResults(query);
                             if (cachedIds != null && cachedIds.isNotEmpty) {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SearchResultScreen(
-                                    searchQuery: query,
-                                    searchResultProductsId: cachedIds,
-                                    searchIn: "All Products",
+                              if (context.mounted) {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SearchResultScreen(
+                                      searchQuery: query,
+                                      searchResultProductsId: cachedIds,
+                                      searchIn: "All Products",
+                                    ),
                                   ),
-                                ),
-                              );
+                                );
+                              }
                               return;
                             }
                             // If not cached, fetch from backend
@@ -116,22 +118,26 @@ class Body extends ConsumerWidget {
                               query,
                               searchResults,
                             );
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SearchResultScreen(
-                                  searchQuery: query,
-                                  searchResultProductsId: searchResults,
-                                  searchIn: "All Products",
+                            if (context.mounted) {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SearchResultScreen(
+                                    searchQuery: query,
+                                    searchResultProductsId: searchResults,
+                                    searchIn: "All Products",
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
                           } catch (e) {
                             final error = e.toString();
                             Logger().e(error);
-                            ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(SnackBar(content: Text("$error")));
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text("$error")));
+                            }
                           }
                         },
                         onCartButtonPressed: () async {
@@ -147,26 +153,30 @@ class Body extends ConsumerWidget {
                             if (reverify) {
                               final future = AuthentificationService()
                                   .sendVerificationEmailToCurrentUser();
-                              await showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AsyncProgressDialog(
-                                    future,
-                                    message: Text(
-                                      "Resending verification email",
-                                    ),
-                                  );
-                                },
-                              );
+                              if (context.mounted) {
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AsyncProgressDialog(
+                                      future,
+                                      message: Text(
+                                        "Resending verification email",
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
                             }
                             return;
                           }
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CartScreen(),
-                            ),
-                          );
+                          if (context.mounted) {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CartScreen(),
+                              ),
+                            );
+                          }
                         },
                       ),
                       SizedBox(height: getProportionateScreenHeight(10)),
@@ -189,16 +199,18 @@ class Body extends ConsumerWidget {
                                 icon: productCategories[index][ICON_KEY],
                                 title: productCategories[index][TITLE_KEY],
                                 onPress: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CategoryProductsScreen(
-                                        key: UniqueKey(),
-                                        productType:
-                                            productCategories[index][PRODUCT_TYPE_KEY],
+                                  if (context.mounted) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => CategoryProductsScreen(
+                                          key: UniqueKey(),
+                                          productType:
+                                              productCategories[index][PRODUCT_TYPE_KEY],
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  }
                                 },
                               );
                             },
@@ -393,18 +405,31 @@ class Body extends ConsumerWidget {
                                           .toLowerCase();
                                     }
                                   }
-                                  // Filter products by areaLocation
+                                  // Filter products by areaLocation, with debug logging
                                   final products = (snapshot.data ?? [])
                                       .where((p) {
                                         final areaLocation =
                                             (p.areaLocation ?? '')
                                                 .trim()
                                                 .toLowerCase();
-                                        // If userCity is not set, show all products
-                                        if (userCity.isEmpty) return true;
-                                        // Only show products if user's city matches product's areaLocation
-                                        if (areaLocation.isEmpty) return false;
-                                        return areaLocation == userCity;
+                                        bool showProduct = false;
+                                        String reason = '';
+                                        if (userCity.isEmpty) {
+                                          showProduct = true;
+                                          reason = 'userCity is empty, showing all products';
+                                        } else if (areaLocation.isEmpty) {
+                                          showProduct = false;
+                                          reason = 'areaLocation is empty, hiding product';
+                                        } else if (areaLocation == userCity) {
+                                          showProduct = true;
+                                          reason = 'areaLocation matches userCity';
+                                        } else {
+                                          showProduct = false;
+                                          reason = 'areaLocation does not match userCity';
+                                        }
+                                        // Debug log for each product
+                                        Logger().i('[Product Filter] userCity: "$userCity", areaLocation: "$areaLocation", show: $showProduct, reason: $reason, productId: ${p.id}');
+                                        return showProduct;
                                       })
                                       .where((p) => p.isInStock)
                                       .where((p) => (p as dynamic).isAvailable == true)
@@ -465,16 +490,18 @@ class Body extends ConsumerWidget {
                                           product.originalPrice ?? 0.0;
                                       return InkWell(
                                         onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ProductDetailsScreen(
-                                                    key: UniqueKey(),
-                                                    productId: product.id,
-                                                  ),
-                                            ),
-                                          );
+                                          if (context.mounted) {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ProductDetailsScreen(
+                                                      key: UniqueKey(),
+                                                      productId: product.id,
+                                                    ),
+                                              ),
+                                            );
+                                          }
                                         },
                                         borderRadius: BorderRadius.circular(24),
                                         child: Container(
@@ -626,15 +653,17 @@ class Body extends ConsumerWidget {
                                                           ref.read(
                                                             selectedAddressIdProvider,
                                                           );
-                                                      ScaffoldMessenger.of(
-                                                        context,
-                                                      ).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                            '$productTitle added to cart!',
+                                                      if (context.mounted) {
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                              '$productTitle added to cart!',
+                                                            ),
                                                           ),
-                                                        ),
-                                                      );
+                                                        );
+                                                      }
                                                       UserDatabaseHelper()
                                                           .addProductToCart(
                                                             product.id,
@@ -642,15 +671,17 @@ class Body extends ConsumerWidget {
                                                                 selectedAddressId,
                                                           )
                                                           .catchError((e) {
-                                                            ScaffoldMessenger.of(
-                                                              context,
-                                                            ).showSnackBar(
-                                                              SnackBar(
-                                                                content: Text(
-                                                                  'Failed to add to cart: $e',
+                                                            if (context.mounted) {
+                                                              ScaffoldMessenger.of(
+                                                                context,
+                                                              ).showSnackBar(
+                                                                SnackBar(
+                                                                  content: Text(
+                                                                    'Failed to add to cart: $e',
+                                                                  ),
                                                                 ),
-                                                              ),
-                                                            );
+                                                              );
+                                                            }
                                                             return false;
                                                           });
                                                     },
@@ -713,12 +744,14 @@ class Body extends ConsumerWidget {
   }
 
   void onProductCardTapped(BuildContext context, String productId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            ProductDetailsScreen(key: UniqueKey(), productId: productId),
-      ),
-    );
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ProductDetailsScreen(key: UniqueKey(), productId: productId),
+        ),
+      );
+    }
   }
 }
