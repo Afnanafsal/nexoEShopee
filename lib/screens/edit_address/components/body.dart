@@ -26,7 +26,7 @@ class Body extends StatelessWidget {
                 Text("Fill Address Details", style: headingStyle),
                 SizedBox(height: getProportionateScreenHeight(30)),
                 addressIdToEdit == null
-                    ? AddressDetailsForm(key: UniqueKey(), addressToEdit: null)
+                    ? AddressDetailsForm(addressToEdit: null)
                     : FutureBuilder<Address>(
                         future: UserDatabaseHelper().getAddressFromId(
                           addressIdToEdit!,
@@ -34,18 +34,15 @@ class Body extends StatelessWidget {
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             return AddressDetailsForm(
-                              key: UniqueKey(),
                               addressToEdit: snapshot.data!,
                             );
                           } else if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return AddressDetailsForm(
-                              key: UniqueKey(),
                               addressToEdit: null,
                             );
                           }
                           return AddressDetailsForm(
-                            key: UniqueKey(),
                             addressToEdit: null,
                           );
                         },

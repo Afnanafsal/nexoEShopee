@@ -156,8 +156,9 @@ class UserDatabaseHelper {
         .collection(ADDRESSES_COLLECTION_NAME)
         .doc(id)
         .get();
-    final data = doc.data();
-    if (data == null) throw Exception("Address not found");
+    final rawData = doc.data();
+    if (rawData == null) throw Exception("Address not found");
+    final data = Map<String, dynamic>.from(rawData);
     return Address.fromMap(data, id: doc.id);
   }
 

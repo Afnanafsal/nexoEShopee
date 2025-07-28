@@ -316,6 +316,7 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
         status = await UserDatabaseHelper().addAddressForCurrentUser(
           newAddress,
         );
+        if (!mounted) return;
         if (status == true) {
           snackbarMessage = "Address saved successfully";
           Navigator.of(context).pop(true); // Go back and trigger refresh
@@ -329,6 +330,7 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
         Logger().w("Unknown Exception: $e");
         snackbarMessage = "Something went wrong";
       } finally {
+        if (!mounted) return;
         Logger().i(snackbarMessage);
         ScaffoldMessenger.of(
           context,
@@ -350,6 +352,7 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
         status = await UserDatabaseHelper().updateAddressForCurrentUser(
           newAddress,
         );
+        if (!mounted) return;
         if (status == true) {
           snackbarMessage = "Address updated successfully";
           Navigator.of(context).pop(true); // Go back and trigger refresh
@@ -363,6 +366,7 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
         Logger().w("Unknown Exception: $e");
         snackbarMessage = "Something went wrong";
       } finally {
+        if (!mounted) return;
         Logger().i(snackbarMessage);
         ScaffoldMessenger.of(
           context,

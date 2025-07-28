@@ -39,8 +39,10 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar> with Ro
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 5));
       if (!mounted) return false;
-      ref.invalidate(selectedAddressFutureProvider);
-      ref.invalidate(_addressesListProvider);
+      try {
+        ref.invalidate(selectedAddressFutureProvider);
+        ref.invalidate(_addressesListProvider);
+      } catch (_) {}
       return mounted;
     });
   }
@@ -300,9 +302,12 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar> with Ro
                                 ...addresses.map((addressId) {
                                   Map<String, dynamic>? addressMap;
                                   try {
-                                    addressMap = cachedAddresses.firstWhere(
+                                    final rawMap = cachedAddresses.firstWhere(
                                       (a) => a['id'] == addressId,
                                     );
+                                    addressMap = rawMap is Map<String, dynamic>
+                                        ? rawMap
+                                        : Map<String, dynamic>.from(rawMap);
                                   } catch (e) {
                                     addressMap = {};
                                   }
