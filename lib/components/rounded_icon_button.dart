@@ -1,4 +1,4 @@
-import 'package:nexoeshopee/constants.dart';
+import 'package:fishkart/constants.dart';
 import 'package:flutter/material.dart';
 
 import '../size_config.dart';
@@ -26,10 +26,7 @@ class RoundedIconButton extends StatelessWidget {
           backgroundColor: Colors.white,
         ),
         onPressed: press,
-        child: Icon(
-          iconData,
-          color: kTextColor,
-        ),
+        child: Icon(iconData, color: kTextColor),
       ),
     );
   }

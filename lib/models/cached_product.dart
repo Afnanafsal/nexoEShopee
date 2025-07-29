@@ -1,5 +1,5 @@
 import 'package:hive/hive.dart';
-import 'package:nexoeshopee/models/Product.dart';
+import 'package:fishkart/models/Product.dart';
 
 part 'cached_product.g.dart';
 
@@ -99,6 +99,9 @@ class CachedProduct extends HiveObject {
   @HiveField(30)
   List<String>? tags;
 
+  @HiveField(31)
+  String? areaLocation;
+
   CachedProduct({
     required this.id,
     this.images,
@@ -132,6 +135,7 @@ class CachedProduct extends HiveObject {
     this.category,
     this.subcategory,
     this.tags,
+    this.areaLocation,
   });
 
   factory CachedProduct.fromProduct(
@@ -173,7 +177,7 @@ class CachedProduct extends HiveObject {
       reviews: reviews,
       totalReviews: totalReviews,
       averageRating: averageRating,
-      stockQuantity: stockQuantity,
+      stockQuantity: stockQuantity ?? product.stock,
       isAvailable: isAvailable,
       specifications: specifications,
       relatedProductIds: relatedProductIds,
@@ -185,6 +189,7 @@ class CachedProduct extends HiveObject {
       category: category,
       subcategory: subcategory,
       tags: tags,
+      areaLocation: product.areaLocation,
     );
   }
 
@@ -209,6 +214,8 @@ class CachedProduct extends HiveObject {
           : null,
       searchTags: searchTags,
       dateAdded: dateAdded,
+      stock: stockQuantity ?? 0,
+      areaLocation: areaLocation,
     );
   }
 
@@ -351,6 +358,7 @@ class CachedProduct extends HiveObject {
     String? category,
     String? subcategory,
     List<String>? tags,
+    String? areaLocation,
   }) {
     return CachedProduct(
       id: id,
@@ -384,6 +392,7 @@ class CachedProduct extends HiveObject {
       category: category ?? this.category,
       subcategory: subcategory ?? this.subcategory,
       tags: tags ?? this.tags,
+      areaLocation: areaLocation ?? this.areaLocation,
     );
   }
 }

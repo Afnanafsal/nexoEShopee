@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/models/Review.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/models/Review.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
 
 class ProductDatabaseHelper {
   static const String PRODUCTS_COLLECTION_NAME = "products";
@@ -15,20 +16,43 @@ class ProductDatabaseHelper {
   late final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   FirebaseFirestore get firestore => _firebaseFirestore;
 
-  Future<List<String>> getProductIdsByCategory(ProductType productType) async {
+  /// Get product IDs by category with pagination and caching
+  Future<List<String>> getProductIdsByCategory(
+    ProductType productType, {
+    int limit = 20,
+    DocumentSnapshot? startAfter,
+    bool forceRefresh = false,
+  }) async {
+    final productTypeStr = productType.toString().split('.').last;
+    // Try cache first
+    if (!forceRefresh) {
+      final cached = HiveService.instance.getCachedProductsByType(productType);
+      if (cached.isNotEmpty) {
+        return cached.map((p) => p.id).toList();
+      }
+    }
     try {
-      // Use simple enum name that matches how we store it
-      final productTypeStr = productType.toString().split('.').last;
-      print("Getting products for category: $productTypeStr");
-
-      final productsQuery = await _firebaseFirestore
+      Query query = _firebaseFirestore
           .collection(PRODUCTS_COLLECTION_NAME)
           .where(Product.PRODUCT_TYPE_KEY, isEqualTo: productTypeStr)
-          .get();
-
-      print(
-        "Found ${productsQuery.docs.length} products for category: $productTypeStr",
-      );
+          .where(Product.STOCK_KEY, isGreaterThan: 0)
+          .limit(limit);
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      final productsQuery = await query.get();
+      // Optionally update cache
+      if (productsQuery.docs.isNotEmpty) {
+        final products = productsQuery.docs
+            .map(
+              (doc) => Product.fromMap(
+                doc.data() as Map<String, dynamic>,
+                id: doc.id,
+              ),
+            )
+            .toList();
+        await HiveService.instance.cacheProducts(products);
+      }
       return productsQuery.docs.map((doc) => doc.id).toList();
     } catch (e) {
       print("Error getting products by category: $e");
@@ -58,12 +82,15 @@ class ProductDatabaseHelper {
 
     final querySearchInTags = await queryRef
         .where(Product.SEARCH_TAGS_KEY, arrayContains: query)
+        .where(Product.STOCK_KEY, isGreaterThan: 0)
         .get();
     for (final doc in querySearchInTags.docs) {
       productsId.add(doc.id);
     }
 
-    final queryDocs = await queryRef.get();
+    final queryDocs = await queryRef
+        .where(Product.STOCK_KEY, isGreaterThan: 0)
+        .get();
     for (final doc in queryDocs.docs) {
       final product = Product.fromMap(
         doc.data() as Map<String, dynamic>,
@@ -194,6 +221,8 @@ class ProductDatabaseHelper {
         .collection(PRODUCTS_COLLECTION_NAME)
         .doc(productId)
         .delete();
+    // Remove from Hive cache as well
+    await HiveService.instance.removeCachedProduct(productId);
     return true;
   }
 
@@ -215,24 +244,19 @@ class ProductDatabaseHelper {
     return docRef.id;
   }
 
-  Future<List<String>> getCategoryProductsList(ProductType productType) async {
-    try {
-      final productTypeString = productType.toString().split('.').last;
-      print("Querying for product type: $productTypeString");
-
-      final queryResult = await firestore
-          .collection(PRODUCTS_COLLECTION_NAME)
-          .where(Product.PRODUCT_TYPE_KEY, isEqualTo: productTypeString)
-          .get();
-
-      print(
-        "Found ${queryResult.docs.length} products for category: $productTypeString",
-      );
-      return queryResult.docs.map((doc) => doc.id).toList();
-    } catch (e) {
-      print("Error in getCategoryProductsList: $e");
-      return [];
-    }
+  /// Get category products list with pagination and caching
+  Future<List<String>> getCategoryProductsList(
+    ProductType productType, {
+    int limit = 20,
+    DocumentSnapshot? startAfter,
+    bool forceRefresh = false,
+  }) async {
+    return getProductIdsByCategory(
+      productType,
+      limit: limit,
+      startAfter: startAfter,
+      forceRefresh: forceRefresh,
+    );
   }
 
   Future<List<String>> get usersProductsList async {
@@ -261,11 +285,40 @@ class ProductDatabaseHelper {
     return true;
   }
 
-  Future<List<String>> getAllProducts() async {
+  /// Get all products with pagination and caching
+  Future<List<String>> getAllProducts({
+    int limit = 20,
+    DocumentSnapshot? startAfter,
+    bool forceRefresh = false,
+  }) async {
+    // Try cache first
+    if (!forceRefresh) {
+      final cached = HiveService.instance.getCachedProducts();
+      if (cached.isNotEmpty) {
+        return cached.map((p) => p.id).toList();
+      }
+    }
     try {
-      final querySnapshot = await _firebaseFirestore
+      Query query = _firebaseFirestore
           .collection(PRODUCTS_COLLECTION_NAME)
-          .get();
+          .where(Product.STOCK_KEY, isGreaterThan: 0)
+          .where('isAvailable', isEqualTo: true);
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      final querySnapshot = await query.get();
+      // Update cache with all products
+      if (querySnapshot.docs.isNotEmpty) {
+        final products = querySnapshot.docs
+            .map(
+              (doc) => Product.fromMap(
+                doc.data() as Map<String, dynamic>,
+                id: doc.id,
+              ),
+            )
+            .toList();
+        await HiveService.instance.cacheProducts(products);
+      }
       return querySnapshot.docs.map((doc) => doc.id).toList();
     } catch (e) {
       print("Error getting all products: $e");
@@ -277,6 +330,8 @@ class ProductDatabaseHelper {
     try {
       final querySnapshot = await _firebaseFirestore
           .collection(PRODUCTS_COLLECTION_NAME)
+          .where(Product.STOCK_KEY, isGreaterThan: 0)
+          .where('isAvailable', isEqualTo: true)
           .orderBy(Product.DATE_ADDED_KEY, descending: true)
           .limit(limit)
           .get();

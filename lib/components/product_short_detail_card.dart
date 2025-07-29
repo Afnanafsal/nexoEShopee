@@ -1,8 +1,9 @@
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../constants.dart';
 import '../size_config.dart';
@@ -112,7 +113,52 @@ class ProductShortDetailCard extends StatelessWidget {
               ),
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            // Shimmer placeholder for product short detail card
+            final screenWidth = MediaQuery.of(context).size.width;
+            final imageSize = screenWidth * 0.22;
+            final textWidth = screenWidth * 0.35;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: SizedBox(
+                height: imageSize,
+                child: Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          width: imageSize,
+                          height: imageSize,
+                          color: Colors.grey[300],
+                        ),
+                      ),
+                      SizedBox(width: screenWidth * 0.03),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: textWidth,
+                              height: 16,
+                              color: Colors.grey[300],
+                            ),
+                            SizedBox(height: imageSize * 0.1),
+                            Container(
+                              width: textWidth * 0.6,
+                              height: 14,
+                              color: Colors.grey[300],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
           } else if (snapshot.hasError) {
             final errorMessage = snapshot.error.toString();
             Logger().e(errorMessage);

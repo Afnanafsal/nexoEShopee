@@ -1,12 +1,12 @@
-import 'package:nexoeshopee/constants.dart';
+import 'package:fishkart/constants.dart';
 import 'package:flutter/material.dart';
 import '../../../size_config.dart';
 import '../../../components/no_account_text.dart';
-import 'package:nexoeshopee/screens/sign_up/sign_up_screen.dart';
-import 'package:nexoeshopee/screens/forgot_password/forgot_password_screen.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
-import 'package:nexoeshopee/screens/home/home_screen.dart';
+import 'package:fishkart/screens/sign_up/sign_up_screen.dart';
+import 'package:fishkart/screens/forgot_password/forgot_password_screen.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
+import 'package:fishkart/screens/home/home_screen.dart';
 
 class Body extends StatelessWidget {
   @override
@@ -323,22 +323,60 @@ class _SignInCardContentState extends State<_SignInCardContent> {
         // Social login buttons
         Column(
           children: [
-            _SocialButton(
-              icon: Icons.apple,
-              text: 'Continue with Apple',
-              onPressed: () {},
-            ),
             SizedBox(height: 12),
             _SocialButton(
               iconAsset: 'assets/icons/google-icon.png',
               text: 'Continue with Google',
-              onPressed: () {},
+              onPressed: () async {
+                try {
+                  final authService = AuthentificationService();
+                  final result = await authService.signInWithGoogle();
+                  if (result == true) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                    );
+                  } else if (result == 'signup') {
+                    // Redirect to signup page
+                    Navigator.of(context).pushReplacementNamed('/sign_up');
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Google sign-in failed")),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Google sign-in error: $e")),
+                  );
+                }
+              },
             ),
             SizedBox(height: 12),
             _SocialButton(
               iconAsset: 'assets/icons/facebook.png',
               text: 'Continue with Facebook',
-              onPressed: () {},
+              onPressed: () async {
+                try {
+                  final authService = AuthentificationService();
+                  final result = await authService.signInWithFacebook();
+                  if (result) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Facebook sign-in failed or account is not registered as a customer. Please sign up as a customer.",
+                        ),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Facebook sign-in error: $e")),
+                  );
+                }
+              },
             ),
           ],
         ),

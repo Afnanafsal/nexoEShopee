@@ -1,4 +1,4 @@
-name: nexoeshopee
+name: fishkart
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -53,6 +53,9 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   shimmer: ^3.0.0
+  google_sign_in: ^6.2.1
+  flutter_facebook_auth: ^6.0.3
+  razorpay_flutter: ^1.4.0
 
 dev_dependencies:
   flutter_test:

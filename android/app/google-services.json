@@ -12,7 +12,20 @@
           "package_name": "com.example.nexoeshopee"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "655019407854-ejd403ivk7u53att93gkbt8mnfhbdas5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nexoeshopee",
+            "certificate_hash": "dcccbfd00aafee10962a1f5b891e9a094e4cdfaa"
+          }
+        },
+        {
+          "client_id": "655019407854-ua9k5lael01581qi2cob9tegigcd27ap.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCTqzP6L1L306suJyejmXHHXSDUpbVo26M"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "655019407854-ua9k5lael01581qi2cob9tegigcd27ap.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

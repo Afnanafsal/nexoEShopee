@@ -1,15 +1,16 @@
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/components/custom_suffix_icon.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/signup_exceptions.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/components/custom_suffix_icon.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
+import 'package:fishkart/exceptions/firebaseauth/signup_exceptions.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import '../../../constants.dart';
 import '../../home/home_screen.dart';
-import 'package:nexoeshopee/providers/user_providers.dart' as user_providers;
+import 'package:fishkart/providers/user_providers.dart' as user_providers;
 
 class SignUpForm extends ConsumerStatefulWidget {
   @override
@@ -173,9 +174,11 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
   Widget buildPhoneNumberFormField() {
     return TextFormField(
       controller: phoneNumberController,
-      keyboardType: TextInputType.phone,
+      keyboardType: TextInputType.number,
+      maxLength: 10,
       decoration: InputDecoration(
         hintText: "your_phone_number",
+        counterText: "", // Hide character counter
         suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Phone.svg"),
         contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         enabledBorder: OutlineInputBorder(
@@ -187,6 +190,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
           borderSide: BorderSide(color: Color(0xFF2B344F), width: 2),
         ),
       ),
+
       onChanged: (value) {
         ref
             .read(user_providers.signUpFormDataProvider.notifier)
@@ -195,8 +199,8 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
       validator: (value) {
         if (phoneNumberController.text.isEmpty) {
           return "Please enter your phone number";
-        } else if (phoneNumberController.text.length < 10) {
-          return "Phone number must be at least 10 digits";
+        } else if (phoneNumberController.text.length != 10) {
+          return "Phone number must be exactly 10 digits";
         }
         return null;
       },
@@ -351,10 +355,12 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
           password: passwordFieldController.text,
           displayName: displayNameController.text,
           phoneNumber: phoneNumberController.text,
+        ).timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw FirebaseSignUpAuthUnknownReasonFailureException(),
         );
 
-        signUpFuture.then((value) => signUpStatus = value);
-        signUpStatus = await showDialog(
+        final result = await showDialog(
           context: context,
           builder: (context) {
             return AsyncProgressDialog(
@@ -364,10 +370,31 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
           },
         );
 
-        if (signUpStatus == true) {
+        // Ensure result is a bool, default to false if null
+        signUpStatus = result == true;
+
+        if (signUpStatus) {
           snackbarMessage =
               "Account created successfully! Please verify your email.";
-          // Navigate directly to home screen
+          // Save user profile to Firestore before navigating to home screen
+          try {
+            // Import Firestore at the top if not already: import 'package:cloud_firestore/cloud_firestore.dart';
+            final user = await ref.read(user_providers.authServiceProvider).currentUser;
+            if (user != null) {
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user.uid)
+                  .set({
+                'displayName': displayNameController.text,
+                'email': emailFieldController.text,
+                'phoneNumber': phoneNumberController.text,
+                // Add other fields as needed
+                'userType': 'customer',
+              }, SetOptions(merge: true));
+            }
+          } catch (e) {
+            // Optionally log or handle Firestore errors
+          }
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => HomeScreen()),

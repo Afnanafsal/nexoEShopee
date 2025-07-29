@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/credential_actions_exceptions.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/reauth_exceptions.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/signin_exceptions.dart';
-import 'package:nexoeshopee/exceptions/firebaseauth/signup_exceptions.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:fishkart/exceptions/firebaseauth/credential_actions_exceptions.dart';
+import 'package:fishkart/exceptions/firebaseauth/reauth_exceptions.dart';
+import 'package:fishkart/exceptions/firebaseauth/signin_exceptions.dart';
+import 'package:fishkart/exceptions/firebaseauth/signup_exceptions.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 
 class AuthentificationService {
   static const String USER_NOT_FOUND_EXCEPTION_CODE = "user-not-found";
@@ -62,11 +64,25 @@ class AuthentificationService {
         email: email,
         password: password,
       );
-      if (userCredential.user!.emailVerified) {
-        return true;
-      } else {
+      if (!userCredential.user!.emailVerified) {
         await userCredential.user!.sendEmailVerification();
         throw FirebaseSignInAuthUserNotVerifiedException();
+      }
+
+      // Check userType in Firestore
+      // ...existing code...
+      final uid = userCredential.user!.uid;
+      final userDoc = await UserDatabaseHelper().firestore
+          .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+          .doc(uid)
+          .get();
+      final userType = userDoc.data()?['userType'];
+      print('[DEBUG] userType for $uid: $userType');
+      if (userType != null && userType == 'customer') {
+        return true;
+      } else {
+        // Block login for missing, null, or non-customer userType
+        throw FirebaseSignInAuthException(message: 'User not found');
       }
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
@@ -113,6 +129,114 @@ class AuthentificationService {
         default:
           throw FirebaseSignInAuthException(message: e.code);
       }
+    }
+  }
+
+  // 🔵 Google Sign-In
+  /// Returns true if login successful, false if user cancelled, and 'signup' if email not registered.
+  Future<dynamic> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return false; // user cancelled
+
+      final String googleEmail = googleUser.email;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      try {
+        final userCredential = await FirebaseAuth.instance.signInWithCredential(
+          credential,
+        );
+        if (userCredential.user == null) return false;
+        // Check userType in Firestore
+        final uid = userCredential.user!.uid;
+        final userDoc = await UserDatabaseHelper().firestore
+            .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+            .doc(uid)
+            .get();
+        final userType = userDoc.data()?['userType'];
+        if (userType == 'customer') {
+          return true;
+        } else {
+          return 'signup'; // Signal to UI to redirect to signup
+        }
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'account-exists-with-different-credential') {
+          // The account exists with a different sign-in method (e.g., password)
+          // Return a special value so the UI can prompt for password and link
+          return {
+            'linkRequired': true,
+            'email': googleEmail,
+            'pendingCredential': credential,
+          };
+        } else if (e.code == 'user-disabled') {
+          return 'disabled';
+        } else {
+          print("Google Sign-In error: $e");
+          return false;
+        }
+      }
+    } catch (e) {
+      print("Google Sign-In error: $e");
+      return false;
+    }
+  }
+
+  /// Call this after user enters password to link Google to existing account
+  Future<bool> linkGoogleToPasswordAccount({
+    required String email,
+    required String password,
+    required AuthCredential pendingCredential,
+  }) async {
+    try {
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      await userCredential.user?.linkWithCredential(pendingCredential);
+      return true;
+    } catch (e) {
+      print("Linking Google to password account failed: $e");
+      return false;
+    }
+  }
+
+  // 🔵 Facebook Sign-In
+  Future<bool> signInWithFacebook() async {
+    try {
+      final LoginResult result = await FacebookAuth.instance.login(
+        permissions: ['email', 'public_profile'],
+      );
+
+      if (result.status != LoginStatus.success) return false;
+
+      final OAuthCredential credential = FacebookAuthProvider.credential(
+        result.accessToken!.token,
+      );
+
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+      if (userCredential.user == null) return false;
+      // Check userType in Firestore
+      final uid = userCredential.user!.uid;
+      final userDoc = await UserDatabaseHelper().firestore
+          .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+          .doc(uid)
+          .get();
+      final userType = userDoc.data()?['userType'];
+      if (userType == 'customer') {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print("Facebook Sign-In error: $e");
+      return false;
     }
   }
 

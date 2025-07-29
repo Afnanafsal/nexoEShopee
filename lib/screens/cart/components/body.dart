@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:shimmer/shimmer.dart';
+// import 'package:url_launcher/url_launcher.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
 
-import 'package:nexoeshopee/components/nothingtoshow_container.dart';
-import 'package:nexoeshopee/components/product_short_detail_card.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/CartItem.dart';
-import 'package:nexoeshopee/models/OrderedProduct.dart';
-import 'package:nexoeshopee/models/Address.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/providers/user_providers.dart';
-import 'package:nexoeshopee/screens/cart/components/checkout_card.dart';
-import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:fishkart/components/product_short_detail_card.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/CartItem.dart';
+import 'package:fishkart/models/OrderedProduct.dart';
+import 'package:fishkart/models/Address.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/providers/user_providers.dart';
+import 'package:fishkart/screens/cart/components/checkout_card.dart';
+import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import '../../../services/razorpay_service.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/size_config.dart';
 import '../../../utils.dart';
 
 // Formatter for MM/YY expiry
@@ -60,10 +61,53 @@ class Body extends ConsumerStatefulWidget {
 }
 
 class _BodyState extends ConsumerState<Body> {
+  Future<void> arrowDownCallback(String cartItemId, String? addressId) async {
+    shutBottomSheet();
+    // Extract productId from cartItemId (format: productId_addressId)
+    final productIdOnly = cartItemId.split('_').first;
+    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
+      productIdOnly,
+      addressId,
+    );
+    if (cartItem != null) {
+      try {
+        await UserDatabaseHelper().decreaseCartItemCount(cartItem.id);
+        // Optionally, update stock here if needed
+      } catch (e) {
+        Logger().e(e.toString());
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+      }
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AsyncProgressDialog(
+            Future.value(true),
+            message: Text("Please wait"),
+          );
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("This product is not in your selected address's cart."),
+        ),
+      );
+    }
+  }
+
   List<Map<String, dynamic>> savedCards = [];
   String? selectedUpiApp;
   bool showQrDialog = false;
   int? selectedCardIndex;
+  late RazorpayService _razorpayService;
+
+  @override
+  void dispose() {
+    _razorpayService.dispose();
+    super.dispose();
+  }
 
   void showAddCardDialog(
     BuildContext context, {
@@ -383,6 +427,7 @@ class _BodyState extends ConsumerState<Body> {
   @override
   void initState() {
     super.initState();
+    _razorpayService = RazorpayService();
     _fetchAddresses();
     fetchCardsFromFirestore();
   }
@@ -414,7 +459,10 @@ class _BodyState extends ConsumerState<Body> {
         child: Column(
           children: [
             SizedBox(height: getProportionateScreenHeight(10)),
-            Text("Your Cart", style: headingStyle),
+            Align(
+              alignment: Alignment.center,
+              child: Text("Your Cart", style: headingStyle),
+            ),
             SizedBox(height: getProportionateScreenHeight(20)),
             // Address selector
             if (_addresses.length > 1)
@@ -580,7 +628,6 @@ class _BodyState extends ConsumerState<Body> {
       double totalPrice = 0;
       List<Widget> cartCards = [];
       for (int i = 0; i < cachedCartItems.length; i++) {
-        final cartItemId = cachedCartItems[i];
         final product = products[i];
         // For demo, assume quantity 1 (can be improved if CartItem is cached)
         totalPrice += product.discountPrice ?? product.originalPrice ?? 0;
@@ -885,50 +932,11 @@ class _BodyState extends ConsumerState<Body> {
                           SizedBox(width: 16),
                           Column(
                             children: [
-                              InkWell(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: kPrimaryColor.withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(Icons.add, color: kPrimaryColor),
-                                ),
-                                onTap: () async {
-                                  await arrowUpCallback(
-                                    product.id,
-                                    _selectedAddressId,
-                                  );
-                                  // Auto-refresh after add
-                                  await refreshPage();
-                                },
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                "${cartItem.itemCount}",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: kPrimaryColor,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              InkWell(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: kPrimaryColor.withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    Icons.remove,
-                                    color: kPrimaryColor,
-                                  ),
-                                ),
-                                onTap: () async {
-                                  await arrowDownCallback(
-                                    product.id,
-                                    _selectedAddressId,
-                                  );
-                                  // Auto-refresh after remove
+                              IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () async {
+                                  await UserDatabaseHelper()
+                                      .removeProductFromCart(cartItemsId[i]);
                                   await refreshPage();
                                 },
                               ),
@@ -1308,6 +1316,7 @@ class _BodyState extends ConsumerState<Body> {
       builder: (context) {
         return CheckoutCard(
           onCheckoutPressed: checkoutButtonCallback,
+          onRazorpayPressed: () => checkoutButtonCallback(useRazorpay: true),
           totalPrice: totalPrice,
         );
       },
@@ -1471,7 +1480,47 @@ class _BodyState extends ConsumerState<Body> {
               ],
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                margin: EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 16,
+                            color: Colors.white,
+                          ),
+                          SizedBox(height: 8),
+                          Container(width: 80, height: 12, color: Colors.white),
+                          SizedBox(height: 8),
+                          Container(width: 60, height: 12, color: Colors.white),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           } else if (snapshot.hasError) {
             final error = snapshot.error;
             Logger().w(error.toString());
@@ -1532,7 +1581,7 @@ class _BodyState extends ConsumerState<Body> {
     return total;
   }
 
-  Future<void> checkoutButtonCallback() async {
+  Future<void> checkoutButtonCallback({bool useRazorpay = false}) async {
     shutBottomSheet();
     double amount = await getCartTotal();
     if (amount == 0) {
@@ -1541,33 +1590,29 @@ class _BodyState extends ConsumerState<Body> {
       );
       return;
     }
-    // If UPI app is selected, launch UPI intent
-    if (selectedUpiApp != null) {
-      String upiUrl =
-          'upi://pay?pa=afnnafsal@oksbi&pn=Afnan Afsal&am=${amount.toStringAsFixed(2)}&cu=INR';
-      // Use url_launcher to launch UPI intent
-      if (await canLaunchUrl(Uri.parse(upiUrl))) {
-        await launchUrl(
-          Uri.parse(upiUrl),
-          mode: LaunchMode.externalApplication,
-        );
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Could not launch UPI app')));
-      }
+
+    if (useRazorpay) {
+      // Replace with actual user details as needed
+      final user = FirebaseAuth.instance.currentUser;
+      final name = user?.displayName ?? 'NexoEShopee User';
+      final email = user?.email ?? 'user@example.com';
+      final contact =
+          user?.phoneNumber ??
+          '9999999999'; // TODO: Replace with user's phone if available
+
+      // Open Razorpay checkout
+      _razorpayService.openCheckout(
+        amount: amount,
+        name: name,
+        description: 'Order Payment',
+        contact: contact,
+        email: email,
+      );
+      // TODO: On payment success, move order placement logic here
+      // You can listen to payment success in RazorpayService and call order placement
       return;
     }
-
-    // If card is selected, proceed with mock order
-    final confirmation = await showConfirmationDialog(
-      context,
-      "This is just a Project Testing App so, no actual Payment Interface is available.\nDo you want to proceed for Mock Ordering of Products?",
-    );
-    if (confirmation == false) {
-      return;
-    }
-
+    // Normal checkout logic (previous logic)
     // Fetch only cart items for the selected address BEFORE deleting
     String uid = AuthentificationService().currentUser.uid;
     final cartSnapshot = await FirebaseFirestore.instance
@@ -1580,11 +1625,29 @@ class _BodyState extends ConsumerState<Body> {
     final dateTime = DateTime.now();
     final isoDateTime = dateTime.toIso8601String();
     List<OrderedProduct> orderedProducts = [];
+    // Update stock for each product in the order
     for (final doc in cartSnapshot.docs) {
       final data = doc.data();
-      final productId =
-          data[CartItem.PRODUCT_ID_KEY]; // Use actual product document ID
+      final productId = data[CartItem.PRODUCT_ID_KEY];
       final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
+      // Decrease reserved, increase ordered
+      await Product.orderStock(productId, quantity);
+      // Get vendorId from product.vendorId
+      String? vendorId;
+      var cachedProduct = HiveService.instance.getCachedProduct(productId);
+      if (cachedProduct != null && cachedProduct.toMap().containsKey('vendorId') && cachedProduct.toMap()['vendorId'] != null) {
+        vendorId = cachedProduct.toMap()['vendorId'];
+      } else {
+        // fallback: fetch from db if not cached
+        try {
+          final product = await ProductDatabaseHelper().getProductWithID(
+            productId,
+          );
+          if (product != null && product.toMap().containsKey('vendorId')) {
+            vendorId = product.toMap()['vendorId'];
+          }
+        } catch (_) {}
+      }
       orderedProducts.add(
         OrderedProduct(
           '',
@@ -1592,6 +1655,9 @@ class _BodyState extends ConsumerState<Body> {
           orderDate: isoDateTime,
           addressId: _selectedAddressId,
           quantity: quantity,
+          vendorId: vendorId,
+          userId: uid,
+          status: 'pending',
         ),
       );
     }
@@ -1636,71 +1702,31 @@ class _BodyState extends ConsumerState<Body> {
     // Remove bottom sheet handler since we're using modal bottom sheet
   }
 
-  Future<void> arrowUpCallback(String productId, String? addressId) async {
+  Future<void> arrowUpCallback(String cartItemId, String? addressId) async {
     shutBottomSheet();
-    // Find the cart item for the selected address and product
+    // Extract productId from cartItemId (format: productId_addressId)
+    final productIdOnly = cartItemId.split('_').first;
     final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
-      productId,
+      productIdOnly,
       addressId,
     );
     if (cartItem != null) {
-      final future = UserDatabaseHelper().increaseCartItemCount(cartItem.id);
-      future
-          .then((status) async {
-            if (status) {
-              await refreshPage();
-            } else {
-              throw "Couldn't perform the operation due to some unknown issue";
-            }
-          })
-          .catchError((e) {
-            Logger().e(e.toString());
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Something went wrong")));
-          });
+      try {
+        await UserDatabaseHelper().increaseCartItemCount(cartItem.id);
+        // Optionally, update stock here if needed
+      } catch (e) {
+        Logger().e(e.toString());
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+      }
       await showDialog(
         context: context,
         builder: (context) {
-          return AsyncProgressDialog(future, message: Text("Please wait"));
-        },
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("This product is not in your selected address's cart."),
-        ),
-      );
-    }
-  }
-
-  Future<void> arrowDownCallback(String productId, String? addressId) async {
-    shutBottomSheet();
-    // Find the cart item for the selected address and product
-    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
-      productId,
-      addressId,
-    );
-    if (cartItem != null) {
-      final future = UserDatabaseHelper().decreaseCartItemCount(cartItem.id);
-      future
-          .then((status) async {
-            if (status) {
-              await refreshPage();
-            } else {
-              throw "Couldn't perform the operation due to some unknown issue";
-            }
-          })
-          .catchError((e) {
-            Logger().e(e.toString());
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Something went wrong")));
-          });
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AsyncProgressDialog(future, message: Text("Please wait"));
+          return AsyncProgressDialog(
+            Future.value(true),
+            message: Text("Please wait"),
+          );
         },
       );
     } else {

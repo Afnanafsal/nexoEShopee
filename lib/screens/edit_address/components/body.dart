@@ -1,7 +1,7 @@
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/Address.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/Address.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 
 import 'address_details_form.dart';
@@ -16,40 +16,33 @@ class Body extends StatelessWidget {
         physics: BouncingScrollPhysics(),
         child: Padding(
           padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding)),
+            horizontal: getProportionateScreenWidth(screenPadding),
+          ),
           child: SizedBox(
             width: double.infinity,
             child: Column(
               children: [
                 SizedBox(height: getProportionateScreenHeight(20)),
-                Text(
-                  "Fill Address Details",
-                  style: headingStyle,
-                ),
+                Text("Fill Address Details", style: headingStyle),
                 SizedBox(height: getProportionateScreenHeight(30)),
                 addressIdToEdit == null
-                    ? AddressDetailsForm(
-                        key: UniqueKey(),
-                        addressToEdit: null,
-                      )
+                    ? AddressDetailsForm(addressToEdit: null)
                     : FutureBuilder<Address>(
-                        future: UserDatabaseHelper()
-                            .getAddressFromId(addressIdToEdit!),
+                        future: UserDatabaseHelper().getAddressFromId(
+                          addressIdToEdit!,
+                        ),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             return AddressDetailsForm(
-                              key: UniqueKey(),
                               addressToEdit: snapshot.data!,
                             );
                           } else if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return AddressDetailsForm(
-                              key: UniqueKey(),
                               addressToEdit: null,
                             );
                           }
                           return AddressDetailsForm(
-                            key: UniqueKey(),
                             addressToEdit: null,
                           );
                         },

@@ -1,5 +1,5 @@
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/models/Review.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/models/Review.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -29,7 +29,11 @@ class ProductReviewDialog extends StatelessWidget {
             Center(
               child: Text(
                 "Review",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF232323)),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Color(0xFF232323),
+                ),
               ),
             ),
             SizedBox(height: 16),
@@ -46,7 +50,8 @@ class ProductReviewDialog extends StatelessWidget {
                 allowHalfRating: false,
                 itemCount: 5,
                 itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-                itemBuilder: (context, _) => Icon(Icons.star, color: Color(0xFF23395D)),
+                itemBuilder: (context, _) =>
+                    Icon(Icons.star, color: Color(0xFF23395D)),
                 onRatingUpdate: (rating) {
                   review.rating = rating.round();
                 },
@@ -89,7 +94,10 @@ class ProductReviewDialog extends StatelessWidget {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 8,
+                          ),
                           child: TextFormField(
                             initialValue: review.feedback,
                             decoration: InputDecoration(
@@ -97,7 +105,10 @@ class ProductReviewDialog extends StatelessWidget {
                               border: InputBorder.none,
                               isDense: true,
                             ),
-                            style: TextStyle(fontSize: 15, color: Color(0xFF232323)),
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Color(0xFF232323),
+                            ),
                             onChanged: (value) {
                               review.feedback = value;
                             },

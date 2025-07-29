@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/providers/product_details_providers.dart';
+import 'package:fishkart/providers/product_details_providers.dart';
 
 import '../../../constants.dart';
 

@@ -1,20 +1,21 @@
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/screens/cart/cart_screen.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
-import 'package:nexoeshopee/screens/category_products/category_products_screen.dart';
-import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
-import 'package:nexoeshopee/screens/search_result/search_result_screen.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/providers/providers.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/screens/cart/cart_screen.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/screens/category_products/category_products_screen.dart';
+import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import 'package:fishkart/screens/search_result/search_result_screen.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/providers/providers.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../utils.dart';
 import '../components/home_header.dart';
 import 'product_type_box.dart';
@@ -65,6 +66,25 @@ class Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Show alert if user is not verified (only once per build)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      bool allowed = AuthentificationService().currentUserVerified;
+      if (!allowed && context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Email Not Verified'),
+            content: Text("You haven't verified your email address. Please verify to access all features."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    });
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: () => refreshPage(ref),
@@ -85,30 +105,58 @@ class Body extends ConsumerWidget {
                       HomeHeader(
                         onSearchSubmitted: (value) async {
                           final query = value.toString();
-                          if (query.length <= 0) return;
+                          if (query.isEmpty) return;
                           try {
+                            // Try cache first for search results
+                            final cachedIds = HiveService.instance
+                                .getCachedSearchResults(query);
+                            if (cachedIds != null && cachedIds.isNotEmpty) {
+                              if (context.mounted) {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SearchResultScreen(
+                                      searchQuery: query,
+                                      searchResultProductsId: cachedIds,
+                                      searchIn: "All Products",
+                                    ),
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+                            // If not cached, fetch from backend
                             final searchParams = ProductSearchParams(
                               query: query.toLowerCase(),
                             );
                             final searchResults = await ref.read(
                               productSearchProvider(searchParams).future,
                             );
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SearchResultScreen(
-                                  searchQuery: query,
-                                  searchResultProductsId: searchResults,
-                                  searchIn: "All Products",
-                                ),
-                              ),
+                            // Cache the search results for future
+                            await HiveService.instance.cacheSearchResults(
+                              query,
+                              searchResults,
                             );
+                            if (context.mounted) {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SearchResultScreen(
+                                    searchQuery: query,
+                                    searchResultProductsId: searchResults,
+                                    searchIn: "All Products",
+                                  ),
+                                ),
+                              );
+                            }
                           } catch (e) {
                             final error = e.toString();
                             Logger().e(error);
-                            ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(SnackBar(content: Text("$error")));
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text("$error")));
+                            }
                           }
                         },
                         onCartButtonPressed: () async {
@@ -124,26 +172,30 @@ class Body extends ConsumerWidget {
                             if (reverify) {
                               final future = AuthentificationService()
                                   .sendVerificationEmailToCurrentUser();
-                              await showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AsyncProgressDialog(
-                                    future,
-                                    message: Text(
-                                      "Resending verification email",
-                                    ),
-                                  );
-                                },
-                              );
+                              if (context.mounted) {
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AsyncProgressDialog(
+                                      future,
+                                      message: Text(
+                                        "Resending verification email",
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
                             }
                             return;
                           }
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CartScreen(),
-                            ),
-                          );
+                          if (context.mounted) {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CartScreen(),
+                              ),
+                            );
+                          }
                         },
                       ),
                       SizedBox(height: getProportionateScreenHeight(10)),
@@ -166,16 +218,18 @@ class Body extends ConsumerWidget {
                                 icon: productCategories[index][ICON_KEY],
                                 title: productCategories[index][TITLE_KEY],
                                 onPress: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CategoryProductsScreen(
-                                        key: UniqueKey(),
-                                        productType:
-                                            productCategories[index][PRODUCT_TYPE_KEY],
+                                  if (context.mounted) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => CategoryProductsScreen(
+                                          key: UniqueKey(),
+                                          productType:
+                                              productCategories[index][PRODUCT_TYPE_KEY],
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  }
                                 },
                               );
                             },
@@ -198,47 +252,237 @@ class Body extends ConsumerWidget {
                           ),
                         ),
                       ),
+                      // Only load a small batch of products for first-time users for speed
                       Consumer(
                         builder: (context, ref, _) {
                           final allProductsAsync = ref.watch(
-                            latestProductsProvider(50),
+                            latestProductsProvider(
+                              99999,
+                            ), // Fetch all products, no limit
                           );
                           return allProductsAsync.when(
                             data: (productIds) {
+                              // Fetch all products and cache them immediately
                               return FutureBuilder<List<Product>>(
                                 future: Future.wait(
                                   productIds.map((id) async {
-                                    // Try cache first
-                                    final cached = HiveService.instance
-                                        .getCachedProduct(id);
+                                    final cached = HiveService.instance.getCachedProduct(id);
                                     if (cached != null) return cached;
-                                    final product =
-                                        await ProductDatabaseHelper()
-                                            .getProductWithID(id);
-                                    // Cache it for future
-                                    if (product != null)
-                                      await HiveService.instance.cacheProduct(
-                                        product,
-                                      );
-                                    return product ??
-                                        Product(
-                                          id,
-                                          title: 'Unknown',
-                                          images: [],
-                                          discountPrice: 0,
-                                          originalPrice: 0,
-                                        );
+                                    final product = await ProductDatabaseHelper().getProductWithID(id);
+                                    return product ?? Product(
+                                      id,
+                                      title: 'Unknown',
+                                      images: [],
+                                      discountPrice: 0,
+                                      originalPrice: 0,
+                                    );
                                   }),
-                                ),
+                                ).then((products) async {
+                                  // Cache all products at once
+                                  await HiveService.instance.cacheProducts(products);
+                                  return products;
+                                }),
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
-                                    return Center(
-                                      child: CircularProgressIndicator(),
+                                    // Show shimmer effect while loading
+                                    return ListView.separated(
+                                      shrinkWrap: true,
+                                      physics: NeverScrollableScrollPhysics(),
+                                      itemCount: 6,
+                                      separatorBuilder: (context, index) =>
+                                          SizedBox(height: 20),
+                                      itemBuilder: (context, index) {
+                                        return Shimmer.fromColors(
+                                          baseColor: Colors.grey[300]!,
+                                          highlightColor: Colors.grey[100]!,
+                                          child: Container(
+                                            margin: EdgeInsets.symmetric(
+                                              horizontal: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black12,
+                                                  blurRadius: 16,
+                                                  offset: Offset(0, 8),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.all(
+                                                    12.0,
+                                                  ),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          16,
+                                                        ),
+                                                    child: Container(
+                                                      width: 80,
+                                                      height: 80,
+                                                      color: Colors.grey[200],
+                                                    ),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          vertical: 18.0,
+                                                          horizontal: 4.0,
+                                                        ),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Container(
+                                                          width:
+                                                              double.infinity,
+                                                          height: 18,
+                                                          color:
+                                                              Colors.grey[300],
+                                                        ),
+                                                        SizedBox(height: 8),
+                                                        Container(
+                                                          width: 80,
+                                                          height: 14,
+                                                          color:
+                                                              Colors.grey[300],
+                                                        ),
+                                                        SizedBox(height: 6),
+                                                        Row(
+                                                          children: [
+                                                            Container(
+                                                              width: 40,
+                                                              height: 16,
+                                                              color: Colors
+                                                                  .grey[300],
+                                                            ),
+                                                            SizedBox(width: 8),
+                                                            Container(
+                                                              width: 40,
+                                                              height: 14,
+                                                              color: Colors
+                                                                  .grey[300],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 16.0,
+                                                      ),
+                                                  child: Container(
+                                                    width: 56,
+                                                    height: 56,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      shape: BoxShape.circle,
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black12,
+                                                          blurRadius: 12,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     );
                                   }
-                                  final products = snapshot.data!;
-                                  // Cache all loaded products for fast future access
+                                  // Get user's selected address city
+                                  final selectedAddressId = ref.read(
+                                    selectedAddressIdProvider,
+                                  );
+                                  String userCity = '';
+                                  if (selectedAddressId != null) {
+                                    final address = HiveService.instance
+                                        .getCachedAddresses()
+                                        .firstWhere(
+                                          (a) => a['id'] == selectedAddressId,
+                                          orElse: () => <String, dynamic>{},
+                                        );
+                                    if (address['city'] != null) {
+                                      userCity = (address['city'] as String)
+                                          .trim()
+                                          .toLowerCase();
+                                    }
+                                  }
+                                  // Filter products by areaLocation, with debug logging
+                                  final products = (snapshot.data ?? [])
+                                      .where((p) {
+                                        final areaLocation =
+                                            (p.areaLocation ?? '')
+                                                .trim()
+                                                .toLowerCase();
+                                        bool showProduct = false;
+                                        String reason = '';
+                                        if (userCity.isEmpty) {
+                                          showProduct = true;
+                                          reason = 'userCity is empty, showing all products';
+                                        } else if (areaLocation.isEmpty) {
+                                          showProduct = false;
+                                          reason = 'areaLocation is empty, hiding product';
+                                        } else if (areaLocation == userCity) {
+                                          showProduct = true;
+                                          reason = 'areaLocation matches userCity';
+                                        } else {
+                                          showProduct = false;
+                                          reason = 'areaLocation does not match userCity';
+                                        }
+                                        // Debug log for each product
+                                        Logger().i('[Product Filter] userCity: "$userCity", areaLocation: "$areaLocation", show: $showProduct, reason: $reason, productId: ${p.id}');
+                                        return showProduct;
+                                      })
+                                      .where((p) => p.isInStock)
+                                      .where((p) => (p as dynamic).isAvailable == true)
+                                      .toList();
                                   HiveService.instance.cacheProducts(products);
+                                  if (products.isEmpty) {
+                                    return Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 32.0,
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.info_outline,
+                                              size: 48,
+                                              color: Colors.grey,
+                                            ),
+                                            SizedBox(height: 16),
+                                            Text(
+                                              'No products available in your area.',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.grey,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }
                                   return ListView.separated(
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
@@ -247,18 +491,36 @@ class Body extends ConsumerWidget {
                                         SizedBox(height: 20),
                                     itemBuilder: (context, index) {
                                       final product = products[index];
+                                      // Null safety and fallback values for all fields
+                                      final productTitle =
+                                          product.title ?? 'Unknown';
+                                      final productImages =
+                                          product.images ?? [];
+                                      final productImage =
+                                          (productImages.isNotEmpty &&
+                                              productImages.first.isNotEmpty)
+                                          ? productImages.first
+                                          : null;
+                                      final productVariant =
+                                          product.variant ?? '';
+                                      final discountPrice =
+                                          product.discountPrice ?? 0.0;
+                                      final originalPrice =
+                                          product.originalPrice ?? 0.0;
                                       return InkWell(
                                         onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ProductDetailsScreen(
-                                                    key: UniqueKey(),
-                                                    productId: product.id,
-                                                  ),
-                                            ),
-                                          );
+                                          if (context.mounted) {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ProductDetailsScreen(
+                                                      key: UniqueKey(),
+                                                      productId: product.id,
+                                                    ),
+                                              ),
+                                            );
+                                          }
                                         },
                                         borderRadius: BorderRadius.circular(24),
                                         child: Container(
@@ -293,21 +555,10 @@ class Body extends ConsumerWidget {
                                                     width: 80,
                                                     height: 80,
                                                     color: Colors.grey[200],
-                                                    child:
-                                                        (product.images !=
-                                                                null &&
-                                                            product
-                                                                .images!
-                                                                .isNotEmpty &&
-                                                            product
-                                                                .images!
-                                                                .first
-                                                                .isNotEmpty)
+                                                    child: productImage != null
                                                         ? Base64ImageService()
                                                               .base64ToImage(
-                                                                product
-                                                                    .images!
-                                                                    .first,
+                                                                productImage,
                                                                 fit: BoxFit
                                                                     .cover,
                                                                 width: 80,
@@ -337,7 +588,7 @@ class Body extends ConsumerWidget {
                                                             .start,
                                                     children: [
                                                       Text(
-                                                        product.title ?? '',
+                                                        productTitle,
                                                         style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.w700,
@@ -350,15 +601,15 @@ class Body extends ConsumerWidget {
                                                         overflow: TextOverflow
                                                             .ellipsis,
                                                       ),
-                                                      if (product.variant !=
-                                                          null)
+                                                      if (productVariant
+                                                          .isNotEmpty)
                                                         Padding(
                                                           padding:
                                                               const EdgeInsets.only(
                                                                 top: 2.0,
                                                               ),
                                                           child: Text(
-                                                            'Net weight: ${product.variant}',
+                                                            'Net weight: $productVariant',
                                                             style: TextStyle(
                                                               fontSize: 13,
                                                               color: Colors
@@ -370,7 +621,7 @@ class Body extends ConsumerWidget {
                                                       Row(
                                                         children: [
                                                           Text(
-                                                            '₹${product.discountPrice?.toStringAsFixed(2) ?? ''}',
+                                                            '₹${discountPrice.toStringAsFixed(2)}',
                                                             style: TextStyle(
                                                               fontWeight:
                                                                   FontWeight
@@ -380,16 +631,14 @@ class Body extends ConsumerWidget {
                                                                   Colors.black,
                                                             ),
                                                           ),
-                                                          if (product
-                                                                  .originalPrice !=
-                                                              null)
+                                                          if (originalPrice > 0)
                                                             Padding(
                                                               padding:
                                                                   const EdgeInsets.only(
                                                                     left: 8.0,
                                                                   ),
                                                               child: Text(
-                                                                '₹${product.originalPrice?.toStringAsFixed(2) ?? ''}',
+                                                                '₹${originalPrice.toStringAsFixed(2)}',
                                                                 style: TextStyle(
                                                                   fontSize: 14,
                                                                   color: Colors
@@ -423,16 +672,17 @@ class Body extends ConsumerWidget {
                                                           ref.read(
                                                             selectedAddressIdProvider,
                                                           );
-                                                      ScaffoldMessenger.of(
-                                                        context,
-                                                      ).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                            '${product.title} added to cart!',
+                                                      if (context.mounted) {
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                              '$productTitle added to cart!',
+                                                            ),
                                                           ),
-                                                        ),
-                                                      );
-                                                      // Run DB call in background
+                                                        );
+                                                      }
                                                       UserDatabaseHelper()
                                                           .addProductToCart(
                                                             product.id,
@@ -440,15 +690,17 @@ class Body extends ConsumerWidget {
                                                                 selectedAddressId,
                                                           )
                                                           .catchError((e) {
-                                                            ScaffoldMessenger.of(
-                                                              context,
-                                                            ).showSnackBar(
-                                                              SnackBar(
-                                                                content: Text(
-                                                                  'Failed to add to cart: $e',
+                                                            if (context.mounted) {
+                                                              ScaffoldMessenger.of(
+                                                                context,
+                                                              ).showSnackBar(
+                                                                SnackBar(
+                                                                  content: Text(
+                                                                    'Failed to add to cart: $e',
+                                                                  ),
                                                                 ),
-                                                              ),
-                                                            );
+                                                              );
+                                                            }
                                                             return false;
                                                           });
                                                     },
@@ -511,12 +763,14 @@ class Body extends ConsumerWidget {
   }
 
   void onProductCardTapped(BuildContext context, String productId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            ProductDetailsScreen(key: UniqueKey(), productId: productId),
-      ),
-    );
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ProductDetailsScreen(key: UniqueKey(), productId: productId),
+        ),
+      );
+    }
   }
 }

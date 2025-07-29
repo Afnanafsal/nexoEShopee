@@ -1,15 +1,16 @@
+import 'package:shimmer/shimmer.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:nexoeshopee/screens/add_product/add_product_screen.dart';
-import 'package:nexoeshopee/screens/edit_product/edit_product_screen.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/screens/add_product/add_product_screen.dart';
+import 'package:fishkart/screens/edit_product/edit_product_screen.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/base64_image_service/base64_image_service.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
 
 class ManageProductsScreen extends StatelessWidget {
   static String routeName = "/manage_products";
@@ -60,7 +61,45 @@ class ProductsList extends StatelessWidget {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Center(
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: 4,
+                itemBuilder: (context, index) => Card(
+                  elevation: 2,
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(16),
+                    leading: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    title: Container(
+                      width: 120,
+                      height: 16,
+                      color: Colors.white,
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 8),
+                        Container(width: 80, height: 12, color: Colors.white),
+                        SizedBox(height: 8),
+                        Container(width: 100, height: 12, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
         }
 
         if (snapshot.hasError) {

@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/components/product_card.dart';
-import 'package:nexoeshopee/components/search_field.dart';
-import 'package:nexoeshopee/components/nothingtoshow_container.dart';
-import 'package:nexoeshopee/providers/providers.dart';
-import 'package:nexoeshopee/providers/providers.dart'; // Ensure cartProvider is imported
+import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/components/product_card.dart';
+import 'package:fishkart/components/search_field.dart';
+import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:fishkart/providers/providers.dart';
+import 'package:fishkart/providers/providers.dart'; // Ensure cartProvider is imported
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:shimmer/shimmer.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -93,11 +94,45 @@ class _SearchScreenState extends State<SearchScreen> {
       isSearching = true;
       isLoading = true;
     });
-    final ids = await ProductDatabaseHelper().searchInProducts(query);
+    // Try cache first
+    final cachedIds = HiveService.instance.getCachedSearchResults(query);
     List<Product> products = [];
-    for (final id in ids) {
-      final product = await ProductDatabaseHelper().getProductWithID(id);
-      if (product != null) products.add(product);
+    List<String> missingIds = [];
+    if (cachedIds != null && cachedIds.isNotEmpty) {
+      for (final id in cachedIds) {
+        final cached = HiveService.instance.getCachedProduct(id);
+        if (cached != null) {
+          products.add(cached);
+        } else {
+          missingIds.add(id);
+        }
+      }
+    } else {
+      // No cache, search backend
+      final ids = await ProductDatabaseHelper().searchInProducts(query);
+      for (final id in ids) {
+        final cached = HiveService.instance.getCachedProduct(id);
+        if (cached != null) {
+          products.add(cached);
+        } else {
+          missingIds.add(id);
+        }
+      }
+      // Cache search result ids for next time
+      await HiveService.instance.cacheSearchResults(query, ids);
+    }
+    // Batch fetch missing products and cache them
+    if (missingIds.isNotEmpty) {
+      final fetchedProducts = await Future.wait(
+        missingIds.map((id) => ProductDatabaseHelper().getProductWithID(id)),
+      );
+      for (int i = 0; i < fetchedProducts.length; i++) {
+        final product = fetchedProducts[i];
+        if (product != null) {
+          products.add(product);
+          await HiveService.instance.cacheProduct(product);
+        }
+      }
     }
     setState(() {
       searchResults = products;
@@ -150,7 +185,138 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               SizedBox(height: 8),
             ],
-            if (isLoading) Center(child: CircularProgressIndicator()),
+            if (isLoading)
+              Builder(
+                builder: (context) {
+                  // Show cached products instantly if available
+                  final products = !isSearching
+                      ? frequentlyBoughtProducts
+                      : searchResults;
+                  if (products.isNotEmpty) {
+                    return Expanded(
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemCount: products.length,
+                        itemBuilder: (context, index) {
+                          final product = products[index];
+                          return Stack(
+                            children: [
+                              ProductCard(
+                                productId: product.id,
+                                press: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ProductDetailsScreen(
+                                            key: Key(product.id),
+                                            productId: product.id,
+                                          ),
+                                    ),
+                                  );
+                                },
+                                showDiscountTag: false,
+                              ),
+                              Positioned(
+                                bottom: isSearching ? 10 : 4,
+                                right: isSearching ? 16 : 4,
+                                child: Material(
+                                  color: Colors.white,
+                                  shape: const CircleBorder(),
+                                  elevation: 2,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(24),
+                                    onTap: () {
+                                      addToCart(context, product.id);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Icon(
+                                        Icons.add,
+                                        size: 32,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    );
+                  }
+                  // Otherwise show shimmer
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final cardWidth =
+                      (screenWidth - 10 * 3) / 2; // 2 cards, 3 spacings
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 24.0),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemCount: 4,
+                        itemBuilder: (context, index) {
+                          return Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Card(
+                              elevation: 4,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Container(
+                                    height: cardWidth * 0.7,
+                                    width: cardWidth,
+                                    color: Colors.grey[300],
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: cardWidth * 0.8,
+                                          height: 16,
+                                          color: Colors.grey[300],
+                                        ),
+                                        SizedBox(height: 8),
+                                        Container(
+                                          width: cardWidth * 0.5,
+                                          height: 14,
+                                          color: Colors.grey[300],
+                                        ),
+                                        SizedBox(height: 8),
+                                        Container(
+                                          width: cardWidth * 0.3,
+                                          height: 14,
+                                          color: Colors.grey[300],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
             if (!isSearching && !isLoading)
               Expanded(
                 child: frequentlyBoughtProducts.isEmpty

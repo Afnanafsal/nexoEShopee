@@ -1,4 +1,4 @@
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 
 import '../../../constants.dart';

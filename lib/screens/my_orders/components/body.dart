@@ -1,20 +1,21 @@
-import 'package:nexoeshopee/components/nothingtoshow_container.dart';
-import 'package:nexoeshopee/components/product_short_detail_card.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/OrderedProduct.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/models/Review.dart';
-import 'package:nexoeshopee/models/Address.dart';
-import 'package:nexoeshopee/screens/my_orders/components/product_review_dialog.dart';
-import 'package:nexoeshopee/screens/product_details/product_details_screen.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:fishkart/components/product_short_detail_card.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/OrderedProduct.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/models/Review.dart';
+import 'package:fishkart/models/Address.dart';
+import 'package:fishkart/screens/my_orders/components/product_review_dialog.dart';
+import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:shimmer/shimmer.dart';
 
 // ...existing code...
 
@@ -32,17 +33,6 @@ class _BodyState extends State<Body> {
   String? _selectedAddressId;
   late final String currentUserUid;
   final HiveService _hiveService = HiveService.instance;
-
-  // Address cache for dropdown speed
-  final Map<String, Address> _addressCache = {};
-  Future<Address> _getAddressWithCaching(String addressId) async {
-    if (_addressCache.containsKey(addressId)) {
-      return _addressCache[addressId]!;
-    }
-    final address = await UserDatabaseHelper().getAddressFromId(addressId);
-    _addressCache[addressId] = address;
-    return address;
-  }
 
   static const int _pageSize = 20;
   DocumentSnapshot? _lastDocument;
@@ -147,172 +137,185 @@ class _BodyState extends State<Body> {
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: refreshPage,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: getProportionateScreenWidth(screenPadding),
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            child: Column(
-              children: [
-                SizedBox(height: getProportionateScreenHeight(10)),
-                // Back button and address selector in same row
-                Row(
-                  children: [
-                    // iOS style back button
-                    IconButton(
-                      icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
-                      onPressed: () {
-                        Navigator.of(context).maybePop();
-                      },
-                      tooltip: 'Back',
-                    ),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: _addresses.length > 1
-                            ? Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 8,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 2,
-                                ),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                    value: _selectedAddressId,
-                                    icon: Icon(
-                                      Icons.keyboard_arrow_down,
-                                      color: Colors.black,
-                                    ),
-                                    isExpanded: true,
-                                    items: _addresses.map((addressId) {
-                                      return DropdownMenuItem<String>(
-                                        value: addressId,
-                                        child: FutureBuilder<Address>(
-                                          future: _getAddressWithCaching(
-                                            addressId,
-                                          ),
-                                          builder: (context, snapshot) {
-                                            if (snapshot.hasData &&
-                                                snapshot.data != null) {
-                                              final address = snapshot.data!;
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: getProportionateScreenWidth(screenPadding),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  SizedBox(height: getProportionateScreenHeight(10)),
+                  // Back button and address selector in same row
+                  Row(
+                    children: [
+                      // iOS style back button
+                      IconButton(
+                        icon: Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).maybePop();
+                        },
+                        tooltip: 'Back',
+                      ),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: _addresses.length > 1
+                              ? Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 8,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 2,
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: _selectedAddressId,
+                                      icon: Icon(
+                                        Icons.keyboard_arrow_down,
+                                        color: Colors.black,
+                                      ),
+                                      isExpanded: true,
+                                      items: _addresses.map((addressId) {
+                                        return DropdownMenuItem<String>(
+                                          value: addressId,
+                                          child: FutureBuilder<Address>(
+                                            future: UserDatabaseHelper()
+                                                .getAddressFromId(addressId),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.hasData &&
+                                                  snapshot.data != null) {
+                                                final address = snapshot.data!;
+                                                return Text(
+                                                  address.title ??
+                                                      address.addressLine1 ??
+                                                      addressId,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                );
+                                              }
                                               return Text(
-                                                address.title ?? '',
+                                                addressId,
                                                 overflow: TextOverflow.ellipsis,
                                               );
-                                            }
-                                            return Text(
-                                              '', // Only show blank if not loaded
-                                              overflow: TextOverflow.ellipsis,
-                                            );
-                                          },
-                                        ),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _selectedAddressId = value;
-                                      });
-                                    },
-                                  ),
-                                ),
-                              )
-                            : (_addresses.length == 1
-                                  ? FutureBuilder<Address>(
-                                      future: UserDatabaseHelper()
-                                          .getAddressFromId(_addresses.first),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.hasData &&
-                                            snapshot.data != null) {
-                                          final address = snapshot.data!;
-                                          return Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black12,
-                                                  blurRadius: 8,
-                                                  offset: Offset(0, 2),
-                                                ),
-                                              ],
-                                            ),
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 8,
-                                            ),
-                                            child: Text(
-                                              address.title ??
-                                                  address.addressLine1 ??
-                                                  _addresses.first,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                        return SizedBox.shrink();
+                                            },
+                                          ),
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _selectedAddressId = value;
+                                        });
                                       },
-                                    )
-                                  : SizedBox.shrink()),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: getProportionateScreenHeight(10)),
-                // Tab bar
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    ...List.generate(_orderTabs.length, (i) {
-                      final selected = _selectedTabIndex == i;
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedTabIndex = i;
-                          });
-                        },
-                        child: Container(
-                          margin: EdgeInsets.only(right: 24),
-                          padding: EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            border: selected
-                                ? Border(
-                                    bottom: BorderSide(
-                                      color: kPrimaryColor,
-                                      width: 2,
                                     ),
-                                  )
-                                : null,
-                          ),
-                          child: Text(
-                            _orderTabs[i],
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: selected ? kPrimaryColor : Colors.black54,
-                              fontSize: 16,
+                                  ),
+                                )
+                              : (_addresses.length == 1
+                                    ? FutureBuilder<Address>(
+                                        future: UserDatabaseHelper()
+                                            .getAddressFromId(_addresses.first),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.hasData &&
+                                              snapshot.data != null) {
+                                            final address = snapshot.data!;
+                                            return Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black12,
+                                                    blurRadius: 8,
+                                                    offset: Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 8,
+                                              ),
+                                              child: Text(
+                                                address.title ??
+                                                    address.addressLine1 ??
+                                                    _addresses.first,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                          return SizedBox.shrink();
+                                        },
+                                      )
+                                    : SizedBox.shrink()),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: getProportionateScreenHeight(10)),
+                  // Tab bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      ...List.generate(_orderTabs.length, (i) {
+                        final selected = _selectedTabIndex == i;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedTabIndex = i;
+                            });
+                          },
+                          child: Container(
+                            margin: EdgeInsets.only(right: 24),
+                            padding: EdgeInsets.symmetric(vertical: 4),
+                            decoration: BoxDecoration(
+                              border: selected
+                                  ? Border(
+                                      bottom: BorderSide(
+                                        color: kPrimaryColor,
+                                        width: 2,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                            child: Text(
+                              _orderTabs[i],
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: selected
+                                    ? kPrimaryColor
+                                    : Colors.black54,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-                SizedBox(height: getProportionateScreenHeight(10)),
-                // Orders list
-                Expanded(child: buildOrderedProductsList()),
-              ],
+                        );
+                      }),
+                    ],
+                  ),
+                  SizedBox(height: getProportionateScreenHeight(10)),
+                  // ...existing code...
+                  SizedBox(
+                    height: SizeConfig.screenHeight * 0.75,
+                    child: buildOrderedProductsList(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -383,7 +386,63 @@ class _BodyState extends State<Body> {
               return addressId == _selectedAddressId;
             }).toList();
           }
-          // Remove status filter so all orders show
+
+          // Normalize status for all docs (missing/empty = Pending, lowercase to title case)
+          String normalizeStatus(String? status) {
+            if (status == null || status.trim().isEmpty) return 'Pending';
+            final s = status.trim().toLowerCase();
+            if (s == 'completed') return 'Completed';
+            if (s == 'pending') return 'Pending';
+            if (s == 'cancelled' || s == 'rejected') return 'Cancelled';
+            // fallback: capitalize first letter
+            return s[0].toUpperCase() + s.substring(1);
+          }
+
+          // Filter by tab
+          if (_selectedTabIndex == 0) {
+            // Completed
+            orderedProductsDocs = orderedProductsDocs
+                .where(
+                  (doc) => normalizeStatus(doc.data()['status']) == 'Completed',
+                )
+                .toList();
+          } else if (_selectedTabIndex == 1) {
+            // Pending
+            orderedProductsDocs = orderedProductsDocs
+                .where(
+                  (doc) => normalizeStatus(doc.data()['status']) == 'Pending',
+                )
+                .toList();
+          } else if (_selectedTabIndex == 2) {
+            // Cancelled
+            orderedProductsDocs = orderedProductsDocs
+                .where(
+                  (doc) => normalizeStatus(doc.data()['status']) == 'Cancelled',
+                )
+                .toList();
+          }
+
+          // Sort by status, then by date descending
+          orderedProductsDocs.sort((a, b) {
+            String aStatus = normalizeStatus(a.data()['status']);
+            String bStatus = normalizeStatus(b.data()['status']);
+            const statusOrder = ['Pending', 'Completed', 'Cancelled'];
+            int aStatusIndex = statusOrder.indexOf(aStatus);
+            int bStatusIndex = statusOrder.indexOf(bStatus);
+            if (aStatusIndex == -1) aStatusIndex = statusOrder.length;
+            if (bStatusIndex == -1) bStatusIndex = statusOrder.length;
+            if (aStatusIndex != bStatusIndex) {
+              return aStatusIndex.compareTo(bStatusIndex);
+            }
+            // If status is the same, sort by date descending
+            final aDate = a.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
+            final bDate = b.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
+            if (aDate == null && bDate == null) return 0;
+            if (aDate == null) return 1;
+            if (bDate == null) return -1;
+            return bDate.compareTo(aDate);
+          });
+
           Logger().i(
             'Found ${orderedProductsDocs.length} orders for user $currentUserUid and address $_selectedAddressId',
           );
@@ -395,35 +454,32 @@ class _BodyState extends State<Body> {
               ),
             );
           }
-          // Sort by date descending
-          orderedProductsDocs.sort((a, b) {
-            final aDate = a.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
-            final bDate = b.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
-            if (aDate == null && bDate == null) return 0;
-            if (aDate == null) return 1;
-            if (bDate == null) return -1;
-            return bDate.compareTo(aDate);
-          });
-          // Group by date (show only date part)
+          // Group by date
           Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>
           grouped = {};
           for (var doc in orderedProductsDocs) {
-            final rawDate =
+            final date =
                 doc.data()[OrderedProduct.ORDER_DATE_KEY] as String? ?? '';
-            String dateOnly = rawDate;
-            // Try to parse and format date
-            try {
-              DateTime dt = DateTime.parse(rawDate);
-              dateOnly =
-                  "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}";
-            } catch (e) {}
-            grouped.putIfAbsent(dateOnly, () => []).add(doc);
+            grouped.putIfAbsent(date, () => []).add(doc);
           }
-          // Debug: print grouped dates and counts
-          Logger().i('Grouped order dates:');
-          grouped.forEach((date, docs) {
-            Logger().i('Date: $date, Count: ${docs.length}');
-          });
+          String formatOrderDate(String isoDate) {
+            try {
+              final dt = DateTime.parse(isoDate);
+              int hour = dt.hour;
+              final minute = dt.minute.toString().padLeft(2, '0');
+              final ampm = hour >= 12 ? 'PM' : 'AM';
+              hour = hour % 12;
+              if (hour == 0) hour = 12;
+              final hourStr = hour.toString().padLeft(2, '0');
+              final day = dt.day.toString().padLeft(2, '0');
+              final month = dt.month.toString().padLeft(2, '0');
+              final year = dt.year.toString().substring(2);
+              return '$hourStr:$minute $ampm $day-$month-$year';
+            } catch (e) {
+              return isoDate;
+            }
+          }
+
           return ListView(
             physics: BouncingScrollPhysics(),
             children: grouped.entries.map((entry) {
@@ -431,15 +487,39 @@ class _BodyState extends State<Body> {
               Map<String, int> productCounts = {};
               Map<String, QueryDocumentSnapshot<Map<String, dynamic>>>
               productDocs = {};
-              Logger().i('Rendering date group: ${entry.key}');
               for (var doc in entry.value) {
                 final pid =
                     doc.data()[OrderedProduct.PRODUCT_UID_KEY] as String?;
-                Logger().i('Rendering product UID: $pid for date ${entry.key}');
                 if (pid != null) {
                   productCounts[pid] = (productCounts[pid] ?? 0) + 1;
                   productDocs[pid] = doc;
                 }
+              }
+              // Get the status of the first doc in the group for color
+              final firstDoc = entry.value.isNotEmpty
+                  ? entry.value.first
+                  : null;
+              final status = firstDoc != null
+                  ? normalizeStatus(firstDoc.data()['status'])
+                  : 'Pending';
+              Color statusBgColor;
+              Color statusTextColor;
+              switch (status) {
+                case 'Completed':
+                  statusBgColor = const Color(0xFFE6F9F0); // light green
+                  statusTextColor = const Color(0xFF1B8A5A); // green
+                  break;
+                case 'Pending':
+                  statusBgColor = const Color(0xFFFFF8E1); // light yellow
+                  statusTextColor = const Color(0xFFE6A100); // orange
+                  break;
+                case 'Cancelled':
+                  statusBgColor = const Color(0xFFFFEBEE); // light red
+                  statusTextColor = const Color(0xFFD32F2F); // red
+                  break;
+                default:
+                  statusBgColor = Colors.grey.shade200;
+                  statusTextColor = Colors.black54;
               }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,12 +529,49 @@ class _BodyState extends State<Body> {
                       vertical: 8.0,
                       horizontal: 4.0,
                     ),
-                    child: Text(
-                      'Ordered on: ${entry.key}',
-                      style: TextStyle(
-                        color: kPrimaryColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: statusBgColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Ordered on: ${formatOrderDate(entry.key)}',
+                            style: TextStyle(
+                              color: statusTextColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Icon(
+                                status == 'Completed'
+                                    ? Icons.check_circle
+                                    : status == 'Pending'
+                                    ? Icons.hourglass_bottom
+                                    : Icons.cancel,
+                                color: statusTextColor,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                status,
+                                style: TextStyle(
+                                  color: statusTextColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -476,29 +593,53 @@ class _BodyState extends State<Body> {
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
+                                // Shimmer placeholder for product card
                                 return SizedBox(
                                   height: 70,
-                                  child: Center(
-                                    child: CircularProgressIndicator(),
+                                  child: Shimmer.fromColors(
+                                    baseColor: Colors.grey[300]!,
+                                    highlightColor: Colors.grey[100]!,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 70,
+                                          height: 70,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                width: double.infinity,
+                                                height: 16,
+                                                color: Colors.grey[300],
+                                              ),
+                                              SizedBox(height: 8),
+                                              Container(
+                                                width: 80,
+                                                height: 12,
+                                                color: Colors.grey[300],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               }
                               if (!snapshot.hasData || snapshot.data == null) {
-                                Logger().w(
-                                  'Product not found for UID: $pid on date ${entry.key}',
-                                );
-                                return Container(
-                                  margin: EdgeInsets.only(bottom: 8),
-                                  padding: EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red[50],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    'Product not found for UID: $pid',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                );
+                                return SizedBox.shrink();
                               }
                               final product = snapshot.data!;
                               return Container(
@@ -665,13 +806,33 @@ class _BodyState extends State<Body> {
             }).toList(),
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
+          // Shimmer placeholder for main loading state
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularProgressIndicator(),
+                Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
                 SizedBox(height: 16),
-                Text('Loading your orders...'),
+                Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    width: 120,
+                    height: 16,
+                    color: Colors.grey[300],
+                  ),
+                ),
               ],
             ),
           );
@@ -834,7 +995,46 @@ class _BodyState extends State<Body> {
             ),
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          // Shimmer placeholder for product card (all loading states)
+          return SizedBox(
+            height: 70,
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Row(
+                children: [
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 16,
+                          color: Colors.grey[300],
+                        ),
+                        SizedBox(height: 8),
+                        Container(
+                          width: 80,
+                          height: 12,
+                          color: Colors.grey[300],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         } else if (snapshot.hasError) {
           final error = snapshot.error.toString();
           Logger().e(error);

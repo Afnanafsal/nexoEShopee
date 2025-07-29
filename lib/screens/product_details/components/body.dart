@@ -1,10 +1,11 @@
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/screens/product_details/components/product_actions_section.dart';
-import 'package:nexoeshopee/screens/product_details/components/product_images.dart';
-import 'package:nexoeshopee/services/database/product_database_helper.dart';
-import 'package:nexoeshopee/services/cache/hive_service.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/screens/product_details/components/product_actions_section.dart';
+import 'package:fishkart/screens/product_details/components/product_images.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'product_review_section.dart';
@@ -49,7 +50,6 @@ class Body extends StatelessWidget {
         ),
       );
     }
-    // If not cached, fallback to async fetch
     return SafeArea(
       child: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
@@ -92,7 +92,46 @@ class Body extends StatelessWidget {
                 ],
               );
             } else if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return Center(
+                child: Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        height: getProportionateScreenHeight(300),
+                        color: Colors.white,
+                        margin: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: getProportionateScreenWidth(
+                            screenPadding,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            SizedBox(height: getProportionateScreenHeight(20)),
+                            Container(
+                              width: double.infinity,
+                              height: 32,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: getProportionateScreenHeight(20)),
+                            Container(
+                              width: double.infinity,
+                              height: 120,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: getProportionateScreenHeight(20)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             } else if (snapshot.hasError) {
               final error = snapshot.error.toString();
               Logger().e(error);

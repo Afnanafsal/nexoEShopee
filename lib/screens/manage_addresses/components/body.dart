@@ -1,39 +1,77 @@
-import 'package:nexoeshopee/components/default_button.dart';
-import 'package:nexoeshopee/components/nothingtoshow_container.dart';
-import 'package:nexoeshopee/constants.dart';
-import 'package:nexoeshopee/screens/edit_address/edit_address_screen.dart';
-import 'package:nexoeshopee/screens/manage_addresses/components/address_short_details_card.dart';
-import 'package:nexoeshopee/services/data_streams/addresses_stream.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
-import 'package:nexoeshopee/size_config.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:fishkart/components/default_button.dart';
+import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:fishkart/constants.dart';
+import 'package:fishkart/screens/edit_address/edit_address_screen.dart';
+import 'package:fishkart/screens/manage_addresses/components/address_short_details_card.dart';
+import 'package:fishkart/services/data_streams/addresses_stream.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/size_config.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../components/address_box.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
+import 'dart:async';
 
 class Body extends StatefulWidget {
   @override
   _BodyState createState() => _BodyState();
 }
 
-class _BodyState extends State<Body> {
+class _BodyState extends State<Body> with RouteAware {
   final AddressesStream addressesStream = AddressesStream();
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     addressesStream.init();
+    _reloadAndStartTimer();
+  }
+
+  void _reloadAndStartTimer() async {
     addressesStream.reload();
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      addressesStream.reload();
+      setState(() {});
+    });
+    setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final routeObserver = ModalRoute.of(context)?.navigator?.widget.observers
+        .whereType<RouteObserver<PageRoute>>()
+        .firstOrNull;
+    routeObserver?.subscribe(this, ModalRoute.of(context) as PageRoute);
+    _reloadAndStartTimer();
   }
 
   @override
   void dispose() {
-    super.dispose();
+    final routeObserver = ModalRoute.of(context)?.navigator?.widget.observers
+        .whereType<RouteObserver<PageRoute>>()
+        .firstOrNull;
+    routeObserver?.unsubscribe(this);
+    _refreshTimer?.cancel();
     addressesStream.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when coming back to this screen
+    _reloadAndStartTimer();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Try to get cached addresses instantly
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: refreshPage,
@@ -85,77 +123,142 @@ class _BodyState extends State<Body> {
                     style: TextStyle(fontSize: 13, color: Colors.black54),
                   ),
                   const SizedBox(height: 24),
-                  // Address list
-                  StreamBuilder<List<String>>(
-                    stream: addressesStream.stream.cast<List<String>>(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final addresses = snapshot.data;
-                        if (addresses!.isEmpty) {
-                          return Center(
-                            child: NothingToShowContainer(
-                              iconPath: "assets/icons/add_location.svg",
-                              secondaryMessage: "Add your first Address",
-                            ),
-                          );
-                        }
-                        return Column(
-                          children: [
-                            ...addresses
-                                .map((id) => buildAddressItemCard(id))
-                                .toList(),
-                            const SizedBox(height: 32),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 56,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF34495E),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  padding: EdgeInsets.zero,
+                  // Address list (cache-first)
+                  
+                    StreamBuilder<List<String>>(
+                      stream: addressesStream.stream.cast<List<String>>(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          final addresses = snapshot.data;
+                          if (addresses!.isEmpty) {
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                NothingToShowContainer(
+                                  iconPath: "assets/icons/add_location.svg",
+                                  secondaryMessage: "Add your first Address",
                                 ),
-                                onPressed: () async {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditAddressScreen(
-                                        key: UniqueKey(),
-                                        addressIdToEdit: null,
+                                const SizedBox(height: 24),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 56,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF34495E),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    onPressed: () async {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              EditAddressScreen(
+                                                key: UniqueKey(),
+                                                addressIdToEdit: null,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      "Add New Address",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
                                       ),
                                     ),
-                                  );
-                                },
-                                child: const Text(
-                                  "Add New Address",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+                            );
+                          }
+                          return Column(
+                            children: [
+                              ...addresses
+                                  .map((id) => buildAddressItemCard(id))
+                                  .toList(),
+                              const SizedBox(height: 32),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 56,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF34495E),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  onPressed: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => EditAddressScreen(
+                                          key: UniqueKey(),
+                                          addressIdToEdit: null,
+                                        ),
+                                      ),
+                                    );
+                                    if (result == true) {
+                                      setState(() {
+                                        addressesStream.reload();
+                                      });
+                                    }
+                                  },
+                                  child: const Text(
+                                    "Add New Address",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          );
+                        } else if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(
+                            child: Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: Column(
+                                children: List.generate(
+                                  2,
+                                  (index) => Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    width: double.infinity,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 24),
-                          ],
+                          );
+                        } else if (snapshot.hasError) {
+                          final error = snapshot.error;
+                          Logger().w(error.toString());
+                        }
+                        return Center(
+                          child: NothingToShowContainer(
+                            iconPath: "assets/icons/network_error.svg",
+                            primaryMessage: "Something went wrong",
+                            secondaryMessage: "Unable to connect to Database",
+                          ),
                         );
-                      } else if (snapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        final error = snapshot.error;
-                        Logger().w(error.toString());
-                      }
-                      return Center(
-                        child: NothingToShowContainer(
-                          iconPath: "assets/icons/network_error.svg",
-                          primaryMessage: "Something went wrong",
-                          secondaryMessage: "Unable to connect to Database",
-                        ),
-                      );
-                    },
-                  ),
+                      },
+                    ),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -233,14 +336,18 @@ class _BodyState extends State<Body> {
     BuildContext context,
     String addressId,
   ) async {
-    await Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) =>
             EditAddressScreen(key: Key(addressId), addressIdToEdit: addressId),
       ),
     );
-    await refreshPage();
+    if (result == true) {
+      setState(() {
+        addressesStream.reload();
+      });
+    }
     return false;
   }
 
@@ -280,21 +387,7 @@ class _BodyState extends State<Body> {
           onTap: () async {
             await addressItemTapCallback(addressId);
           },
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.edit, color: Colors.grey[700]),
-              const SizedBox(width: 4),
-              const Text(
-                "Edit",
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 15,
-                ),
-              ),
-            ],
-          ),
+          // trailing removed, swipe to edit only
         ),
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.startToEnd) {

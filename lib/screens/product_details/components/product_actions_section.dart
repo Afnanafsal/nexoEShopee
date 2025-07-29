@@ -1,10 +1,10 @@
-import 'package:nexoeshopee/components/async_progress_dialog.dart';
-import 'package:nexoeshopee/components/top_rounded_container.dart';
-import 'package:nexoeshopee/models/Product.dart';
-import 'package:nexoeshopee/screens/product_details/components/product_description.dart';
-import 'package:nexoeshopee/providers/user_providers.dart';
-import 'package:nexoeshopee/services/authentification/authentification_service.dart';
-import 'package:nexoeshopee/services/database/user_database_helper.dart';
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/components/top_rounded_container.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/screens/product_details/components/product_description.dart';
+import 'package:fishkart/providers/user_providers.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
@@ -20,7 +20,6 @@ class ProductActionsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     return Column(
       children: [
         Stack(
