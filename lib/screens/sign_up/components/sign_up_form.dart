@@ -18,6 +18,18 @@ class SignUpForm extends ConsumerStatefulWidget {
 }
 
 class _SignUpFormState extends ConsumerState<SignUpForm> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map?;
+      if (args != null) {
+        if (args['name'] != null) displayNameController.text = args['name'];
+        if (args['email'] != null) emailFieldController.text = args['email'];
+      }
+    });
+  }
+
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
   final _formKey = GlobalKey<FormState>();
@@ -340,26 +352,42 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
   }
 
   Future<void> signUpButtonCallback() async {
+    if (ref.read(user_providers.signUpFormProvider).isLoading) return;
     if (_formKey.currentState?.validate() ?? false) {
       final authService = ref.read(user_providers.authServiceProvider);
       final formNotifier = ref.read(user_providers.signUpFormProvider.notifier);
-
-      bool signUpStatus = false;
+      formNotifier.setLoading(true);
       String snackbarMessage = '';
-
       try {
-        formNotifier.setLoading(true);
-
-        final signUpFuture = authService.signUpWithCompleteProfile(
-          email: emailFieldController.text,
-          password: passwordFieldController.text,
-          displayName: displayNameController.text,
-          phoneNumber: phoneNumberController.text,
-        ).timeout(
-          const Duration(seconds: 20),
-          onTimeout: () => throw FirebaseSignUpAuthUnknownReasonFailureException(),
-        );
-
+        // Check if email already exists
+        final email = emailFieldController.text.trim();
+        final existing = await FirebaseFirestore.instance
+            .collection('users')
+            .where('email', isEqualTo: email)
+            .limit(1)
+            .get();
+        if (existing.docs.isNotEmpty) {
+          snackbarMessage = "Email already exists. Please use another email.";
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(snackbarMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+        final signUpFuture = authService
+            .signUpWithCompleteProfile(
+              email: email,
+              password: passwordFieldController.text,
+              displayName: displayNameController.text,
+              phoneNumber: phoneNumberController.text,
+            )
+            .timeout(
+              const Duration(seconds: 20),
+              onTimeout: () =>
+                  throw FirebaseSignUpAuthUnknownReasonFailureException(),
+            );
         final result = await showDialog(
           context: context,
           builder: (context) {
@@ -369,32 +397,28 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             );
           },
         );
-
-        // Ensure result is a bool, default to false if null
-        signUpStatus = result == true;
-
+        final signUpStatus = result == true;
         if (signUpStatus) {
-          snackbarMessage =
-              "Account created successfully! Please verify your email.";
-          // Save user profile to Firestore before navigating to home screen
-          try {
-            // Import Firestore at the top if not already: import 'package:cloud_firestore/cloud_firestore.dart';
-            final user = await ref.read(user_providers.authServiceProvider).currentUser;
-            if (user != null) {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user.uid)
-                  .set({
+          final user = await ref
+              .read(user_providers.authServiceProvider)
+              .currentUser;
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({
                 'displayName': displayNameController.text,
-                'email': emailFieldController.text,
+                'email': email,
                 'phoneNumber': phoneNumberController.text,
-                // Add other fields as needed
                 'userType': 'customer',
               }, SetOptions(merge: true));
-            }
-          } catch (e) {
-            // Optionally log or handle Firestore errors
-          }
+          snackbarMessage =
+              "Account created successfully! Please verify your email.";
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(snackbarMessage),
+              backgroundColor: Colors.green,
+            ),
+          );
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -405,14 +429,14 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         }
       } on MessagedFirebaseAuthException catch (e) {
         snackbarMessage = e.message;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(snackbarMessage), backgroundColor: Colors.red),
+        );
       } catch (e) {
         snackbarMessage = e.toString();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(snackbarMessage), backgroundColor: Colors.red),
+        );
       } finally {
         formNotifier.setLoading(false);
         Logger().i(snackbarMessage);
