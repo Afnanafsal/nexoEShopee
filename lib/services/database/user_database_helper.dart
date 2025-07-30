@@ -49,12 +49,18 @@ class UserDatabaseHelper {
   FirebaseFirestore get firestore => _firebaseFirestore;
 
   Future<void> createNewUser(String uid) async {
-    await firestore.collection(USERS_COLLECTION_NAME).doc(uid).set({
-      DP_KEY: null,
-      PHONE_KEY: null,
-      FAV_PRODUCTS_KEY: <String>[],
-      'userType': 'customer',
-    });
+    try {
+      await firestore.collection(USERS_COLLECTION_NAME).doc(uid).set({
+        DP_KEY: null,
+        PHONE_KEY: null,
+        FAV_PRODUCTS_KEY: <String>[],
+        'userType': 'customer',
+      });
+      print('[DEBUG] Firestore user document created for $uid');
+    } catch (e) {
+      print('[ERROR] Failed to create Firestore user document for $uid: $e');
+      rethrow;
+    }
   }
 
   Future<void> createNewUserWithDisplayName(

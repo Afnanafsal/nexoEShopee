@@ -5,6 +5,23 @@ import 'package:fishkart/services/authentification/authentification_service.dart
 import 'package:fishkart/services/cache/hive_service.dart';
 
 class ProductDatabaseHelper {
+  // Real-time stream of all products
+  Stream<List<Product>> getProductsStream() {
+    return FirebaseFirestore.instance
+        .collection(PRODUCTS_COLLECTION_NAME)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => Product.fromMap(
+                  doc.data() as Map<String, dynamic>,
+                  id: doc.id,
+                ),
+              )
+              .toList(),
+        );
+  }
+
   static const String PRODUCTS_COLLECTION_NAME = "products";
   static const String REVIEWS_COLLECTION_NAME = "reviews";
 

@@ -179,7 +179,7 @@ class Body extends ConsumerWidget {
     // Filter out any null or empty productIds
     final filteredIds = productIds.where((id) => id.isNotEmpty).toList();
     if (filteredIds.isEmpty) {
-      return Center(child: Text('No valid products to show.'));
+      return Center(child: Text('No products to show.'));
     }
     return GridView.builder(
       shrinkWrap: true,

@@ -7,6 +7,7 @@ import 'package:fishkart/models/Review.dart';
 import 'package:fishkart/models/Address.dart';
 import 'package:fishkart/screens/my_orders/components/product_review_dialog.dart';
 import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import '../order_details_screen.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
 import 'package:fishkart/services/database/product_database_helper.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
@@ -587,13 +588,17 @@ class _BodyState extends State<Body> {
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
                         children: productCounts.keys.map((pid) {
-                          final count = productCounts[pid] ?? 1;
+                          final doc = productDocs[pid];
+                          if (doc == null) return SizedBox.shrink();
+                          final order = OrderedProduct.fromMap(
+                            doc.data(),
+                            id: doc.id,
+                          );
                           return FutureBuilder<Product?>(
                             future: _getProductWithCaching(pid),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
-                                // Shimmer placeholder for product card
                                 return SizedBox(
                                   height: 70,
                                   child: Shimmer.fromColors(
@@ -766,9 +771,9 @@ class _BodyState extends State<Body> {
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (context) =>
-                                                      ProductDetailsScreen(
+                                                      OrderDetailsScreen(
                                                         key: UniqueKey(),
-                                                        productId: product.id,
+                                                        order: order,
                                                       ),
                                                 ),
                                               ).then((_) async {

@@ -74,7 +74,9 @@ class Body extends ConsumerWidget {
           context: context,
           builder: (context) => AlertDialog(
             title: Text('Email Not Verified'),
-            content: Text("You haven't verified your email address. Please verify to access all features."),
+            content: Text(
+              "You haven't verified your email address. Please verify to access all features.",
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -222,11 +224,12 @@ class Body extends ConsumerWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => CategoryProductsScreen(
-                                          key: UniqueKey(),
-                                          productType:
-                                              productCategories[index][PRODUCT_TYPE_KEY],
-                                        ),
+                                        builder: (context) =>
+                                            CategoryProductsScreen(
+                                              key: UniqueKey(),
+                                              productType:
+                                                  productCategories[index][PRODUCT_TYPE_KEY],
+                                            ),
                                       ),
                                     );
                                   }
@@ -264,24 +267,31 @@ class Body extends ConsumerWidget {
                             data: (productIds) {
                               // Fetch all products and cache them immediately
                               return FutureBuilder<List<Product>>(
-                                future: Future.wait(
-                                  productIds.map((id) async {
-                                    final cached = HiveService.instance.getCachedProduct(id);
-                                    if (cached != null) return cached;
-                                    final product = await ProductDatabaseHelper().getProductWithID(id);
-                                    return product ?? Product(
-                                      id,
-                                      title: 'Unknown',
-                                      images: [],
-                                      discountPrice: 0,
-                                      originalPrice: 0,
-                                    );
-                                  }),
-                                ).then((products) async {
-                                  // Cache all products at once
-                                  await HiveService.instance.cacheProducts(products);
-                                  return products;
-                                }),
+                                future:
+                                    Future.wait(
+                                      productIds.map((id) async {
+                                        final cached = HiveService.instance
+                                            .getCachedProduct(id);
+                                        if (cached != null) return cached;
+                                        final product =
+                                            await ProductDatabaseHelper()
+                                                .getProductWithID(id);
+                                        return product ??
+                                            Product(
+                                              id,
+                                              title: 'Unknown',
+                                              images: [],
+                                              discountPrice: 0,
+                                              originalPrice: 0,
+                                            );
+                                      }),
+                                    ).then((products) async {
+                                      // Cache all products at once
+                                      await HiveService.instance.cacheProducts(
+                                        products,
+                                      );
+                                      return products;
+                                    }),
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
                                     // Show shimmer effect while loading
@@ -435,23 +445,32 @@ class Body extends ConsumerWidget {
                                         String reason = '';
                                         if (userCity.isEmpty) {
                                           showProduct = true;
-                                          reason = 'userCity is empty, showing all products';
+                                          reason =
+                                              'userCity is empty, showing all products';
                                         } else if (areaLocation.isEmpty) {
                                           showProduct = false;
-                                          reason = 'areaLocation is empty, hiding product';
+                                          reason =
+                                              'areaLocation is empty, hiding product';
                                         } else if (areaLocation == userCity) {
                                           showProduct = true;
-                                          reason = 'areaLocation matches userCity';
+                                          reason =
+                                              'areaLocation matches userCity';
                                         } else {
                                           showProduct = false;
-                                          reason = 'areaLocation does not match userCity';
+                                          reason =
+                                              'areaLocation does not match userCity';
                                         }
                                         // Debug log for each product
-                                        Logger().i('[Product Filter] userCity: "$userCity", areaLocation: "$areaLocation", show: $showProduct, reason: $reason, productId: ${p.id}');
+                                        Logger().i(
+                                          '[Product Filter] userCity: "$userCity", areaLocation: "$areaLocation", show: $showProduct, reason: $reason, productId: ${p.id}',
+                                        );
                                         return showProduct;
                                       })
                                       .where((p) => p.isInStock)
-                                      .where((p) => (p as dynamic).isAvailable == true)
+                                      .where(
+                                        (p) =>
+                                            (p as dynamic).isAvailable == true,
+                                      )
                                       .toList();
                                   HiveService.instance.cacheProducts(products);
                                   if (products.isEmpty) {
@@ -690,7 +709,8 @@ class Body extends ConsumerWidget {
                                                                 selectedAddressId,
                                                           )
                                                           .catchError((e) {
-                                                            if (context.mounted) {
+                                                            if (context
+                                                                .mounted) {
                                                               ScaffoldMessenger.of(
                                                                 context,
                                                               ).showSnackBar(

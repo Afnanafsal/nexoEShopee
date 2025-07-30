@@ -65,31 +65,18 @@ class Product extends Model {
         .runTransaction((transaction) async {
           final snapshot = await transaction.get(productRef);
           final data = snapshot.data();
-          print('[restoreStockFromCart] Firestore data: $data');
           if (data == null) throw Exception('Product not found');
           final currentStock = (data['stock'] ?? 0) as int;
           final reserved = (data['reserved'] ?? 0) as int;
-          print(
-            '[restoreStockFromCart] Before update: stock=$currentStock, reserved=$reserved',
-          );
           int newStock = currentStock + qty;
           int newReserved = reserved - qty;
-          if (newReserved < 0) {
-            print(
-              '[restoreStockFromCart] Warning: reserved would go negative, setting to 0',
-            );
-            newReserved = 0;
-          }
+          if (newReserved < 0) newReserved = 0;
           transaction.update(productRef, {
             'stock': newStock,
             'reserved': newReserved,
           });
-          print(
-            '[restoreStockFromCart] After update: stock=$newStock, reserved=$newReserved',
-          );
         })
         .catchError((e) {
-          print('[restoreStockFromCart] Error: $e');
           throw e;
         });
   }
@@ -103,24 +90,18 @@ class Product extends Model {
         .runTransaction((transaction) async {
           final snapshot = await transaction.get(productRef);
           final data = snapshot.data();
-          print('[reserveStock] Firestore data: $data');
           if (data == null) throw Exception('Product not found');
           final currentStock = (data['stock'] ?? 0) as int;
           final reserved = (data['reserved'] ?? 0) as int;
-          if (currentStock < qty) {
-            print('[reserveStock] Not enough stock: $currentStock < $qty');
-            throw Exception('Not enough stock');
-          }
+          if (currentStock < qty) throw Exception('Not enough stock');
+          int newReserved = reserved + qty;
+          if (newReserved < 0) newReserved = 0;
           transaction.update(productRef, {
             'stock': currentStock - qty,
-            'reserved': reserved + qty,
+            'reserved': newReserved,
           });
-          print(
-            '[reserveStock] Updated stock: ${currentStock - qty}, reserved: ${reserved + qty}',
-          );
         })
         .catchError((e) {
-          print('[reserveStock] Error: $e');
           throw e;
         });
   }
@@ -155,24 +136,18 @@ class Product extends Model {
         .runTransaction((transaction) async {
           final snapshot = await transaction.get(productRef);
           final data = snapshot.data();
-          print('[orderStock] Firestore data: $data');
           if (data == null) throw Exception('Product not found');
           final reserved = (data['reserved'] ?? 0) as int;
           final ordered = (data['ordered'] ?? 0) as int;
-          if (reserved < qty) {
-            print('[orderStock] Not enough reserved stock: $reserved < $qty');
-            throw Exception('Not enough reserved stock');
-          }
+          int newReserved = reserved - qty;
+          if (newReserved < 0) newReserved = 0;
+          if (reserved < qty) throw Exception('Not enough reserved stock');
           transaction.update(productRef, {
-            'reserved': reserved - qty,
+            'reserved': newReserved,
             'ordered': ordered + qty,
           });
-          print(
-            '[orderStock] Updated reserved: ${reserved - qty}, ordered: ${ordered + qty}',
-          );
         })
         .catchError((e) {
-          print('[orderStock] Error: $e');
           throw e;
         });
   }

@@ -1,4 +1,5 @@
 import 'package:fishkart/constants.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
 import '../../../size_config.dart';
 import '../../../components/no_account_text.dart';
@@ -107,31 +108,48 @@ class _SignInCardContentState extends State<_SignInCardContent> {
           email: email,
           password: password,
         );
-        snackbarMessage = "Signed In Successfully";
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        }
-        // Only navigate if signInStatus is true and user is not null
         if (signInStatus) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => HomeScreen()),
+          if (!authService.currentUserVerified) {
+            await authService.sendVerificationEmailToCurrentUser();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  "Verification email sent. Please verify your email before logging in.",
+                ),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Signed In Successfully")));
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Login failed. Please check your credentials."),
+            ),
           );
         }
       } on MessagedFirebaseAuthException catch (e) {
-        snackbarMessage = e.message;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("${e.message}")));
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
         }
       } catch (e) {
-        snackbarMessage = e.toString();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
         }
-      }
-      if (!signInStatus) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
 
@@ -336,8 +354,19 @@ class _SignInCardContentState extends State<_SignInCardContent> {
                       MaterialPageRoute(builder: (context) => HomeScreen()),
                     );
                   } else if (result == 'signup') {
-                    // Redirect to signup page
-                    Navigator.of(context).pushReplacementNamed('/sign_up');
+                    // Redirect to signup page and pass Google name/email for prefill
+                    final googleUser = await GoogleSignIn().signInSilently();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => SignUpScreen(),
+                        settings: RouteSettings(
+                          arguments: {
+                            'name': googleUser?.displayName ?? '',
+                            'email': googleUser?.email ?? '',
+                          },
+                        ),
+                      ),
+                    );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Google sign-in failed")),
