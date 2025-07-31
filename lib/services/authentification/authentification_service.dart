@@ -315,7 +315,7 @@ class AuthentificationService {
       );
       final user = userCredential.user;
       if (user == null) {
-        return false;
+        throw FirebaseSignUpAuthUnknownReasonFailureException();
       }
       final uid = user.uid;
 
@@ -323,14 +323,18 @@ class AuthentificationService {
       await user.updateDisplayName(displayName);
 
       // Step 3: Store user data in Firestore users collection with userType 'customer'
-      await UserDatabaseHelper().firestore.collection(UserDatabaseHelper.USERS_COLLECTION_NAME).doc(uid).set({
-        'displayName': displayName,
-        'email': user.email ?? email,
-        'phoneNumber': phoneNumber,
-        'userType': 'customer',
-        'favourite_products': <String>[],
-        'display_picture': null,
-      });
+      try {
+        await UserDatabaseHelper().firestore.collection(UserDatabaseHelper.USERS_COLLECTION_NAME).doc(uid).set({
+          'displayName': displayName,
+          'email': user.email ?? email,
+          'phoneNumber': phoneNumber,
+          'userType': 'customer',
+          'favourite_products': <String>[],
+          'display_picture': null,
+        });
+      } catch (e) {
+        throw FirebaseSignUpAuthException(message: 'Failed to write user profile to Firestore: ' + e.toString());
+      }
 
       // Step 4: Link password credential to Google account if Google sign-in
       final signInMethods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
@@ -339,13 +343,17 @@ class AuthentificationService {
         try {
           await user.linkWithCredential(passwordCredential);
         } catch (e) {
-          // Ignore if already linked or error
+          throw FirebaseSignUpAuthException(message: 'Failed to link Google account: ' + e.toString());
         }
       }
 
       // Step 5: Send verification email (after Firestore write)
-      if (!user.emailVerified) {
-        await user.sendEmailVerification();
+      try {
+        if (!user.emailVerified) {
+          await user.sendEmailVerification();
+        }
+      } catch (e) {
+        throw FirebaseSignUpAuthException(message: 'Failed to send verification email: ' + e.toString());
       }
 
       return true;
@@ -368,7 +376,7 @@ class AuthentificationService {
           throw FirebaseSignInAuthException(message: e.code);
       }
     } catch (e) {
-      return false;
+      throw FirebaseSignUpAuthException(message: 'Unknown error: ' + e.toString());
     }
   }
 

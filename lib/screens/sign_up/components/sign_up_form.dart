@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fishkart/components/async_progress_dialog.dart';
 import 'package:fishkart/components/custom_suffix_icon.dart';
+import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
 import 'package:fishkart/exceptions/firebaseauth/signup_exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,8 @@ import '../../home/home_screen.dart';
 import 'package:fishkart/providers/user_providers.dart' as user_providers;
 
 class SignUpForm extends ConsumerStatefulWidget {
+  const SignUpForm({Key? key}) : super(key: key);
+
   @override
   ConsumerState<SignUpForm> createState() => _SignUpFormState();
 }
@@ -423,20 +426,15 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             );
           },
         );
-        final signUpStatus = result == true;
-        if (signUpStatus) {
-          final user = authService.currentUser;
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set({
-                'displayName': displayNameController.text,
-                'email': emailFieldController.text,
-                'phoneNumber': phoneNumberController.text,
-                'userType': 'customer',
-              });
-          snackbarMessage =
-              "Account created successfully! Please verify your email.";
+        // Instead of relying on result == true, check if user exists in Auth and Firestore
+        final user = authService.currentUser;
+        final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+        final userType = userDoc.data()?['userType'];
+        if (user != null && userDoc.exists && userType == 'customer') {
+          snackbarMessage = "Account created successfully! Please verify your email.";
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(snackbarMessage),
@@ -448,23 +446,16 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             MaterialPageRoute(builder: (context) => HomeScreen()),
             (route) => false,
           );
+        }
+        // Do not show fallback error for result == false. Only show error if an exception is thrown.
+      } catch (e, stack) {
+        if (e is MessagedFirebaseAuthException) {
+          snackbarMessage = e.message;
         } else {
-          snackbarMessage = "Can't register due to unknown reason";
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(snackbarMessage),
-              backgroundColor: Colors.red,
-            ),
-          );
+          snackbarMessage = e.toString();
         }
-      } catch (e) {
-        snackbarMessage = e.toString();
-        // Show clear error for email already in use
-        if (snackbarMessage.contains("email already in use") || snackbarMessage.contains("already in use")) {
-          snackbarMessage = "The email address is already in use by another account.";
-        } else if (snackbarMessage.contains("customer") || snackbarMessage.contains("Google")) {
-          snackbarMessage = "Signup failed. Please check your details and try again.";
-        }
+        Logger().e('SignUp error: ' + snackbarMessage);
+        Logger().e('StackTrace: ' + stack.toString());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(snackbarMessage), backgroundColor: Colors.red),
         );
