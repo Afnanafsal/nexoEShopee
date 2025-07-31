@@ -38,18 +38,9 @@ class AuthentificationWrapper extends ConsumerWidget {
               if (userType == 'customer') {
                 return HomeScreen();
               } else {
-                // Sign out and show sign-in screen with message
+                // Sign out and show sign-in screen WITHOUT snackbar
                 WidgetsBinding.instance.addPostFrameCallback((_) async {
                   await ref.read(authServiceProvider).signOut();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text(
-                        'This account is not registered as a customer. Please sign up as a customer first, then continue with Google.',
-                      ),
-                      backgroundColor: Colors.red,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
                 });
                 return SignInScreen();
               }
@@ -65,34 +56,15 @@ class AuthentificationWrapper extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(),
-              SizedBox(height: 24),
-              RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: const TextStyle(
-                    fontFamily: 'Shadows Into Light Two',
-                    fontSize: 36,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.5,
-                  ),
-                  children: const [
-                    TextSpan(
-                      text: 'Fish',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    TextSpan(
-                      text: 'Kart',
-                      style: TextStyle(color: Color(0xFF29465B)),
-                    ),
-                  ],
-                ),
-              ),
+              SizedBox(height: 16),
+              Text('Checking authentication...'),
             ],
           ),
         ),
       ),
-      error: (error, stack) =>
-          Scaffold(body: Center(child: Text('Error: $error'))),
+      error: (err, stack) => Scaffold(
+        body: Center(child: Text('Error: $err')),
+      ),
     );
   }
 }

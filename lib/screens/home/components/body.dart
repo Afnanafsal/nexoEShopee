@@ -691,6 +691,23 @@ class Body extends ConsumerWidget {
                                                           ref.read(
                                                             selectedAddressIdProvider,
                                                           );
+                                                      if (selectedAddressId ==
+                                                          null) {
+                                                        if (context.mounted) {
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            SnackBar(
+                                                              content: Text(
+                                                                "Please select a delivery address before adding to cart.",
+                                                              ),
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                            ),
+                                                          );
+                                                        }
+                                                        return;
+                                                      }
                                                       if (context.mounted) {
                                                         ScaffoldMessenger.of(
                                                           context,

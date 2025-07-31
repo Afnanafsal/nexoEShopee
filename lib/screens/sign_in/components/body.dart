@@ -1,8 +1,6 @@
-import 'package:fishkart/constants.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
 import '../../../size_config.dart';
-import '../../../components/no_account_text.dart';
 import 'package:fishkart/screens/sign_up/sign_up_screen.dart';
 import 'package:fishkart/screens/forgot_password/forgot_password_screen.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
@@ -100,7 +98,6 @@ class _SignInCardContentState extends State<_SignInCardContent> {
         return;
       }
       // Removed loading dialog as requested
-      String snackbarMessage = '';
       bool signInStatus = false;
       try {
         final authService = AuthentificationService();
@@ -350,26 +347,60 @@ class _SignInCardContentState extends State<_SignInCardContent> {
                   final authService = AuthentificationService();
                   final result = await authService.signInWithGoogle();
                   if (result == true) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Signed in successfully!"),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    await Future.delayed(Duration(seconds: 2));
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(builder: (context) => HomeScreen()),
                     );
                   } else if (result == 'signup') {
-                    // Redirect to signup page and pass Google name/email for prefill
-                    final googleUser = await GoogleSignIn().signInSilently();
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => SignUpScreen(),
-                        settings: RouteSettings(
-                          arguments: {
-                            'name': googleUser?.displayName ?? '',
-                            'email': googleUser?.email ?? '',
+                    // Show improved error for not registered as customer
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Your Google account is not registered as a customer.\n\nPlease complete the signup process to continue.',
+                        ),
+                        backgroundColor: Colors.orange,
+                        action: SnackBarAction(
+                          label: "Sign Up",
+                          textColor: Colors.white,
+                          onPressed: () async {
+                            final googleUser = await GoogleSignIn().signInSilently();
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => SignUpScreen(),
+                                settings: RouteSettings(
+                                  arguments: {
+                                    'name': googleUser?.displayName ?? '',
+                                    'email': googleUser?.email ?? '',
+                                  },
+                                ),
+                              ),
+                            );
                           },
                         ),
                       ),
                     );
-                  } else {
+                  } else if (result == false) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Google sign-in failed")),
+                    );
+                  } else if (result is MessagedFirebaseAuthException) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(result.message),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Can't register due to unknown reason"),
+                        backgroundColor: Colors.red,
+                      ),
                     );
                   }
                 } catch (e) {
@@ -416,12 +447,10 @@ class _SignInCardContentState extends State<_SignInCardContent> {
 
 // Social login button widget
 class _SocialButton extends StatelessWidget {
-  final IconData? icon;
   final String? iconAsset;
   final String text;
   final VoidCallback onPressed;
   const _SocialButton({
-    this.icon,
     this.iconAsset,
     required this.text,
     required this.onPressed,
@@ -446,9 +475,7 @@ class _SocialButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            if (icon != null)
-              Icon(icon, size: 28)
-            else if (iconAsset != null)
+            if (iconAsset != null)
               Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: SizedBox(

@@ -1,10 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fishkart/components/async_progress_dialog.dart';
 import 'package:fishkart/components/custom_suffix_icon.dart';
-import 'package:fishkart/components/default_button.dart';
-import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception.dart';
 import 'package:fishkart/exceptions/firebaseauth/signup_exceptions.dart';
-import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
@@ -359,7 +356,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
       formNotifier.setLoading(true);
       String snackbarMessage = '';
       try {
-        // Check if email already exists
+        // Check if email already exists in Firestore
         final email = emailFieldController.text.trim();
         final existing = await FirebaseFirestore.instance
             .collection('users')
@@ -367,13 +364,43 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             .limit(1)
             .get();
         if (existing.docs.isNotEmpty) {
-          snackbarMessage = "Email already exists. Please use another email.";
+          snackbarMessage = "This email is already registered. Please login or use 'Forgot Password' if you can't access your account.";
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(snackbarMessage),
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.orange,
+              action: SnackBarAction(
+                label: "Login",
+                textColor: Colors.white,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Optionally, navigate to login page here
+                },
+              ),
             ),
           );
+          formNotifier.setLoading(false);
+          return;
+        }
+        // Check if email exists in Firebase Auth (for Google sign-in edge case)
+        final methods = await authService.fetchSignInMethodsForEmail(email);
+        if (methods.isNotEmpty) {
+          snackbarMessage = "This email is already registered. Please login or use 'Forgot Password' if you can't access your account.";
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(snackbarMessage),
+              backgroundColor: Colors.orange,
+              action: SnackBarAction(
+                label: "Login",
+                textColor: Colors.white,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Optionally, navigate to login page here
+                },
+              ),
+            ),
+          );
+          formNotifier.setLoading(false);
           return;
         }
         final signUpFuture = authService
@@ -385,8 +412,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             )
             .timeout(
               const Duration(seconds: 20),
-              onTimeout: () =>
-                  throw FirebaseSignUpAuthUnknownReasonFailureException(),
+              onTimeout: () => throw Exception("Timeout"),
             );
         final result = await showDialog(
           context: context,
@@ -399,18 +425,16 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         );
         final signUpStatus = result == true;
         if (signUpStatus) {
-          final user = await ref
-              .read(user_providers.authServiceProvider)
-              .currentUser;
+          final user = authService.currentUser;
           await FirebaseFirestore.instance
               .collection('users')
               .doc(user.uid)
               .set({
                 'displayName': displayNameController.text,
-                'email': email,
+                'email': emailFieldController.text,
                 'phoneNumber': phoneNumberController.text,
                 'userType': 'customer',
-              }, SetOptions(merge: true));
+              });
           snackbarMessage =
               "Account created successfully! Please verify your email.";
           ScaffoldMessenger.of(context).showSnackBar(
@@ -425,15 +449,22 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             (route) => false,
           );
         } else {
-          throw FirebaseSignUpAuthUnknownReasonFailureException();
+          snackbarMessage = "Can't register due to unknown reason";
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(snackbarMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
-      } on MessagedFirebaseAuthException catch (e) {
-        snackbarMessage = e.message;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(snackbarMessage), backgroundColor: Colors.red),
-        );
       } catch (e) {
         snackbarMessage = e.toString();
+        // Show clear error for email already in use
+        if (snackbarMessage.contains("email already in use") || snackbarMessage.contains("already in use")) {
+          snackbarMessage = "The email address is already in use by another account.";
+        } else if (snackbarMessage.contains("customer") || snackbarMessage.contains("Google")) {
+          snackbarMessage = "Signup failed. Please check your details and try again.";
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(snackbarMessage), backgroundColor: Colors.red),
         );

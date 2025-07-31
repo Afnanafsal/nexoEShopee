@@ -340,7 +340,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
           email: emailFieldController.text,
           password: passwordFieldController.text,
           displayName: displayNameController.text,
-          phoneNumber: phoneNumberController.text,
+          phoneNumber: phoneNumberController.text, 
         );
 
         signUpFuture.then((value) => signUpStatus = value);
@@ -357,7 +357,13 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         if (signUpStatus == true) {
           snackbarMessage =
               "Account created successfully! Please verify your email.";
-          // Navigate directly to home screen
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(snackbarMessage),
+              backgroundColor: Colors.green,
+            ),
+          );
+          await Future.delayed(Duration(seconds: 2));
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => HomeScreen()),

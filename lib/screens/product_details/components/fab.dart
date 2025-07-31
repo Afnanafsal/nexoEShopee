@@ -44,21 +44,27 @@ class AddToCartFAB extends ConsumerWidget {
           }
           return;
         }
+        final selectedAddressId = ref.read(selectedAddressIdProvider);
+        if (selectedAddressId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Please select a delivery address before adding to cart.",
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
         bool addedSuccessfully = false;
         String snackbarMessage = "";
         try {
-          final selectedAddressId = ref.read(selectedAddressIdProvider);
           addedSuccessfully = await UserDatabaseHelper().addProductToCart(
             productId,
             addressId: selectedAddressId,
           );
           if (addedSuccessfully == true) {
-            String addressMsg = "";
-            if (selectedAddressId != null) {
-              addressMsg = " for address: $selectedAddressId";
-            } else {
-              addressMsg = " (no address selected)";
-            }
+            String addressMsg = " for address: $selectedAddressId";
             snackbarMessage = "Product added successfully" + addressMsg;
           } else {
             throw "Coulnd't add product due to unknown reason";

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fishkart/screens/sign_in/sign_in_screen.dart';
@@ -261,16 +263,17 @@ class _ProfileActions extends StatelessWidget {
             );
             if (confirmation) {
               await AuthentificationService().signOut();
-              // Clear all user-related cache
               await HiveService.instance.clearUserCache();
               // Optionally clear all cache if needed
               // await HiveService.instance.clearAllCache();
               // Optionally clear product cache if user-specific
               // await HiveService.instance.clearProductCache();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => SignInScreen()),
-                (route) => false,
-              );
+              // Exit the app after sign out
+              if (Platform.isAndroid) {
+                SystemNavigator.pop();
+              } else if (Platform.isIOS) {
+                exit(0);
+              }
             }
           },
         ),

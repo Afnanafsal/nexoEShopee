@@ -147,27 +147,42 @@ class _SignInFormState extends ConsumerState<SignInForm> {
         );
         if (signInStatus == true) {
           snackbarMessage = "Signed In Successfully";
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(snackbarMessage),
+              backgroundColor: Colors.green,
+            ),
+          );
         } else {
           if (snackbarMessage.isEmpty) {
-            throw FirebaseSignInAuthUnknownReasonFailure(
-              message: "Unknown sign in failure",
-            );
-          } else {
-            throw FirebaseSignInAuthUnknownReasonFailure(
-              message: snackbarMessage,
-            );
+            snackbarMessage = "Unknown sign in failure";
           }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(snackbarMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       } on MessagedFirebaseAuthException catch (e) {
         snackbarMessage = e.message;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(snackbarMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
       } catch (e) {
         snackbarMessage = e.toString();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(snackbarMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
       } finally {
         ref.read(user_providers.signInFormProvider.notifier).setLoading(false);
         Logger().i(snackbarMessage);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
       }
     }
   }

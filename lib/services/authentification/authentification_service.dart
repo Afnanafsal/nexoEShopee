@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
@@ -9,6 +10,15 @@ import 'package:fishkart/exceptions/firebaseauth/signup_exceptions.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 
 class AuthentificationService {
+  /// Returns sign-in methods for a given email (e.g. ['password'], ['google.com'], etc)
+  Future<List<String>> fetchSignInMethodsForEmail(String email) async {
+    try {
+      final methods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
+      return methods;
+    } catch (e) {
+      return [];
+    }
+  }
   static const String USER_NOT_FOUND_EXCEPTION_CODE = "user-not-found";
   static const String WRONG_PASSWORD_EXCEPTION_CODE = "wrong-password";
   static const String TOO_MANY_REQUESTS_EXCEPTION_CODE = 'too-many-requests';
@@ -60,6 +70,7 @@ class AuthentificationService {
 
   Future<bool> signIn({required String email, required String password}) async {
     try {
+      // Step 1: Try Firebase Auth sign-in
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -69,8 +80,7 @@ class AuthentificationService {
         throw FirebaseSignInAuthUserNotVerifiedException();
       }
 
-      // Check userType in Firestore
-      // ...existing code...
+      // Step 2: Check Firestore users collection for userType
       final uid = userCredential.user!.uid;
       final userDoc = await UserDatabaseHelper().firestore
           .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
@@ -78,11 +88,14 @@ class AuthentificationService {
           .get();
       final userType = userDoc.data()?['userType'];
       print('[DEBUG] userType for $uid: $userType');
-      if (userType != null && userType == 'customer') {
+      if (userDoc.exists && userType == 'customer') {
         return true;
+      } else if (!userDoc.exists) {
+        throw FirebaseSignInAuthException(message: 'No user profile found in database.');
+      } else if (userType != 'customer') {
+        throw FirebaseSignInAuthException(message: 'This account is not registered as a customer.');
       } else {
-        // Block login for missing, null, or non-customer userType
-        throw FirebaseSignInAuthException(message: 'User not found');
+        throw FirebaseSignInAuthException(message: 'Unknown error during customer check.');
       }
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
@@ -136,7 +149,10 @@ class AuthentificationService {
   /// Returns true if login successful, false if user cancelled, and 'signup' if email not registered.
   Future<dynamic> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      // Always prompt for account selection
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut(); // Ensure no cached account
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) return false; // user cancelled
 
       final String googleEmail = googleUser.email;
@@ -147,38 +163,40 @@ class AuthentificationService {
         idToken: googleAuth.idToken,
       );
 
-      try {
-        final userCredential = await FirebaseAuth.instance.signInWithCredential(
-          credential,
-        );
-        if (userCredential.user == null) return false;
-        // Check userType in Firestore
-        final uid = userCredential.user!.uid;
-        final userDoc = await UserDatabaseHelper().firestore
-            .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
-            .doc(uid)
-            .get();
-        final userType = userDoc.data()?['userType'];
-        if (userType == 'customer') {
+      // Check if user exists and is a customer, auto-login if so
+      final userDoc = await UserDatabaseHelper().firestore
+          .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+          .where('email', isEqualTo: googleEmail)
+          .limit(1)
+          .get();
+      if (userDoc.docs.isEmpty) {
+        return 'signup'; // Not registered, redirect to signup
+      }
+      final userType = userDoc.docs.first.data()['userType'];
+      if (userType == 'customer') {
+        // Auto-login with Google credential
+        try {
+          final userCredential = await FirebaseAuth.instance
+              .signInWithCredential(credential);
+          if (userCredential.user == null) return false;
           return true;
-        } else {
-          return 'signup'; // Signal to UI to redirect to signup
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'account-exists-with-different-credential') {
+            return {
+              'linkRequired': true,
+              'email': googleEmail,
+              'pendingCredential': credential,
+            };
+          } else if (e.code == 'user-disabled') {
+            return 'disabled';
+          } else {
+            print("Google Sign-In error: $e");
+            return false;
+          }
         }
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'account-exists-with-different-credential') {
-          // The account exists with a different sign-in method (e.g., password)
-          // Return a special value so the UI can prompt for password and link
-          return {
-            'linkRequired': true,
-            'email': googleEmail,
-            'pendingCredential': credential,
-          };
-        } else if (e.code == 'user-disabled') {
-          return 'disabled';
-        } else {
-          print("Google Sign-In error: $e");
-          return false;
-        }
+      } else {
+        // Not a customer, redirect to signup
+        return 'signup';
       }
     } catch (e) {
       print("Google Sign-In error: $e");
@@ -287,32 +305,54 @@ class AuthentificationService {
     required String email,
     required String password,
     required String displayName,
-    required String phoneNumber,
+    required String phoneNumber, 
   }) async {
     try {
+      // Step 1: Register email in Firebase Authentication
       final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      final uid = userCredential.user!.uid;
+      final user = userCredential.user;
+      if (user == null) {
+        return false;
+      }
+      final uid = user.uid;
 
-      // Set display name immediately after user creation
-      await userCredential.user!.updateDisplayName(displayName);
+      // Step 2: Update display name
+      await user.updateDisplayName(displayName);
 
-      if (!userCredential.user!.emailVerified) {
-        await userCredential.user!.sendEmailVerification();
+      // Step 3: Store user data in Firestore users collection with userType 'customer'
+      await UserDatabaseHelper().firestore.collection(UserDatabaseHelper.USERS_COLLECTION_NAME).doc(uid).set({
+        'displayName': displayName,
+        'email': user.email ?? email,
+        'phoneNumber': phoneNumber,
+        'userType': 'customer',
+        'favourite_products': <String>[],
+        'display_picture': null,
+      });
+
+      // Step 4: Link password credential to Google account if Google sign-in
+      final signInMethods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
+      if (signInMethods.contains('google.com') && !signInMethods.contains('password')) {
+        final passwordCredential = EmailAuthProvider.credential(email: email, password: password);
+        try {
+          await user.linkWithCredential(passwordCredential);
+        } catch (e) {
+          // Ignore if already linked or error
+        }
       }
 
-      // Create user profile in Firestore with display name and phone number
-      await UserDatabaseHelper().createNewUserWithDisplayName(
-        uid,
-        displayName,
-        phoneNumber,
-      );
+      // Step 5: Send verification email (after Firestore write)
+      if (!user.emailVerified) {
+        await user.sendEmailVerification();
+      }
+
       return true;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case EMAIL_ALREADY_IN_USE_EXCEPTION_CODE:
+          // Custom error for already registered email
           throw FirebaseSignUpAuthEmailAlreadyInUseException();
         case INVALID_EMAIL_EXCEPTION_CODE:
           throw FirebaseSignUpAuthInvalidEmailException();
@@ -321,8 +361,14 @@ class AuthentificationService {
         case WEAK_PASSWORD_EXCEPTION_CODE:
           throw FirebaseSignUpAuthWeakPasswordException();
         default:
+          // Show clear error for already registered user
+          if (e.code.contains('email-already-in-use')) {
+            throw FirebaseSignUpAuthEmailAlreadyInUseException();
+          }
           throw FirebaseSignInAuthException(message: e.code);
       }
+    } catch (e) {
+      return false;
     }
   }
 
