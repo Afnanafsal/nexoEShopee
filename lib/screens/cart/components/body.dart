@@ -568,121 +568,111 @@ class _BodyState extends ConsumerState<Body> {
 
   Future<void> checkoutButtonCallback({bool useRazorpay = false}) async {
     shutBottomSheet();
-    double amount = await getCartTotal();
-    if (amount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cart is empty or failed to calculate total.')),
-      );
-      return;
-    }
-
-    if (useRazorpay) {
-      // Replace with actual user details as needed
-      final user = FirebaseAuth.instance.currentUser;
-      final name = user?.displayName ?? 'FishKart User';
-      final email = user?.email ?? 'user@example.com';
-      final contact =
-          user?.phoneNumber ??
-          '9999999999'; // TODO: Replace with user's phone if available
-
-      // Open Razorpay checkout
-      _razorpayService.openCheckout(
-        amount: amount,
-        name: name,
-        description: 'Order Payment',
-        contact: contact,
-        email: email,
-      );
-      // TODO: On payment success, move order placement logic here
-      // You can listen to payment success in RazorpayService and call order placement
-      return;
-    }
-    // Normal checkout logic (previous logic)
-    // Fetch only cart items for the selected address BEFORE deleting
-    String uid = AuthentificationService().currentUser.uid;
-    final cartSnapshot = await FirebaseFirestore.instance
-        .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
-        .doc(uid)
-        .collection(UserDatabaseHelper.CART_COLLECTION_NAME)
-        .where('address_id', isEqualTo: _selectedAddressId)
-        .get();
-
-    final dateTime = DateTime.now();
-    final isoDateTime = dateTime.toIso8601String();
-    List<OrderedProduct> orderedProducts = [];
-    // Update stock for each product in the order
-    for (final doc in cartSnapshot.docs) {
-      final data = doc.data();
-      final productId = data[CartItem.PRODUCT_ID_KEY];
-      final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
-      // Decrease reserved, increase ordered
-      await Product.orderStock(productId, quantity);
-      // Get vendorId from product.vendorId
-      String? vendorId;
-      var cachedProduct = HiveService.instance.getCachedProduct(productId);
-      if (cachedProduct != null &&
-          cachedProduct.toMap().containsKey('vendorId') &&
-          cachedProduct.toMap()['vendorId'] != null) {
-        vendorId = cachedProduct.toMap()['vendorId'];
-      } else {
-        // fallback: fetch from db if not cached
-        try {
-          final product = await ProductDatabaseHelper().getProductWithID(
-            productId,
-          );
-          if (product != null && product.toMap().containsKey('vendorId')) {
-            vendorId = product.toMap()['vendorId'];
-          }
-        } catch (_) {}
-      }
-      orderedProducts.add(
-        OrderedProduct(
-          '',
-          productUid: productId,
-          orderDate: isoDateTime,
-          addressId: _selectedAddressId,
-          quantity: quantity,
-          vendorId: vendorId,
-          userId: uid,
-          status: 'pending',
-        ),
-      );
-    }
-
-    // Now delete only cart items for the selected address
-    for (final doc in cartSnapshot.docs) {
-      await doc.reference.delete();
-    }
-
-    String snackbarmMessage = "Something went wrong";
-    try {
-      final addedProductsToMyProducts = await UserDatabaseHelper()
-          .addToMyOrders(orderedProducts);
-      if (addedProductsToMyProducts) {
-        snackbarmMessage = "Products ordered Successfully";
-      } else {
-        throw "Could not order products due to unknown issue";
-      }
-    } on FirebaseException catch (e) {
-      Logger().e(e.toString());
-      snackbarmMessage = e.toString();
-    } catch (e) {
-      Logger().e(e.toString());
-      snackbarmMessage = e.toString();
-    }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(snackbarmMessage)));
     await showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
+        // The entire checkout process runs inside this dialog
         return AsyncProgressDialog(
-          Future.value(true),
-          message: Text("Placing the Order"),
+          (() async {
+            double amount = await getCartTotal();
+            if (amount == 0) {
+              Navigator.of(context, rootNavigator: true).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Cart is empty or failed to calculate total.'),
+                ),
+              );
+              return;
+            }
+
+            // Normal checkout logic (previous logic)
+            String uid = AuthentificationService().currentUser.uid;
+            final cartSnapshot = await FirebaseFirestore.instance
+                .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+                .doc(uid)
+                .collection(UserDatabaseHelper.CART_COLLECTION_NAME)
+                .where('address_id', isEqualTo: _selectedAddressId)
+                .get();
+
+            final dateTime = DateTime.now();
+            final isoDateTime = dateTime.toIso8601String();
+            List<OrderedProduct> orderedProducts = [];
+            for (final doc in cartSnapshot.docs) {
+              final data = doc.data();
+              final productId = data[CartItem.PRODUCT_ID_KEY];
+              final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
+              await Product.orderStock(productId, quantity);
+              String? vendorId;
+              var cachedProduct = HiveService.instance.getCachedProduct(
+                productId,
+              );
+              if (cachedProduct != null &&
+                  cachedProduct.toMap().containsKey('vendorId') &&
+                  cachedProduct.toMap()['vendorId'] != null) {
+                vendorId = cachedProduct.toMap()['vendorId'];
+              } else {
+                try {
+                  final product = await ProductDatabaseHelper()
+                      .getProductWithID(productId);
+                  if (product != null &&
+                      product.toMap().containsKey('vendorId')) {
+                    vendorId = product.toMap()['vendorId'];
+                  }
+                } catch (_) {}
+              }
+              orderedProducts.add(
+                OrderedProduct(
+                  '',
+                  productUid: productId,
+                  orderDate: isoDateTime,
+                  addressId: _selectedAddressId,
+                  quantity: quantity,
+                  vendorId: vendorId,
+                  userId: uid,
+                  status: 'pending',
+                ),
+              );
+            }
+
+            for (final doc in cartSnapshot.docs) {
+              await doc.reference.delete();
+            }
+
+            String snackbarmMessage = "Something went wrong";
+            bool orderSuccess = false;
+            try {
+              final addedProductsToMyProducts = await UserDatabaseHelper()
+                  .addToMyOrders(orderedProducts);
+              if (addedProductsToMyProducts) {
+                snackbarmMessage = "Products ordered Successfully";
+                orderSuccess = true;
+              } else {
+                throw "Could not order products due to unknown issue";
+              }
+            } on FirebaseException catch (e) {
+              Logger().e(e.toString());
+              snackbarmMessage = e.toString();
+            } catch (e) {
+              Logger().e(e.toString());
+              snackbarmMessage = e.toString();
+            }
+            Navigator.of(context, rootNavigator: true).pop();
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(snackbarmMessage)));
+            if (orderSuccess) {
+              // Redirect to HomeScreen after successful order
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/home', (route) => false);
+            }
+            await refreshPage();
+          })(),
+          message: Text("Uploading order and processing payment..."),
         );
       },
     );
-    await refreshPage();
   }
 
   @override
