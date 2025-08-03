@@ -71,7 +71,7 @@ class CustomBottomNavBar extends StatelessWidget {
                     width: 28,
                     height: 28,
                   ),
-            label: 'Orders',
+            label: 'Cart',
           ),
 
           BottomNavigationBarItem(
