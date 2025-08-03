@@ -5,7 +5,6 @@ import 'package:fishkart/providers/user_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fishkart/constants.dart';
 // import 'package:fishkart/screens/manage_addresses/manage_addresses_screen.dart';
-import 'package:fishkart/services/cache/hive_service.dart';
 import 'package:fishkart/providers/product_providers.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:fishkart/size_config.dart';
@@ -27,7 +26,8 @@ class DeliveryAddressBar extends ConsumerStatefulWidget {
   ConsumerState<DeliveryAddressBar> createState() => _DeliveryAddressBarState();
 }
 
-class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar> with RouteAware {
+class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
+    with RouteAware {
   bool _dialogShown = false;
   @override
   void initState() {
@@ -102,7 +102,9 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar> with Ro
                 barrierDismissible: false,
                 builder: (context) => AlertDialog(
                   title: const Text("No address found"),
-                  content: const Text("Please add a delivery address to continue."),
+                  content: const Text(
+                    "Please add a delivery address to continue.",
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () {
@@ -130,7 +132,11 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar> with Ro
                 Expanded(
                   child: Text(
                     "No address found. Please add a delivery address.",
-                    style: TextStyle(fontSize: 16, color: kPrimaryColor, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: kPrimaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -261,8 +267,6 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar> with Ro
                   onTap: () async {
                     final addresses = addressesListAsync.value ?? [];
                     if (addresses.isEmpty) return;
-                    final cachedAddresses = HiveService.instance
-                        .getCachedAddresses();
                     final selected = await showDialog<String>(
                       context: context,
                       builder: (context) {
@@ -300,120 +304,124 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar> with Ro
                                 ),
                                 SizedBox(height: 16),
                                 ...addresses.map((addressId) {
-                                  Map<String, dynamic>? addressMap;
-                                  try {
-                                    final rawMap = cachedAddresses.firstWhere(
-                                      (a) => a['id'] == addressId,
-                                    );
-                                    addressMap = rawMap is Map<String, dynamic>
-                                        ? rawMap
-                                        : Map<String, dynamic>.from(rawMap);
-                                  } catch (e) {
-                                    addressMap = {};
-                                  }
-                                  final title =
-                                      addressMap['title'] != null &&
-                                          addressMap['title']
-                                              .toString()
-                                              .isNotEmpty
-                                      ? addressMap['title'].toString()
-                                      : addressId;
-                                  final details =
-                                      [
-                                            addressMap['address_line_1'],
-                                            addressMap['city'],
-                                            addressMap['state'],
-                                            addressMap['pincode'],
-                                          ]
-                                          .whereType<String>()
-                                          .where((e) => e.isNotEmpty)
-                                          .join(', ');
-                                  final isSelected =
-                                      addressId == selectedAddressId;
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 6,
-                                    ),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        borderRadius: BorderRadius.circular(12),
-                                        onTap: () {
-                                          Navigator.pop(context, addressId);
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? kPrimaryColor.withOpacity(
-                                                    0.08,
-                                                  )
-                                                : Colors.white,
+                                  return FutureBuilder(
+                                    future: UserDatabaseHelper()
+                                        .getAddressFromId(addressId),
+                                    builder: (context, snapshot) {
+                                      final address = snapshot.data;
+                                      final title =
+                                          (address != null &&
+                                              address.title != null &&
+                                              address.title!.isNotEmpty)
+                                          ? address.title!
+                                          : (address != null &&
+                                                address.addressLine1 != null &&
+                                                address
+                                                    .addressLine1!
+                                                    .isNotEmpty)
+                                          ? address.addressLine1!
+                                          : 'Loading...';
+                                      final details = address != null
+                                          ? [
+                                                  address.addressLine1,
+                                                  address.city,
+                                                  address.state,
+                                                  address.pincode,
+                                                ]
+                                                .whereType<String>()
+                                                .where((e) => e.isNotEmpty)
+                                                .join(', ')
+                                          : '';
+                                      final isSelected =
+                                          addressId == selectedAddressId;
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 6,
+                                        ),
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
                                             borderRadius: BorderRadius.circular(
                                               12,
                                             ),
-                                            border: Border.all(
-                                              color: isSelected
-                                                  ? kPrimaryColor
-                                                  : Colors.grey[300]!,
-                                              width: isSelected ? 2 : 1,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.home,
+                                            onTap: () {
+                                              Navigator.pop(context, addressId);
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
                                                 color: isSelected
-                                                    ? kPrimaryColor
-                                                    : Colors.grey[500],
-                                                size: 22,
+                                                    ? kPrimaryColor.withOpacity(
+                                                        0.08,
+                                                      )
+                                                    : Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: isSelected
+                                                      ? kPrimaryColor
+                                                      : Colors.grey[300]!,
+                                                  width: isSelected ? 2 : 1,
+                                                ),
                                               ),
-                                              SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      title,
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 16,
-                                                        color: isSelected
-                                                            ? kPrimaryColor
-                                                            : Colors.black,
-                                                      ),
-                                                    ),
-                                                    if (details.isNotEmpty)
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets.only(
-                                                              top: 2.0,
-                                                            ),
-                                                        child: Text(
-                                                          details,
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.home,
+                                                    color: isSelected
+                                                        ? kPrimaryColor
+                                                        : Colors.grey[500],
+                                                    size: 22,
+                                                  ),
+                                                  SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          title,
                                                           style: TextStyle(
-                                                            fontSize: 13,
-                                                            color: Colors
-                                                                .grey[700],
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 16,
+                                                            color: isSelected
+                                                                ? kPrimaryColor
+                                                                : Colors.black,
                                                           ),
                                                         ),
-                                                      ),
-                                                  ],
-                                                ),
+                                                        if (details.isNotEmpty)
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets.only(
+                                                                  top: 2.0,
+                                                                ),
+                                                            child: Text(
+                                                              details,
+                                                              style: TextStyle(
+                                                                fontSize: 13,
+                                                                color: Colors
+                                                                    .grey[700],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  if (isSelected)
+                                                    Icon(
+                                                      Icons.check_circle,
+                                                      color: kPrimaryColor,
+                                                      size: 22,
+                                                    ),
+                                                ],
                                               ),
-                                              if (isSelected)
-                                                Icon(
-                                                  Icons.check_circle,
-                                                  color: kPrimaryColor,
-                                                  size: 22,
-                                                ),
-                                            ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ),
+                                      );
+                                    },
                                   );
                                 }).toList(),
                               ],
