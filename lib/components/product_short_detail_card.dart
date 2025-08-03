@@ -4,9 +4,36 @@ import 'package:fishkart/services/base64_image_service/base64_image_service.dart
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
-
 import '../constants.dart';
-import '../size_config.dart';
+
+// Top-level function to display product image from base64 or network
+Widget buildProductImage(String imageStr) {
+  final isBase64 = imageStr.length > 100 && !imageStr.startsWith('http');
+  if (isBase64) {
+    try {
+      final bytes = Base64ImageService().base64ToBytes(imageStr);
+      return Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+        width: 120,
+        height: 110,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
+      );
+    } catch (e) {
+      return Icon(Icons.broken_image, size: 48, color: Colors.grey[400]);
+    }
+  } else {
+    return Image.network(
+      imageStr,
+      fit: BoxFit.cover,
+      width: 120,
+      height: 110,
+      errorBuilder: (context, error, stackTrace) =>
+          Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
+    );
+  }
+}
 
 class ProductShortDetailCard extends StatelessWidget {
   final String productId;
@@ -28,32 +55,28 @@ class ProductShortDetailCard extends StatelessWidget {
             final product = snapshot.data!;
             return Container(
               height: 150, // Increased height for card and image
-
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
-                      width: 120, // Slightly wider for better aspect
-                      height: 110, // Increased height for image
+                      width: 120,
+                      height: 110,
                       color: Colors.grey[200],
                       child:
-                          product.images != null && product.images!.isNotEmpty
-                          ? Base64ImageService().base64ToImage(
-                              product.images![0],
-                              fit: BoxFit.cover,
-                            )
-                          : Center(
-                              child: Icon(
-                                Icons.image,
-                                size: 60,
-                                color: Colors.grey,
-                              ),
+                          (product.images != null &&
+                              product.images!.isNotEmpty &&
+                              product.images!.first.isNotEmpty)
+                          ? buildProductImage(product.images!.first)
+                          : Icon(
+                              Icons.image,
+                              size: 48,
+                              color: Colors.grey[400],
                             ),
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +106,7 @@ class ProductShortDetailCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Row(
                           children: [
                             Text(
@@ -91,18 +114,22 @@ class ProductShortDetailCard extends StatelessWidget {
                               style: TextStyle(
                                 color: kPrimaryColor,
                                 fontWeight: FontWeight.w700,
-                                fontSize: 15,
+                                fontSize: 13,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
                               "\₹${product.originalPrice}",
                               style: TextStyle(
                                 color: kTextColor,
                                 decoration: TextDecoration.lineThrough,
                                 fontWeight: FontWeight.normal,
-                                fontSize: 13,
+                                fontSize: 11,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),

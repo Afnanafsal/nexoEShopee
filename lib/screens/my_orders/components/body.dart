@@ -78,59 +78,55 @@ class _BodyState extends State<Body> {
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: refreshPage,
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: Padding(
+        child: Container(
+          color: const Color(0xFFF7F8FA),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding),
+              horizontal: getProportionateScreenWidth(0),
+              vertical: getProportionateScreenHeight(0),
             ),
-            child: SizedBox(
-              width: double.infinity,
-              child: Column(
+            children: [
+              const SizedBox(height: 12),
+              // Top bar: back button and address selector
+              Row(
                 children: [
-                  SizedBox(height: getProportionateScreenHeight(10)),
-                  // Back button and address selector in same row
-                  Row(
-                    children: [
-                      // iOS style back button
-                      IconButton(
-                        icon: Icon(
-                          Icons.arrow_back_ios_new,
-                          color: Colors.black,
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).maybePop();
-                        },
-                        tooltip: 'Back',
-                      ),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: _addresses.length > 1
-                              ? Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black12,
-                                        blurRadius: 8,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 2,
-                                  ),
-                                  child: DropdownButtonHideUnderline(
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.black87,
+                      size: 22,
+                    ),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    tooltip: 'Back',
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _addresses.isEmpty
+                        ? const SizedBox.shrink()
+                        : Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 2,
+                            ),
+                            child: _addresses.length > 1
+                                ? DropdownButtonHideUnderline(
                                     child: DropdownButton<String>(
                                       value: _selectedAddressId,
-                                      icon: Icon(
+                                      icon: const Icon(
                                         Icons.keyboard_arrow_down,
-                                        color: Colors.black,
+                                        color: Colors.black54,
                                       ),
                                       isExpanded: true,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
                                       items: _addresses.map((addressId) {
                                         return DropdownMenuItem<String>(
                                           value: addressId,
@@ -141,17 +137,24 @@ class _BodyState extends State<Body> {
                                               if (snapshot.hasData &&
                                                   snapshot.data != null) {
                                                 final address = snapshot.data!;
-                                                return Text(
-                                                  address.title ??
-                                                      address.addressLine1 ??
-                                                      addressId,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
+                                                return Flexible(
+                                                  child: Text(
+                                                    address.title ??
+                                                        address.addressLine1 ??
+                                                        addressId,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                  ),
                                                 );
                                               }
-                                              return Text(
-                                                addressId,
-                                                overflow: TextOverflow.ellipsis,
+                                              return Flexible(
+                                                child: Text(
+                                                  addressId,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 1,
+                                                ),
                                               );
                                             },
                                           ),
@@ -163,103 +166,81 @@ class _BodyState extends State<Body> {
                                         });
                                       },
                                     ),
+                                  )
+                                : FutureBuilder<Address>(
+                                    future: UserDatabaseHelper()
+                                        .getAddressFromId(_addresses.first),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData &&
+                                          snapshot.data != null) {
+                                        final address = snapshot.data!;
+                                        return Flexible(
+                                          child: Text(
+                                            address.title ??
+                                                address.addressLine1 ??
+                                                _addresses.first,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 15,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
+                                        );
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
                                   ),
-                                )
-                              : (_addresses.length == 1
-                                    ? FutureBuilder<Address>(
-                                        future: UserDatabaseHelper()
-                                            .getAddressFromId(_addresses.first),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.hasData &&
-                                              snapshot.data != null) {
-                                            final address = snapshot.data!;
-                                            return Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black12,
-                                                    blurRadius: 8,
-                                                    offset: Offset(0, 2),
-                                                  ),
-                                                ],
-                                              ),
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 8,
-                                              ),
-                                              child: Text(
-                                                address.title ??
-                                                    address.addressLine1 ??
-                                                    _addresses.first,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                          return SizedBox.shrink();
-                                        },
-                                      )
-                                    : SizedBox.shrink()),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: getProportionateScreenHeight(10)),
-                  // Tab bar (horizontally scrollable)
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        ...List.generate(_orderTabs.length, (i) {
-                          final selected = _selectedTabIndex == i;
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedTabIndex = i;
-                              });
-                            },
-                            child: Container(
-                              margin: EdgeInsets.only(right: 24),
-                              padding: EdgeInsets.symmetric(vertical: 4),
-                              decoration: BoxDecoration(
-                                border: selected
-                                    ? Border(
-                                        bottom: BorderSide(
-                                          color: kPrimaryColor,
-                                          width: 2,
-                                        ),
-                                      )
-                                    : null,
-                              ),
-                              child: Text(
-                                _orderTabs[i],
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: selected
-                                      ? kPrimaryColor
-                                      : Colors.black54,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: getProportionateScreenHeight(10)),
-                  SizedBox(
-                    height: SizeConfig.screenHeight * 0.75,
-                    child: buildOrderedProductsList(),
+                          ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 18),
+              // Tab bar
+              SizedBox(
+                height: 38,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _orderTabs.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, i) {
+                    final selected = _selectedTabIndex == i;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedTabIndex = i),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? kPrimaryColor.withOpacity(0.12)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          border: selected
+                              ? Border.all(color: kPrimaryColor, width: 1.5)
+                              : null,
+                        ),
+                        child: Text(
+                          _orderTabs[i],
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: selected ? kPrimaryColor : Colors.black54,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                height: SizeConfig.screenHeight * 0.75,
+                child: buildOrderedProductsList(),
+              ),
+            ],
           ),
         ),
       ),
@@ -330,7 +311,6 @@ class _BodyState extends State<Body> {
             }).toList();
           }
 
-          // Normalize status for all docs (missing/empty = Pending, lowercase to title case)
           String normalizeStatus(String? status) {
             if (status == null || status.trim().isEmpty) return 'Pending';
             final s = status.trim().toLowerCase();
@@ -339,43 +319,37 @@ class _BodyState extends State<Body> {
             if (s == 'cancelled' || s == 'rejected') return 'Cancelled';
             if (s == 'shipped') return 'Shipped';
             if (s == 'accepted') return 'Accepted';
-            // fallback: capitalize first letter
             return s[0].toUpperCase() + s.substring(1);
           }
 
           // Filter by tab
           if (_selectedTabIndex == 0) {
-            // All Orders: no filter
+            // All Orders
           } else if (_selectedTabIndex == 1) {
-            // Pending
             orderedProductsDocs = orderedProductsDocs
                 .where(
                   (doc) => normalizeStatus(doc.data()['status']) == 'Pending',
                 )
                 .toList();
           } else if (_selectedTabIndex == 2) {
-            // Completed
             orderedProductsDocs = orderedProductsDocs
                 .where(
                   (doc) => normalizeStatus(doc.data()['status']) == 'Completed',
                 )
                 .toList();
           } else if (_selectedTabIndex == 3) {
-            // Accepted
             orderedProductsDocs = orderedProductsDocs
                 .where(
                   (doc) => normalizeStatus(doc.data()['status']) == 'Accepted',
                 )
                 .toList();
           } else if (_selectedTabIndex == 4) {
-            // Shipped
             orderedProductsDocs = orderedProductsDocs
                 .where(
                   (doc) => normalizeStatus(doc.data()['status']) == 'Shipped',
                 )
                 .toList();
           } else if (_selectedTabIndex == 5) {
-            // Cancelled
             orderedProductsDocs = orderedProductsDocs
                 .where(
                   (doc) => normalizeStatus(doc.data()['status']) == 'Cancelled',
@@ -401,7 +375,6 @@ class _BodyState extends State<Body> {
             if (aStatusIndex != bStatusIndex) {
               return aStatusIndex.compareTo(bStatusIndex);
             }
-            // If status is the same, sort by date descending
             final aDate = a.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
             final bDate = b.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
             if (aDate == null && bDate == null) return 0;
@@ -410,9 +383,6 @@ class _BodyState extends State<Body> {
             return bDate.compareTo(aDate);
           });
 
-          Logger().i(
-            'Found ${orderedProductsDocs.length} orders for user $currentUserUid and address $_selectedAddressId',
-          );
           if (orderedProductsDocs.isEmpty) {
             return Center(
               child: NothingToShowContainer(
@@ -421,7 +391,7 @@ class _BodyState extends State<Body> {
               ),
             );
           }
-          // Group by date
+
           Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>
           grouped = {};
           for (var doc in orderedProductsDocs) {
@@ -448,9 +418,8 @@ class _BodyState extends State<Body> {
           }
 
           return ListView(
-            physics: BouncingScrollPhysics(),
+            physics: const BouncingScrollPhysics(),
             children: grouped.entries.map((entry) {
-              // Group products by productUid and count
               Map<String, int> productCounts = {};
               Map<String, QueryDocumentSnapshot<Map<String, dynamic>>>
               productDocs = {};
@@ -462,7 +431,6 @@ class _BodyState extends State<Body> {
                   productDocs[pid] = doc;
                 }
               }
-              // Get the status of the first doc in the group for color
               final firstDoc = entry.value.isNotEmpty
                   ? entry.value.first
                   : null;
@@ -473,323 +441,324 @@ class _BodyState extends State<Body> {
               Color statusTextColor;
               switch (status) {
                 case 'Completed':
-                  statusBgColor = const Color(0xFFE6F9F0); // light green
-                  statusTextColor = const Color(0xFF1B8A5A); // green
+                  statusBgColor = const Color(0xFFE6F9F0);
+                  statusTextColor = const Color(0xFF1B8A5A);
                   break;
                 case 'Pending':
-                  statusBgColor = const Color(0xFFFFF8E1); // light yellow
-                  statusTextColor = const Color(0xFFE6A100); // orange
+                  statusBgColor = const Color(0xFFFFF8E1);
+                  statusTextColor = const Color(0xFFE6A100);
                   break;
                 case 'Cancelled':
-                  statusBgColor = const Color(0xFFFFEBEE); // light red
-                  statusTextColor = const Color(0xFFD32F2F); // red
+                  statusBgColor = const Color(0xFFFFEBEE);
+                  statusTextColor = const Color(0xFFD32F2F);
                   break;
                 case 'Accepted':
-                  statusBgColor = const Color(0xFFE3F0FF); // light blue
-                  statusTextColor = const Color(0xFF1976D2); // blue
+                  statusBgColor = const Color(0xFFE3F0FF);
+                  statusTextColor = const Color(0xFF1976D2);
                   break;
                 case 'Shipped':
-                  statusBgColor = const Color(0xFFEDE7F6); // light purple
-                  statusTextColor = const Color(0xFF6C3FC7); // purple
+                  statusBgColor = const Color(0xFFEDE7F6);
+                  statusTextColor = const Color(0xFF6C3FC7);
                   break;
                 default:
                   statusBgColor = Colors.grey.shade200;
                   statusTextColor = Colors.black54;
               }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8.0,
-                      horizontal: 4.0,
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: statusBgColor,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 2,
+                        bottom: 2,
+                        top: 2,
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Ordered on: ${formatOrderDate(entry.key)}',
-                            style: TextStyle(
-                              color: statusTextColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
                             ),
-                          ),
-                          Row(
-                            children: [
-                              Icon(
-                                status == 'Completed'
-                                    ? Icons.check_circle
-                                    : status == 'Pending'
-                                    ? Icons.hourglass_bottom
-                                    : status == 'Accepted'
-                                    ? Icons.verified
-                                    : status == 'Shipped'
-                                    ? Icons.local_shipping
-                                    : Icons.cancel,
-                                color: statusTextColor,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                status,
-                                style: TextStyle(
+                            decoration: BoxDecoration(
+                              color: statusBgColor,
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  status == 'Completed'
+                                      ? Icons.check_circle
+                                      : status == 'Pending'
+                                      ? Icons.hourglass_bottom
+                                      : status == 'Accepted'
+                                      ? Icons.verified
+                                      : status == 'Shipped'
+                                      ? Icons.local_shipping
+                                      : Icons.cancel,
                                   color: statusTextColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                                  size: 16,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 5),
+                                Text(
+                                  status,
+                                  style: TextStyle(
+                                    color: statusTextColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  formatOrderDate(entry.key),
+                                  style: TextStyle(
+                                    color: Colors.black54,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  Card(
-                    elevation: 4,
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    margin: EdgeInsets.symmetric(vertical: 6, horizontal: 0),
-                    shadowColor: Colors.black.withOpacity(0.12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: productCounts.keys.map((pid) {
-                          final doc = productDocs[pid];
-                          if (doc == null) return SizedBox.shrink();
-                          final order = OrderedProduct.fromMap(
-                            doc.data(),
-                            id: doc.id,
-                          );
-                          return FutureBuilder<Product?>(
-                            future: _getProductWithCaching(pid),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return SizedBox(
-                                  height: 70,
-                                  child: Shimmer.fromColors(
-                                    baseColor: Colors.grey[300]!,
-                                    highlightColor: Colors.grey[100]!,
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 70,
-                                          height: 70,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(
-                                              12,
+                    Card(
+                      elevation: 0,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(color: Colors.grey.shade200, width: 1),
+                      ),
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 6,
+                        horizontal: 2,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 8,
+                        ),
+                        child: Column(
+                          children: productCounts.keys.map((pid) {
+                            final doc = productDocs[pid];
+                            if (doc == null) return const SizedBox.shrink();
+                            final order = OrderedProduct.fromMap(
+                              doc.data(),
+                              id: doc.id,
+                            );
+                            return FutureBuilder<Product?>(
+                              future: _getProductWithCaching(pid),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return SizedBox(
+                                    height: 70,
+                                    child: Shimmer.fromColors(
+                                      baseColor: Colors.grey[300]!,
+                                      highlightColor: Colors.grey[100]!,
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 70,
+                                            height: 70,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[300],
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                           ),
-                                        ),
-                                        SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Container(
-                                                width: double.infinity,
-                                                height: 16,
-                                                color: Colors.grey[300],
-                                              ),
-                                              SizedBox(height: 8),
-                                              Container(
-                                                width: 80,
-                                                height: 12,
-                                                color: Colors.grey[300],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }
-                              if (!snapshot.hasData || snapshot.data == null) {
-                                return SizedBox.shrink();
-                              }
-                              final product = snapshot.data!;
-                              return Container(
-                                margin: EdgeInsets.only(bottom: 8),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.topRight,
-                                      child: TextButton.icon(
-                                        style: TextButton.styleFrom(
-                                          backgroundColor: Color(0xFFF2F6FF),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 2,
-                                          ),
-                                        ),
-                                        onPressed: () async {
-                                          String currentUserUid =
-                                              AuthentificationService()
-                                                  .currentUser
-                                                  .uid;
-                                          Review? prevReview;
-                                          try {
-                                            prevReview =
-                                                await ProductDatabaseHelper()
-                                                    .getProductReviewWithID(
-                                                      product.id,
-                                                      currentUserUid,
-                                                    );
-                                          } on FirebaseException catch (e) {
-                                            Logger().w(
-                                              "Firebase Exception: $e",
-                                            );
-                                          } catch (e) {
-                                            Logger().w("Unknown Exception: $e");
-                                          }
-                                          if (prevReview == null) {
-                                            prevReview = Review(
-                                              currentUserUid,
-                                              reviewerUid: currentUserUid,
-                                            );
-                                          }
-                                          final result = await showDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              return ProductReviewDialog(
-                                                key: UniqueKey(),
-                                                review: prevReview!,
-                                              );
-                                            },
-                                          );
-                                          if (result is Review) {
-                                            bool reviewAdded = false;
-                                            String snackbarMessage =
-                                                "Unknown error occurred";
-                                            try {
-                                              reviewAdded =
-                                                  await ProductDatabaseHelper()
-                                                      .addProductReview(
-                                                        product.id,
-                                                        result,
-                                                      );
-                                              if (reviewAdded == true) {
-                                                snackbarMessage =
-                                                    "Product review added successfully";
-                                              } else {
-                                                throw "Coulnd't add product review due to unknown reason";
-                                              }
-                                            } on FirebaseException catch (e) {
-                                              Logger().w(
-                                                "Firebase Exception: $e",
-                                              );
-                                              snackbarMessage = e.toString();
-                                            } catch (e) {
-                                              Logger().w(
-                                                "Unknown Exception: $e",
-                                              );
-                                              snackbarMessage = e.toString();
-                                            } finally {
-                                              Logger().i(snackbarMessage);
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    snackbarMessage,
-                                                  ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  width: double.infinity,
+                                                  height: 16,
+                                                  color: Colors.grey[300],
                                                 ),
-                                              );
-                                            }
-                                          }
-                                          await refreshPage();
-                                        },
-                                        icon: Icon(
-                                          Icons.edit,
-                                          color: Color(0xFF3D8BEA),
-                                          size: 18,
-                                        ),
-                                        label: Text(
-                                          'Write a Review',
-                                          style: TextStyle(
-                                            color: Color(0xFF3D8BEA),
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
+                                                const SizedBox(height: 8),
+                                                Container(
+                                                  width: 80,
+                                                  height: 12,
+                                                  color: Colors.grey[300],
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
+                                        ],
                                       ),
                                     ),
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: ProductShortDetailCard(
-                                            productId: product.id,
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      OrderDetailsScreen(
-                                                        key: UniqueKey(),
-                                                        order: order,
-                                                      ),
-                                                ),
-                                              ).then((_) async {
-                                                await refreshPage();
-                                              });
-                                            },
-                                          ),
+                                  );
+                                }
+                                if (!snapshot.hasData ||
+                                    snapshot.data == null) {
+                                  return const SizedBox.shrink();
+                                }
+                                final product = snapshot.data!;
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: ProductShortDetailCard(
+                                          productId: product.id,
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    OrderDetailsScreen(
+                                                      key: UniqueKey(),
+                                                      order: order,
+                                                    ),
+                                              ),
+                                            ).then((_) async {
+                                              await refreshPage();
+                                            });
+                                          },
                                         ),
-                                        SizedBox(width: 12),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Color(0xFFEDF2FA),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Column(
+                                        children: [
+                                          OutlinedButton.icon(
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: kPrimaryColor,
+                                              side: BorderSide(
+                                                color: kPrimaryColor
+                                                    .withOpacity(0.5),
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 2,
+                                                  ),
+                                            ),
+                                            onPressed: () async {
+                                              String currentUserUid =
+                                                  AuthentificationService()
+                                                      .currentUser
+                                                      .uid;
+                                              Review? prevReview;
+                                              try {
+                                                prevReview =
+                                                    await ProductDatabaseHelper()
+                                                        .getProductReviewWithID(
+                                                          product.id,
+                                                          currentUserUid,
+                                                        );
+                                              } on FirebaseException catch (e) {
+                                                Logger().w(
+                                                  "Firebase Exception: $e",
+                                                );
+                                              } catch (e) {
+                                                Logger().w(
+                                                  "Unknown Exception: $e",
+                                                );
+                                              }
+                                              if (prevReview == null) {
+                                                prevReview = Review(
+                                                  currentUserUid,
+                                                  reviewerUid: currentUserUid,
+                                                );
+                                              }
+                                              final result = await showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return ProductReviewDialog(
+                                                    key: UniqueKey(),
+                                                    review: prevReview!,
+                                                  );
+                                                },
+                                              );
+                                              if (result is Review) {
+                                                bool reviewAdded = false;
+                                                String snackbarMessage =
+                                                    "Unknown error occurred";
+                                                try {
+                                                  reviewAdded =
+                                                      await ProductDatabaseHelper()
+                                                          .addProductReview(
+                                                            product.id,
+                                                            result,
+                                                          );
+                                                  if (reviewAdded == true) {
+                                                    snackbarMessage =
+                                                        "Product review added successfully";
+                                                  } else {
+                                                    throw "Coulnd't add product review due to unknown reason";
+                                                  }
+                                                } on FirebaseException catch (
+                                                  e
+                                                ) {
+                                                  Logger().w(
+                                                    "Firebase Exception: $e",
+                                                  );
+                                                  snackbarMessage = e
+                                                      .toString();
+                                                } catch (e) {
+                                                  Logger().w(
+                                                    "Unknown Exception: $e",
+                                                  );
+                                                  snackbarMessage = e
+                                                      .toString();
+                                                } finally {
+                                                  Logger().i(snackbarMessage);
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        snackbarMessage,
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              }
+                                              await refreshPage();
+                                            },
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              size: 17,
+                                            ),
+                                            label: const Text(
+                                              'Review',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        }).toList(),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             }).toList(),
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
-          // Shimmer placeholder for main loading state
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -806,7 +775,7 @@ class _BodyState extends State<Body> {
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Shimmer.fromColors(
                   baseColor: Colors.grey[300]!,
                   highlightColor: Colors.grey[100]!,
@@ -821,7 +790,7 @@ class _BodyState extends State<Body> {
           );
         } else if (snapshot.hasError) {
           final error = snapshot.error;
-          Logger().w('Firestore error: ${error.toString()}');
+          Logger().w('Firestore error: \\${error.toString()}');
           return Center(
             child: NothingToShowContainer(
               iconPath: "assets/icons/network_error.svg",
