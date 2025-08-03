@@ -342,7 +342,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isOutOfStock || !isAreaAvailable
                         ? Colors.grey
-                        : Color(0xFF42526E),
+                        : Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

@@ -201,12 +201,23 @@ class Body extends ConsumerWidget {
                           }
                         },
                       ),
-                      SizedBox(height: getProportionateScreenHeight(10)),
-                      SvgPicture.asset(
-                    'assets/images/banner1.svg',
-                   
-                  ),
-                      SizedBox(height: getProportionateScreenHeight(15)),
+                      SizedBox(height: getProportionateScreenHeight(5)),
+                      SvgPicture.asset('assets/images/banner1.svg'),
+                      SizedBox(height: getProportionateScreenHeight(5)),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text(
+                            'Fresh Fish Category',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Color(0xFF2B344F),
+                            ),
+                          ),
+                        ),
+                      ),
                       SizedBox(
                         height: SizeConfig.screenHeight * 0.191,
                         child: Padding(
@@ -239,7 +250,7 @@ class Body extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      SizedBox(height: getProportionateScreenHeight(20)),
+                      SizedBox(height: getProportionateScreenHeight(5)),
                       // Popular Items Section
                       Align(
                         alignment: Alignment.centerLeft,
@@ -424,6 +435,8 @@ class Body extends ConsumerWidget {
                                   if (selectedAddressId != null) {
                                     final address = HiveService.instance
                                         .getCachedAddresses()
+                                        .cast<Map<dynamic, dynamic>>()
+                                        .map((a) => a.cast<String, dynamic>())
                                         .firstWhere(
                                           (a) => a['id'] == selectedAddressId,
                                           orElse: () => <String, dynamic>{},
@@ -645,7 +658,7 @@ class Body extends ConsumerWidget {
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w700,
-                                                              fontSize: 16,
+                                                              fontSize: 15,
                                                               color:
                                                                   Colors.black,
                                                             ),
@@ -654,12 +667,12 @@ class Body extends ConsumerWidget {
                                                             Padding(
                                                               padding:
                                                                   const EdgeInsets.only(
-                                                                    left: 8.0,
+                                                                    left: 6.0,
                                                                   ),
                                                               child: Text(
                                                                 '₹${originalPrice.toStringAsFixed(2)}',
                                                                 style: TextStyle(
-                                                                  fontSize: 14,
+                                                                  fontSize: 12,
                                                                   color: Colors
                                                                       .black38,
                                                                   decoration:

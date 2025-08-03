@@ -29,8 +29,8 @@ class ProductTypeBox extends StatelessWidget {
           horizontal: getProportionateScreenWidth(10),
         ),
         decoration: BoxDecoration(
-          color: const Color(0xFFF7F8FA),
-          borderRadius: BorderRadius.circular(32),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(64),
           border: Border.all(color: const Color(0xFFE0E3EA), width: 1),
         ),
         child: Column(
