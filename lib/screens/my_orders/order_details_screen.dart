@@ -354,24 +354,49 @@ class OrderDetailsScreen extends StatelessWidget {
                                           children: [
                                             Container(
                                               padding: EdgeInsets.symmetric(
-                                                horizontal: 14,
-                                                vertical: 4,
+                                                horizontal: 16,
+                                                vertical: 6,
                                               ),
                                               decoration: BoxDecoration(
-                                                border: Border.all(
-                                                  color: Colors.black26,
-                                                  width: 1,
-                                                ),
+                                                color: _statusColor(
+                                                  order.status,
+                                                ).withOpacity(0.15),
                                                 borderRadius:
                                                     BorderRadius.circular(16),
-                                                color: Colors.grey[50],
                                               ),
-                                              child: Text(
-                                                _statusLabel(order.status),
-                                                style: TextStyle(
-                                                  color: Colors.black87,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    order.status.toLowerCase() ==
+                                                            'completed'
+                                                        ? Icons.check_circle
+                                                        : order.status
+                                                                  .toLowerCase() ==
+                                                              'pending'
+                                                        ? Icons.hourglass_top
+                                                        : order.status
+                                                                  .toLowerCase() ==
+                                                              'cancelled'
+                                                        ? Icons.cancel
+                                                        : Icons.info,
+                                                    color: _statusColor(
+                                                      order.status,
+                                                    ),
+                                                    size: 18,
+                                                  ),
+                                                  SizedBox(width: 6),
+                                                  Text(
+                                                    _statusLabel(order.status),
+                                                    style: TextStyle(
+                                                      color: _statusColor(
+                                                        order.status,
+                                                      ),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                             SizedBox(width: 12),
@@ -404,9 +429,216 @@ class OrderDetailsScreen extends StatelessWidget {
                                               color: Colors.black87,
                                             ),
                                           ),
-                                          onTap: () {},
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return Dialog(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          24,
+                                                        ),
+                                                  ),
+                                                  backgroundColor: Colors.white,
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          24.0,
+                                                        ),
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        
+                                                        SizedBox(height: 18),
+                                                        Text(
+                                                          'Contact Vendor',
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 18,
+                                                            color: Color(
+                                                              0xFF294157,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(height: 18),
+                                                        Container(
+                                                          decoration: BoxDecoration(
+                                                            color: Colors
+                                                                .grey[100],
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  12,
+                                                                ),
+                                                          ),
+                                                          padding:
+                                                              EdgeInsets.symmetric(
+                                                                horizontal: 16,
+                                                                vertical: 12,
+                                                              ),
+                                                          child: Row(
+                                                            children: [
+                                                              CircleAvatar(
+                                                                backgroundColor:
+                                                                    Color(
+                                                                      0xFF294157,
+                                                                    ).withOpacity(
+                                                                      0.12,
+                                                                    ),
+                                                                child: Icon(
+                                                                  Icons.person,
+                                                                  color: Color(
+                                                                    0xFF294157,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                width: 12,
+                                                              ),
+                                                              Expanded(
+                                                                child: Column(
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .start,
+                                                                  children: [
+                                                                    Text(
+                                                                      vendorName,
+                                                                      style: TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        fontSize:
+                                                                            16,
+                                                                        color: Color(
+                                                                          0xFF294157,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(
+                                                                      height: 2,
+                                                                    ),
+                                                                    Text(
+                                                                      vendorPhone,
+                                                                      style: TextStyle(
+                                                                        fontSize:
+                                                                            15,
+                                                                        color: Colors
+                                                                            .grey[700],
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                width: 8,
+                                                              ),
+                                                              Material(
+                                                                color: Colors
+                                                                    .transparent,
+                                                                child: InkWell(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        24,
+                                                                      ),
+                                                                  onTap: () async {
+                                                                    final phone =
+                                                                        vendorPhone.replaceAll(
+                                                                          RegExp(
+                                                                            r'[^0-9+]',
+                                                                          ),
+                                                                          '',
+                                                                        );
+                                                                    final url =
+                                                                        'tel:$phone';
+                                                                    if (await canLaunch(
+                                                                      url,
+                                                                    )) {
+                                                                      await launch(
+                                                                        url,
+                                                                      );
+                                                                    }
+                                                                  },
+                                                                  child: Container(
+                                                                    padding:
+                                                                        EdgeInsets.all(
+                                                                          8,
+                                                                        ),
+                                                                    decoration: BoxDecoration(
+                                                                      color: Color(
+                                                                        0xFF1B8A5A,
+                                                                      ).withOpacity(0.12),
+                                                                      shape: BoxShape
+                                                                          .circle,
+                                                                    ),
+                                                                    child: Icon(
+                                                                      Icons
+                                                                          .call,
+                                                                      color: Color(
+                                                                        0xFF1B8A5A,
+                                                                      ),
+                                                                      size: 24,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        SizedBox(height: 24),
+                                                        SizedBox(
+                                                          width:
+                                                              double.infinity,
+                                                          child: ElevatedButton(
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor:
+                                                                  Color(
+                                                                    0xFF294157,
+                                                                  ),
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      12,
+                                                                    ),
+                                                              ),
+                                                              padding:
+                                                                  EdgeInsets.symmetric(
+                                                                    vertical:
+                                                                        14,
+                                                                  ),
+                                                            ),
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                  context,
+                                                                ).pop(),
+                                                            child: Text(
+                                                              'Close',
+                                                              style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize: 16,
+                                                                color: Colors.white
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
                                           dense: true,
                                           visualDensity: VisualDensity.compact,
+                                        ),
+                                        Divider(
+                                          height: 24,
+                                          color: Colors.grey[300],
                                         ),
                                         ListTile(
                                           contentPadding: EdgeInsets.zero,
