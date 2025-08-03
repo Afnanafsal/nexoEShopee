@@ -60,8 +60,60 @@ class Body extends ConsumerStatefulWidget {
 }
 
 class _BodyState extends ConsumerState<Body> {
+  // Payment method tile widget for UPI and Add Card
+  Widget paymentMethodTile(IconData icon, String title, String? subtitle) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 1)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: kPrimaryColor, size: 28),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                  ),
+              ],
+            ),
+          ),
+          Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
+        ],
+      ),
+    );
+  }
+
+  // Show checkout bottom sheet with total
+  void showCheckoutBottomSheetWithTotal(double totalPrice) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return CheckoutCard(
+          onCheckoutPressed: checkoutButtonCallback,
+          onRazorpayPressed: () => checkoutButtonCallback(useRazorpay: true),
+          totalPrice: totalPrice,
+        );
+      },
+    );
+  }
+
   void shutBottomSheet() {
-    Navigator.of(context).maybePop();
+    // Remove bottom sheet handler since we're using modal bottom sheet
   }
 
   Future<void> arrowDownCallback(String cartItemId, String? addressId) async {
@@ -635,80 +687,108 @@ class _BodyState extends ConsumerState<Body> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.grey[50],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: getProportionateScreenWidth(screenPadding),
         ),
-        title: Text(
-          "Your Cart",
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Address selector
-          if (_addresses.length > 1)
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedAddressId,
-                  icon: Icon(Icons.keyboard_arrow_down, color: Colors.black),
-                  isExpanded: true,
-                  items: _addresses.map((addressId) {
-                    return DropdownMenuItem<String>(
-                      value: addressId,
-                      child: FutureBuilder<Address>(
-                        future: UserDatabaseHelper().getAddressFromId(
-                          addressId,
+        child: Column(
+          children: [
+            SizedBox(height: getProportionateScreenHeight(10)),
+            Align(
+              alignment: Alignment.center,
+              child: Text("Your Cart", style: headingStyle),
+            ),
+            SizedBox(height: getProportionateScreenHeight(20)),
+            // Address selector
+            if (_addresses.length > 1)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedAddressId,
+                    icon: Icon(Icons.keyboard_arrow_down, color: Colors.black),
+                    isExpanded: true,
+                    items: _addresses.map((addressId) {
+                      return DropdownMenuItem<String>(
+                        value: addressId,
+                        child: FutureBuilder<Address>(
+                          future: UserDatabaseHelper().getAddressFromId(
+                            addressId,
+                          ),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData && snapshot.data != null) {
+                              final address = snapshot.data!;
+                              return Text(
+                                address.title ?? address.addressLine1 ?? '',
+                                overflow: TextOverflow.ellipsis,
+                              );
+                            }
+                            // While loading, show empty or loading text
+                            return Text('', overflow: TextOverflow.ellipsis);
+                          },
                         ),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData && snapshot.data != null) {
-                            final address = snapshot.data!;
-                            return Text(
-                              address.title ?? address.addressLine1 ?? '',
-                              overflow: TextOverflow.ellipsis,
-                            );
-                          }
-                          return Text('', overflow: TextOverflow.ellipsis);
-                        },
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      _selectedAddressId = value;
+                    },
+                  ),
+                ),
+              )
+            else if (_addresses.length == 1)
+              FutureBuilder<Address>(
+                future: UserDatabaseHelper().getAddressFromId(_addresses.first),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data != null) {
+                    final address = snapshot.data!;
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        address.title ??
+                            address.addressLine1 ??
+                            _addresses.first,
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     );
-                  }).toList(),
-                  onChanged: (value) {
-                    _selectedAddressId = value;
-                  },
-                ),
+                  }
+                  return SizedBox.shrink();
+                },
+              ),
+            SizedBox(height: getProportionateScreenHeight(10)),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: refreshPage,
+                child: buildCartItemsList(),
               ),
             ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: refreshPage,
-              child: buildCartItemsList(),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -719,9 +799,134 @@ class _BodyState extends ConsumerState<Body> {
   }
 
   Widget buildCartItemsList() {
+    final user = FirebaseAuth.instance.currentUser;
+    final userId = user?.uid;
+    // Try to load cart items from cache first
+    List<String> cachedCartItems = [];
+    if (userId != null) {
+      final cachedUser = HiveService.instance.getCachedUser(userId);
+      if (cachedUser != null) {
+        cachedCartItems = cachedUser.cartItems;
+      }
+    }
+    if (cachedCartItems.isNotEmpty) {
+      // Use cached cart items and products for instant UI
+      final products = cachedCartItems.map((id) {
+        final productId = id.split('_').first;
+        final cachedProduct = HiveService.instance.getCachedProduct(productId);
+        return cachedProduct ??
+            Product(
+              productId,
+              title: 'Unknown',
+              images: [],
+              discountPrice: 0,
+              originalPrice: 0,
+            );
+      }).toList();
+      double totalPrice = 0;
+      List<Widget> cartCards = [];
+      for (int i = 0; i < cachedCartItems.length; i++) {
+        final product = products[i];
+        // For demo, assume quantity 1 (can be improved if CartItem is cached)
+        totalPrice += product.discountPrice ?? product.originalPrice ?? 0;
+        cartCards.add(
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 8),
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: (product.images != null && product.images!.isNotEmpty)
+                      ? Base64ImageService().base64ToImage(
+                          product.images!.first,
+                          fit: BoxFit.cover,
+                        )
+                      : Icon(
+                          Icons.image_not_supported,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.title ?? "Product",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      if (product.description != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            product.description!,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      SizedBox(height: 8),
+                      Text(
+                        '₹${product.discountPrice?.toStringAsFixed(2) ?? product.originalPrice?.toStringAsFixed(2) ?? ''}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: kPrimaryColor,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text('Qty: 1'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      _lastCartTotal = totalPrice;
+      return Column(
+        children: [
+          ...cartCards,
+          SizedBox(height: 12),
+          Text(
+            'Total: ₹${totalPrice.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: kPrimaryColor,
+            ),
+          ),
+        ],
+      );
+    }
+    // Fallback to DB if cache is empty
     final cartItemsAsync = ref.watch(cartItemsStreamProvider);
     Logger().i('CartItemsStreamProvider value: $cartItemsAsync');
-
+    bool isFirstLoad = cartItemsAsync.isLoading && (savedCards.isEmpty);
     return cartItemsAsync.when(
       data: (cartItemsId) {
         Logger().i('Cart items IDs: $cartItemsId');
@@ -736,7 +941,7 @@ class _BodyState extends ConsumerState<Body> {
             ),
           );
         }
-
+        // Calculate total price using both Product and CartItem
         return FutureBuilder<List<dynamic>>(
           future: Future.wait([
             Future.wait(
@@ -747,6 +952,7 @@ class _BodyState extends ConsumerState<Body> {
             ),
             Future.wait(
               cartItemsId.map((id) {
+                // Extract productId from composite key
                 final productId = id.split('_').first;
                 Logger().i('Fetching product for cart item: $productId');
                 return ProductDatabaseHelper().getProductWithID(productId);
@@ -754,32 +960,35 @@ class _BodyState extends ConsumerState<Body> {
             ),
           ]),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            double totalPrice = 0;
+            List<Widget> cartCards = [];
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                isFirstLoad) {
+              // Show shimmer loading only on first load
               return ListView.builder(
-                padding: EdgeInsets.all(16),
                 itemCount: 3,
                 itemBuilder: (context, index) {
                   return Shimmer.fromColors(
                     baseColor: Colors.grey[300]!,
                     highlightColor: Colors.grey[100]!,
                     child: Container(
-                      margin: EdgeInsets.only(bottom: 16),
-                      padding: EdgeInsets.all(16),
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            width: 60,
-                            height: 60,
+                            width: 80,
+                            height: 80,
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          SizedBox(width: 12),
+                          SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -795,6 +1004,12 @@ class _BodyState extends ConsumerState<Body> {
                                   height: 14,
                                   color: Colors.grey[300],
                                 ),
+                                SizedBox(height: 8),
+                                Container(
+                                  width: 60,
+                                  height: 16,
+                                  color: Colors.grey[300],
+                                ),
                               ],
                             ),
                           ),
@@ -805,17 +1020,15 @@ class _BodyState extends ConsumerState<Body> {
                 },
               );
             }
-
             if (snapshot.hasData) {
               final cartItems = snapshot.data![0] as List<CartItem?>;
               final products = snapshot.data![1] as List<Product?>;
-              double totalPrice = 0;
-              List<Widget> cartCards = [];
-
+              Logger().i('Fetched cartItems: $cartItems');
+              Logger().i('Fetched products: $products');
               for (int i = 0; i < cartItemsId.length; i++) {
                 final cartItem = cartItems[i];
                 final product = products[i];
-
+                // Show cart items for selected address, and also items with no addressId (legacy)
                 if (cartItem != null &&
                     product != null &&
                     (cartItem.addressId == _selectedAddressId ||
@@ -823,25 +1036,31 @@ class _BodyState extends ConsumerState<Body> {
                   final price =
                       product.discountPrice ?? product.originalPrice ?? 0;
                   totalPrice += price * (cartItem.itemCount);
-
                   cartCards.add(
                     Container(
-                      margin: EdgeInsets.only(bottom: 12),
-                      padding: EdgeInsets.all(16),
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Product Image
                           Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                            width: 80,
+                            height: 80,
                             clipBehavior: Clip.hardEdge,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child:
                                 (product.images != null &&
                                     product.images!.isNotEmpty)
@@ -849,17 +1068,13 @@ class _BodyState extends ConsumerState<Body> {
                                     product.images!.first,
                                     fit: BoxFit.cover,
                                   )
-                                : Container(
-                                    color: Colors.grey[200],
-                                    child: Icon(
-                                      Icons.image_not_supported,
-                                      size: 30,
-                                      color: Colors.grey,
-                                    ),
+                                : Icon(
+                                    Icons.image_not_supported,
+                                    size: 40,
+                                    color: Colors.grey,
                                   ),
                           ),
-                          SizedBox(width: 12),
-                          // Product Details
+                          SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -867,77 +1082,61 @@ class _BodyState extends ConsumerState<Body> {
                                 Text(
                                   product.title ?? "Product",
                                   style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  "Qty: ${cartItem.itemCount} | 500 gm",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  "₹${price.toStringAsFixed(0)}",
-                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
-                                    color: Colors.black,
                                   ),
+                                ),
+                                if (product.description != null)
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      product.description!,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[700],
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Text(
+                                      "₹${price.toStringAsFixed(2)}",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: kPrimaryColor,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    if (product.originalPrice != null &&
+                                        product.discountPrice != null &&
+                                        product.originalPrice !=
+                                            product.discountPrice)
+                                      Text(
+                                        "₹${product.originalPrice}",
+                                        style: TextStyle(
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-                          // Quantity Controls
+                          SizedBox(width: 16),
                           Column(
                             children: [
-                              Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: Icon(Icons.add, size: 18),
-                                  onPressed: () async {
-                                    await arrowUpCallback(
-                                      cartItemsId[i],
-                                      _selectedAddressId,
-                                    );
-                                  },
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                "${cartItem.itemCount}",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: Icon(Icons.remove, size: 18),
-                                  onPressed: () async {
-                                    await arrowDownCallback(
-                                      cartItemsId[i],
-                                      _selectedAddressId,
-                                    );
-                                  },
-                                ),
+                              IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () async {
+                                  await UserDatabaseHelper()
+                                      .removeProductFromCart(cartItemsId[i]);
+                                  await refreshPage();
+                                },
                               ),
                             ],
                           ),
@@ -947,31 +1146,24 @@ class _BodyState extends ConsumerState<Body> {
                   );
                 }
               }
-
+              // Store the last total for QR code
               _lastCartTotal = totalPrice;
-
               return SingleChildScrollView(
-                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Cart Items
                     ...cartCards,
-
                     SizedBox(height: 20),
-
                     // Payment Methods Section
                     Text(
                       "Payment Methods",
                       style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18,
-                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
-                    SizedBox(height: 16),
-
-                    // Saved Cards Section
+                    SizedBox(height: 10),
+                    // Cards Section
                     ...savedCards.asMap().entries.map((entry) {
                       final idx = entry.key;
                       final card = entry.value;
@@ -1050,62 +1242,14 @@ class _BodyState extends ConsumerState<Body> {
                         ),
                       );
                     }),
-
-                    // Add Card Option
                     InkWell(
                       onTap: () => showAddCardDialog(context),
-                      child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 4),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 4,
-                              offset: Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.add_card,
-                              color: kPrimaryColor,
-                              size: 28,
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Add Card",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Icons.arrow_forward_ios,
-                              color: Colors.grey,
-                              size: 18,
-                            ),
-                          ],
-                        ),
+                      child: paymentMethodTile(
+                        Icons.add_card,
+                        "Add Card",
+                        null,
                       ),
                     ),
-
-                    SizedBox(height: 16),
-
-                    // UPI Apps Section
                     Text(
                       "UPI Apps",
                       style: TextStyle(
@@ -1132,17 +1276,9 @@ class _BodyState extends ConsumerState<Body> {
                               ),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Center(
-                              child: Text(
-                                "GPay",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: selectedUpiApp == 'gpay'
-                                      ? kPrimaryColor
-                                      : Colors.grey,
-                                ),
-                              ),
+                            child: Image.asset(
+                              'assets/icons/gpay.png',
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
@@ -1163,17 +1299,9 @@ class _BodyState extends ConsumerState<Body> {
                               ),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Center(
-                              child: Text(
-                                "PhonePe",
-                                style: TextStyle(
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.bold,
-                                  color: selectedUpiApp == 'phonepe'
-                                      ? kPrimaryColor
-                                      : Colors.grey,
-                                ),
-                              ),
+                            child: Image.asset(
+                              'assets/icons/phonepe.png',
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
@@ -1194,124 +1322,92 @@ class _BodyState extends ConsumerState<Body> {
                               ),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Center(
-                              child: Text(
-                                "Paytm",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: selectedUpiApp == 'paytm'
-                                      ? kPrimaryColor
-                                      : Colors.grey,
-                                ),
-                              ),
+                            child: Image.asset(
+                              'assets/icons/paytm.png',
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
                       ],
                     ),
-
-                    SizedBox(height: 12),
-
-                    // Scan & Pay
+                    SizedBox(height: 16),
                     InkWell(
                       onTap: () => showQrPaymentDialog(context),
-                      child: Container(
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey[300]!),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Icon(
-                                Icons.qr_code,
-                                size: 16,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              "Scan & Pay",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Spacer(),
-                            Icon(Icons.chevron_right, color: Colors.grey),
-                          ],
-                        ),
+                      child: paymentMethodTile(
+                        Icons.qr_code,
+                        "Scan & Pay",
+                        "Generate QR for payment",
                       ),
                     ),
-
-                    SizedBox(height: 40),
-
-                    // Total Amount and Checkout Button
-                    Container(
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Total Amount",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              Text(
-                                "₹${totalPrice.toStringAsFixed(0)}",
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              onPressed: () => checkoutButtonCallback(),
-                              child: Text(
-                                "Checkout",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
                     SizedBox(height: 20),
-
-                    // Delivery Address Section
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Total Amount",
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  "₹${totalPrice.toStringAsFixed(0)}",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24,
+                                    color: kPrimaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kPrimaryColor,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 18,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () =>
+                              showCheckoutBottomSheetWithTotal(totalPrice),
+                          child: Text(
+                            "Checkout",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
                     FutureBuilder<Address?>(
                       future: _selectedAddressId != null
                           ? UserDatabaseHelper().getAddressFromId(
@@ -1322,160 +1418,55 @@ class _BodyState extends ConsumerState<Body> {
                         if (snapshot.hasData && snapshot.data != null) {
                           final address = snapshot.data!;
                           return Container(
-                            padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            padding: EdgeInsets.all(16),
+                            child: Row(
                               children: [
-                                Text(
-                                  "Delivery to",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  "${address.title ?? 'Home'}, ${address.addressLine1 ?? ''}",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 15,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  "${address.city ?? ''}, ${address.state ?? ''}",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Text(
-                                      "Phone: ${address.phone ?? '7976339567'}",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    TextButton(
-                                        onPressed: () async {
-                                        // Show address selection popup similar to the dropdown
-                                        final selected = await showDialog<String>(
-                                          context: context,
-                                          builder: (context) {
-                                          return Dialog(
-                                            shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
-                                            ),
-                                            child: Container(
-                                            padding: EdgeInsets.all(20),
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                              Text(
-                                                "Select Delivery Address",
-                                                style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                                ),
-                                              ),
-                                              SizedBox(height: 16),
-                                              ..._addresses.map((addressId) {
-                                                return FutureBuilder<Address>(
-                                                future: UserDatabaseHelper().getAddressFromId(addressId),
-                                                builder: (context, snapshot) {
-                                                  if (snapshot.hasData && snapshot.data != null) {
-                                                  final address = snapshot.data!;
-                                                  return ListTile(
-                                                    title: Text(
-                                                    address.title ?? address.addressLine1 ?? '',
-                                                    overflow: TextOverflow.ellipsis,
-                                                    ),
-                                                    subtitle: Text(
-                                                    "${address.addressLine1 ?? ''}, ${address.city ?? ''}",
-                                                    overflow: TextOverflow.ellipsis,
-                                                    ),
-                                                    leading: Radio<String>(
-                                                    value: addressId,
-                                                    groupValue: _selectedAddressId,
-                                                    onChanged: (val) {
-                                                      Navigator.pop(context, val);
-                                                    },
-                                                    activeColor: kPrimaryColor,
-                                                    ),
-                                                    onTap: () {
-                                                    Navigator.pop(context, addressId);
-                                                    },
-                                                  );
-                                                  }
-                                                  return SizedBox.shrink();
-                                                },
-                                                );
-                                              }).toList(),
-                                              SizedBox(height: 8),
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(context),
-                                                child: Text("Cancel"),
-                                              ),
-                                              ],
-                                            ),
-                                            ),
-                                          );
-                                          },
-                                        );
-                                        if (selected != null && selected != _selectedAddressId) {
-                                          setState(() {
-                                          _selectedAddressId = selected;
-                                          });
-                                        }
-                                        },
-                                      child: Text(
-                                        "Change",
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Delivery to",
                                         style: TextStyle(
-                                          color: Colors.blue,
-                                          fontWeight: FontWeight.w500,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      SizedBox(height: 4),
+                                      Text(
+                                        "${address.title ?? ''}, ${address.addressLine1 ?? ''}\n${address.addressLine2 ?? ''}\n${address.city ?? ''}, ${address.state ?? ''}\nPhone: ${address.phone ?? ''}",
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                SizedBox(height: 12),
-                                // Map placeholder
+                                SizedBox(width: 12),
                                 Container(
-                                  height: 120,
+                                  width: 60,
+                                  height: 60,
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[100],
+                                    color: Colors.grey[200],
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.map,
-                                          size: 40,
-                                          color: Colors.grey[400],
-                                        ),
-                                        SizedBox(height: 8),
-                                        Text(
-                                          "Map View",
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  child: Icon(
+                                    Icons.map,
+                                    color: kPrimaryColor,
+                                    size: 32,
                                   ),
                                 ),
                               ],
@@ -1486,18 +1477,19 @@ class _BodyState extends ConsumerState<Body> {
                         }
                       },
                     ),
-
                     SizedBox(height: 20),
                   ],
                 ),
               );
             }
+            // Ensure a Widget is always returned
             return SizedBox.shrink();
           },
         );
       },
       loading: () {
         Logger().i('CartItemsStreamProvider loading...');
+        // Don't show indicator, just return empty widget
         return SizedBox.shrink();
       },
       error: (error, stackTrace) {
