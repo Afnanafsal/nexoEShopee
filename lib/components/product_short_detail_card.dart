@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
 import '../constants.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/models/Review.dart';
+import 'package:fishkart/screens/my_orders/components/product_review_dialog.dart';
 
 // Top-level function to display product image from base64 or network
 Widget buildProductImage(String imageStr) {
@@ -132,6 +135,78 @@ class ProductShortDetailCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: ElevatedButton.icon(
+                            icon: Icon(Icons.rate_review, size: 16),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: kPrimaryColor,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              textStyle: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: () async {
+                              String currentUserUid = '';
+                              try {
+                                currentUserUid =
+                                    AuthentificationService().currentUser.uid;
+                              } catch (e) {}
+                              Review? prevReview;
+                              try {
+                                prevReview = await ProductDatabaseHelper()
+                                    .getProductReviewWithID(
+                                      product.id,
+                                      currentUserUid,
+                                    );
+                              } catch (e) {}
+                              if (prevReview == null) {
+                                prevReview = Review(
+                                  currentUserUid,
+                                  reviewerUid: currentUserUid,
+                                );
+                              }
+                              final result = await showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return ProductReviewDialog(
+                                    key: UniqueKey(),
+                                    review: prevReview!,
+                                  );
+                                },
+                              );
+                              if (result is Review) {
+                                bool reviewAdded = false;
+                                String snackbarMessage = "Unknown error occurred";
+                                Logger().i('Attempting to add review: ' + result.toMap().toString());
+                                try {
+                                  reviewAdded = await ProductDatabaseHelper().addProductReview(product.id, result);
+                                  if (reviewAdded == true) {
+                                    snackbarMessage = "Review added successfully";
+                                  } else {
+                                    throw "Couldn't add product review due to unknown reason";
+                                  }
+                                } catch (e, stack) {
+                                  Logger().e('Error adding review: $e', error: e, stackTrace: stack);
+                                  snackbarMessage = 'Error: ' + e.toString();
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(snackbarMessage)),
+                                );
+                              }
+                            },
+                            label: Text('Review'),
+                          ),
                         ),
                       ],
                     ),
