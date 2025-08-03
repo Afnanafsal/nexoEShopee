@@ -32,60 +32,44 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Column(
-          children: [
+            children: [
             Stack(
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 24,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 32),
-                      _ProfileHeader(avatarOverlap: true),
-                    ],
-                  ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 24,
                 ),
-                Positioned(
-                  top: 32,
-                  left: 16,
-                  child: CircleAvatar(
-                    backgroundColor: Colors.white,
-                    radius: 22,
-                    child: IconButton(
-                      icon: Icon(Icons.arrow_back, color: Colors.black87),
-                      onPressed: () {
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (context) => HomeScreen()),
-                          (route) => false,
-                        );
-                      },
-                    ),
+                decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
                   ),
+                ],
                 ),
+                child: Column(
+                children: [
+                  const SizedBox(height: 32),
+                  _ProfileHeader(avatarOverlap: true),
+                ],
+                ),
+              ),
+              // Back button removed
               ],
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 0,
-                ),
-                children: [const SizedBox(height: 8), _ProfileActions()],
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 0,
+              ),
+              children: [const SizedBox(height: 8), _ProfileActions()],
               ),
             ),
           ],
