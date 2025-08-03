@@ -187,7 +187,7 @@ class _BodyState extends State<Body> with RouteAware {
                                 height: 56,
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF34495E),
+                                    backgroundColor: Colors.black,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),

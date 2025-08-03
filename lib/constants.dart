@@ -3,15 +3,15 @@ import 'package:fishkart/size_config.dart';
 
 const String appName = "Fishkart";
 
-const kPrimaryColor = Color(0xFF4A6B7C);
-const kPrimaryLightColor = Color(0xFFFFECDF);
+const kPrimaryColor = Color.fromARGB(255, 0, 0, 0);
+const kPrimaryLightColor = Color.fromARGB(255, 255, 255, 255);
 const kPrimaryGradientColor = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFFFFA53E), Color(0xFFFF7643)],
+  colors: [Color.fromARGB(255, 8, 7, 6), Color.fromARGB(255, 233, 222, 218)],
 );
-const kSecondaryColor = Color(0xFF979797);
-const kTextColor = Color(0xFF757575);
+const kSecondaryColor = Color.fromARGB(255, 174, 174, 174);
+const kTextColor = Color.fromARGB(255, 89, 89, 89);
 
 const kAnimationDuration = Duration(milliseconds: 200);
 

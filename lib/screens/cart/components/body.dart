@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-// import 'package:url_launcher/url_launcher.dart';
 import 'package:fishkart/components/async_progress_dialog.dart';
 
 import 'package:fishkart/components/nothingtoshow_container.dart';
@@ -61,6 +60,10 @@ class Body extends ConsumerStatefulWidget {
 }
 
 class _BodyState extends ConsumerState<Body> {
+  void shutBottomSheet() {
+    Navigator.of(context).maybePop();
+  }
+
   Future<void> arrowDownCallback(String cartItemId, String? addressId) async {
     shutBottomSheet();
     // Extract productId from cartItemId (format: productId_addressId)
@@ -73,6 +76,41 @@ class _BodyState extends ConsumerState<Body> {
       try {
         await UserDatabaseHelper().decreaseCartItemCount(cartItem.id);
         // Optionally, update stock here if needed
+      } catch (e) {
+        Logger().e(e.toString());
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+      }
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AsyncProgressDialog(
+            Future.value(true),
+            message: Text("Please wait"),
+          );
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("This product is not in your selected address's cart."),
+        ),
+      );
+    }
+  }
+
+  Future<void> arrowUpCallback(String cartItemId, String? addressId) async {
+    shutBottomSheet();
+    // Extract productId from cartItemId (format: productId_addressId)
+    final productIdOnly = cartItemId.split('_').first;
+    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
+      productIdOnly,
+      addressId,
+    );
+    if (cartItem != null) {
+      try {
+        await UserDatabaseHelper().increaseCartItemCount(cartItem.id);
       } catch (e) {
         Logger().e(e.toString());
         ScaffoldMessenger.of(
@@ -449,110 +487,228 @@ class _BodyState extends ConsumerState<Body> {
     }
   }
 
+  Future<double> getCartTotal() async {
+    final cartItemsId = ref.read(cartItemsStreamProvider).value ?? [];
+    double total = 0;
+    if (cartItemsId.isNotEmpty) {
+      final cartItems = await Future.wait(
+        cartItemsId.map((id) => UserDatabaseHelper().getCartItemFromId(id)),
+      );
+      final products = await Future.wait(
+        cartItemsId.map(
+          (id) => ProductDatabaseHelper().getProductWithID(id.split('_').first),
+        ),
+      );
+      for (int i = 0; i < cartItemsId.length; i++) {
+        final cartItem = cartItems[i];
+        final product = products[i];
+        if (cartItem != null &&
+            product != null &&
+            (cartItem.addressId == _selectedAddressId ||
+                cartItem.addressId == null)) {
+          final price = product.discountPrice ?? product.originalPrice ?? 0;
+          total += price * (cartItem.itemCount);
+        }
+      }
+    }
+    return total;
+  }
+
+  Future<void> checkoutButtonCallback({bool useRazorpay = false}) async {
+    shutBottomSheet();
+    double amount = await getCartTotal();
+    if (amount == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cart is empty or failed to calculate total.')),
+      );
+      return;
+    }
+
+    if (useRazorpay) {
+      // Replace with actual user details as needed
+      final user = FirebaseAuth.instance.currentUser;
+      final name = user?.displayName ?? 'FishKart User';
+      final email = user?.email ?? 'user@example.com';
+      final contact =
+          user?.phoneNumber ??
+          '9999999999'; // TODO: Replace with user's phone if available
+
+      // Open Razorpay checkout
+      _razorpayService.openCheckout(
+        amount: amount,
+        name: name,
+        description: 'Order Payment',
+        contact: contact,
+        email: email,
+      );
+      // TODO: On payment success, move order placement logic here
+      // You can listen to payment success in RazorpayService and call order placement
+      return;
+    }
+    // Normal checkout logic (previous logic)
+    // Fetch only cart items for the selected address BEFORE deleting
+    String uid = AuthentificationService().currentUser.uid;
+    final cartSnapshot = await FirebaseFirestore.instance
+        .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
+        .doc(uid)
+        .collection(UserDatabaseHelper.CART_COLLECTION_NAME)
+        .where('address_id', isEqualTo: _selectedAddressId)
+        .get();
+
+    final dateTime = DateTime.now();
+    final isoDateTime = dateTime.toIso8601String();
+    List<OrderedProduct> orderedProducts = [];
+    // Update stock for each product in the order
+    for (final doc in cartSnapshot.docs) {
+      final data = doc.data();
+      final productId = data[CartItem.PRODUCT_ID_KEY];
+      final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
+      // Decrease reserved, increase ordered
+      await Product.orderStock(productId, quantity);
+      // Get vendorId from product.vendorId
+      String? vendorId;
+      var cachedProduct = HiveService.instance.getCachedProduct(productId);
+      if (cachedProduct != null &&
+          cachedProduct.toMap().containsKey('vendorId') &&
+          cachedProduct.toMap()['vendorId'] != null) {
+        vendorId = cachedProduct.toMap()['vendorId'];
+      } else {
+        // fallback: fetch from db if not cached
+        try {
+          final product = await ProductDatabaseHelper().getProductWithID(
+            productId,
+          );
+          if (product != null && product.toMap().containsKey('vendorId')) {
+            vendorId = product.toMap()['vendorId'];
+          }
+        } catch (_) {}
+      }
+      orderedProducts.add(
+        OrderedProduct(
+          '',
+          productUid: productId,
+          orderDate: isoDateTime,
+          addressId: _selectedAddressId,
+          quantity: quantity,
+          vendorId: vendorId,
+          userId: uid,
+          status: 'pending',
+        ),
+      );
+    }
+
+    // Now delete only cart items for the selected address
+    for (final doc in cartSnapshot.docs) {
+      await doc.reference.delete();
+    }
+
+    String snackbarmMessage = "Something went wrong";
+    try {
+      final addedProductsToMyProducts = await UserDatabaseHelper()
+          .addToMyOrders(orderedProducts);
+      if (addedProductsToMyProducts) {
+        snackbarmMessage = "Products ordered Successfully";
+      } else {
+        throw "Could not order products due to unknown issue";
+      }
+    } on FirebaseException catch (e) {
+      Logger().e(e.toString());
+      snackbarmMessage = e.toString();
+    } catch (e) {
+      Logger().e(e.toString());
+      snackbarmMessage = e.toString();
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(snackbarmMessage)));
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AsyncProgressDialog(
+          Future.value(true),
+          message: Text("Placing the Order"),
+        );
+      },
+    );
+    await refreshPage();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: getProportionateScreenWidth(screenPadding),
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: Colors.grey[50],
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
         ),
-        child: Column(
-          children: [
-            SizedBox(height: getProportionateScreenHeight(10)),
-            Align(
-              alignment: Alignment.center,
-              child: Text("Your Cart", style: headingStyle),
-            ),
-            SizedBox(height: getProportionateScreenHeight(20)),
-            // Address selector
-            if (_addresses.length > 1)
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedAddressId,
-                    icon: Icon(Icons.keyboard_arrow_down, color: Colors.black),
-                    isExpanded: true,
-                    items: _addresses.map((addressId) {
-                      return DropdownMenuItem<String>(
-                        value: addressId,
-                        child: FutureBuilder<Address>(
-                          future: UserDatabaseHelper().getAddressFromId(
-                            addressId,
-                          ),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData && snapshot.data != null) {
-                              final address = snapshot.data!;
-                              return Text(
-                                address.title ?? address.addressLine1 ?? '',
-                                overflow: TextOverflow.ellipsis,
-                              );
-                            }
-                            // While loading, show empty or loading text
-                            return Text('', overflow: TextOverflow.ellipsis);
-                          },
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      _selectedAddressId = value;
-                    },
+        title: Text(
+          "Your Cart",
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Address selector
+          if (_addresses.length > 1)
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
                   ),
-                ),
-              )
-            else if (_addresses.length == 1)
-              FutureBuilder<Address>(
-                future: UserDatabaseHelper().getAddressFromId(_addresses.first),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data != null) {
-                    final address = snapshot.data!;
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      child: Text(
-                        address.title ??
-                            address.addressLine1 ??
-                            _addresses.first,
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                ],
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedAddressId,
+                  icon: Icon(Icons.keyboard_arrow_down, color: Colors.black),
+                  isExpanded: true,
+                  items: _addresses.map((addressId) {
+                    return DropdownMenuItem<String>(
+                      value: addressId,
+                      child: FutureBuilder<Address>(
+                        future: UserDatabaseHelper().getAddressFromId(
+                          addressId,
+                        ),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData && snapshot.data != null) {
+                            final address = snapshot.data!;
+                            return Text(
+                              address.title ?? address.addressLine1 ?? '',
+                              overflow: TextOverflow.ellipsis,
+                            );
+                          }
+                          return Text('', overflow: TextOverflow.ellipsis);
+                        },
                       ),
                     );
-                  }
-                  return SizedBox.shrink();
-                },
-              ),
-            SizedBox(height: getProportionateScreenHeight(10)),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: refreshPage,
-                child: buildCartItemsList(),
+                  }).toList(),
+                  onChanged: (value) {
+                    _selectedAddressId = value;
+                  },
+                ),
               ),
             ),
-          ],
-        ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: refreshPage,
+              child: buildCartItemsList(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -562,173 +718,10 @@ class _BodyState extends ConsumerState<Body> {
     return Future<void>.value();
   }
 
-  // Move paymentMethodTile above buildCartItemsList
-  Widget paymentMethodTile(IconData icon, String title, String? subtitle) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 4),
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 1)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.credit_card, color: kPrimaryColor, size: 28),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-                if (subtitle != null)
-                  Text(
-                    subtitle,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-                  ),
-              ],
-            ),
-          ),
-          Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
-        ],
-      ),
-    );
-  }
-
   Widget buildCartItemsList() {
-    final user = FirebaseAuth.instance.currentUser;
-    final userId = user?.uid;
-    // Try to load cart items from cache first
-    List<String> cachedCartItems = [];
-    if (userId != null) {
-      final cachedUser = HiveService.instance.getCachedUser(userId);
-      if (cachedUser != null) {
-        cachedCartItems = cachedUser.cartItems;
-      }
-    }
-    if (cachedCartItems.isNotEmpty) {
-      // Use cached cart items and products for instant UI
-      final products = cachedCartItems.map((id) {
-        final productId = id.split('_').first;
-        final cachedProduct = HiveService.instance.getCachedProduct(productId);
-        return cachedProduct ??
-            Product(
-              productId,
-              title: 'Unknown',
-              images: [],
-              discountPrice: 0,
-              originalPrice: 0,
-            );
-      }).toList();
-      double totalPrice = 0;
-      List<Widget> cartCards = [];
-      for (int i = 0; i < cachedCartItems.length; i++) {
-        final product = products[i];
-        // For demo, assume quantity 1 (can be improved if CartItem is cached)
-        totalPrice += product.discountPrice ?? product.originalPrice ?? 0;
-        cartCards.add(
-          Container(
-            margin: EdgeInsets.symmetric(vertical: 8),
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  clipBehavior: Clip.hardEdge,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: (product.images != null && product.images!.isNotEmpty)
-                      ? Base64ImageService().base64ToImage(
-                          product.images!.first,
-                          fit: BoxFit.cover,
-                        )
-                      : Icon(
-                          Icons.image_not_supported,
-                          size: 40,
-                          color: Colors.grey,
-                        ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.title ?? "Product",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      if (product.description != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
-                          child: Text(
-                            product.description!,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ),
-                      SizedBox(height: 8),
-                      Text(
-                        '₹${product.discountPrice?.toStringAsFixed(2) ?? product.originalPrice?.toStringAsFixed(2) ?? ''}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: kPrimaryColor,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text('Qty: 1'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-      _lastCartTotal = totalPrice;
-      return Column(
-        children: [
-          ...cartCards,
-          SizedBox(height: 12),
-          Text(
-            'Total: ₹${totalPrice.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: kPrimaryColor,
-            ),
-          ),
-        ],
-      );
-    }
-    // Fallback to DB if cache is empty
     final cartItemsAsync = ref.watch(cartItemsStreamProvider);
     Logger().i('CartItemsStreamProvider value: $cartItemsAsync');
-    bool isFirstLoad = cartItemsAsync.isLoading && (savedCards.isEmpty);
+
     return cartItemsAsync.when(
       data: (cartItemsId) {
         Logger().i('Cart items IDs: $cartItemsId');
@@ -743,7 +736,7 @@ class _BodyState extends ConsumerState<Body> {
             ),
           );
         }
-        // Calculate total price using both Product and CartItem
+
         return FutureBuilder<List<dynamic>>(
           future: Future.wait([
             Future.wait(
@@ -754,7 +747,6 @@ class _BodyState extends ConsumerState<Body> {
             ),
             Future.wait(
               cartItemsId.map((id) {
-                // Extract productId from composite key
                 final productId = id.split('_').first;
                 Logger().i('Fetching product for cart item: $productId');
                 return ProductDatabaseHelper().getProductWithID(productId);
@@ -762,35 +754,32 @@ class _BodyState extends ConsumerState<Body> {
             ),
           ]),
           builder: (context, snapshot) {
-            double totalPrice = 0;
-            List<Widget> cartCards = [];
-            if (snapshot.connectionState == ConnectionState.waiting &&
-                isFirstLoad) {
-              // Show shimmer loading only on first load
+            if (snapshot.connectionState == ConnectionState.waiting) {
               return ListView.builder(
+                padding: EdgeInsets.all(16),
                 itemCount: 3,
                 itemBuilder: (context, index) {
                   return Shimmer.fromColors(
                     baseColor: Colors.grey[300]!,
                     highlightColor: Colors.grey[100]!,
                     child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      padding: EdgeInsets.all(12),
+                      margin: EdgeInsets.only(bottom: 16),
+                      padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            width: 80,
-                            height: 80,
+                            width: 60,
+                            height: 60,
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          SizedBox(width: 16),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -806,12 +795,6 @@ class _BodyState extends ConsumerState<Body> {
                                   height: 14,
                                   color: Colors.grey[300],
                                 ),
-                                SizedBox(height: 8),
-                                Container(
-                                  width: 60,
-                                  height: 16,
-                                  color: Colors.grey[300],
-                                ),
                               ],
                             ),
                           ),
@@ -822,15 +805,17 @@ class _BodyState extends ConsumerState<Body> {
                 },
               );
             }
+
             if (snapshot.hasData) {
               final cartItems = snapshot.data![0] as List<CartItem?>;
               final products = snapshot.data![1] as List<Product?>;
-              Logger().i('Fetched cartItems: $cartItems');
-              Logger().i('Fetched products: $products');
+              double totalPrice = 0;
+              List<Widget> cartCards = [];
+
               for (int i = 0; i < cartItemsId.length; i++) {
                 final cartItem = cartItems[i];
                 final product = products[i];
-                // Show cart items for selected address, and also items with no addressId (legacy)
+
                 if (cartItem != null &&
                     product != null &&
                     (cartItem.addressId == _selectedAddressId ||
@@ -838,31 +823,25 @@ class _BodyState extends ConsumerState<Body> {
                   final price =
                       product.discountPrice ?? product.originalPrice ?? 0;
                   totalPrice += price * (cartItem.itemCount);
+
                   cartCards.add(
                     Container(
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      padding: EdgeInsets.all(12),
+                      margin: EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Product Image
                           Container(
-                            width: 80,
-                            height: 80,
-                            clipBehavior: Clip.hardEdge,
+                            width: 60,
+                            height: 60,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
                             ),
+                            clipBehavior: Clip.hardEdge,
                             child:
                                 (product.images != null &&
                                     product.images!.isNotEmpty)
@@ -870,13 +849,17 @@ class _BodyState extends ConsumerState<Body> {
                                     product.images!.first,
                                     fit: BoxFit.cover,
                                   )
-                                : Icon(
-                                    Icons.image_not_supported,
-                                    size: 40,
-                                    color: Colors.grey,
+                                : Container(
+                                    color: Colors.grey[200],
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      size: 30,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                           ),
-                          SizedBox(width: 16),
+                          SizedBox(width: 12),
+                          // Product Details
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -884,61 +867,77 @@ class _BodyState extends ConsumerState<Body> {
                                 Text(
                                   product.title ?? "Product",
                                   style: TextStyle(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                     fontSize: 16,
                                   ),
                                 ),
-                                if (product.description != null)
-                                  Padding(
-                                    padding: EdgeInsets.only(top: 4),
-                                    child: Text(
-                                      product.description!,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey[700],
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                SizedBox(height: 4),
+                                Text(
+                                  "Qty: ${cartItem.itemCount} | 500 gm",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
                                   ),
+                                ),
                                 SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Text(
-                                      "₹${price.toStringAsFixed(2)}",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: kPrimaryColor,
-                                      ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    if (product.originalPrice != null &&
-                                        product.discountPrice != null &&
-                                        product.originalPrice !=
-                                            product.discountPrice)
-                                      Text(
-                                        "₹${product.originalPrice}",
-                                        style: TextStyle(
-                                          decoration:
-                                              TextDecoration.lineThrough,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                  ],
+                                Text(
+                                  "₹${price.toStringAsFixed(0)}",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          SizedBox(width: 16),
+                          // Quantity Controls
                           Column(
                             children: [
-                              IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
-                                onPressed: () async {
-                                  await UserDatabaseHelper()
-                                      .removeProductFromCart(cartItemsId[i]);
-                                  await refreshPage();
-                                },
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: Icon(Icons.add, size: 18),
+                                  onPressed: () async {
+                                    await arrowUpCallback(
+                                      cartItemsId[i],
+                                      _selectedAddressId,
+                                    );
+                                  },
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "${cartItem.itemCount}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: Icon(Icons.remove, size: 18),
+                                  onPressed: () async {
+                                    await arrowDownCallback(
+                                      cartItemsId[i],
+                                      _selectedAddressId,
+                                    );
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -948,24 +947,31 @@ class _BodyState extends ConsumerState<Body> {
                   );
                 }
               }
-              // Store the last total for QR code
+
               _lastCartTotal = totalPrice;
+
               return SingleChildScrollView(
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Cart Items
                     ...cartCards,
+
                     SizedBox(height: 20),
+
                     // Payment Methods Section
                     Text(
                       "Payment Methods",
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                        color: Colors.black,
                       ),
                     ),
-                    SizedBox(height: 10),
-                    // Cards Section
+                    SizedBox(height: 16),
+
+                    // Saved Cards Section
                     ...savedCards.asMap().entries.map((entry) {
                       final idx = entry.key;
                       final card = entry.value;
@@ -1044,14 +1050,62 @@ class _BodyState extends ConsumerState<Body> {
                         ),
                       );
                     }),
+
+                    // Add Card Option
                     InkWell(
                       onTap: () => showAddCardDialog(context),
-                      child: paymentMethodTile(
-                        Icons.add_card,
-                        "Add Card",
-                        null,
+                      child: Container(
+                        margin: EdgeInsets.symmetric(vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.add_card,
+                              color: kPrimaryColor,
+                              size: 28,
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Add Card",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.grey,
+                              size: 18,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+
+                    SizedBox(height: 16),
+
+                    // UPI Apps Section
                     Text(
                       "UPI Apps",
                       style: TextStyle(
@@ -1078,9 +1132,17 @@ class _BodyState extends ConsumerState<Body> {
                               ),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Image.asset(
-                              'assets/icons/gpay.png',
-                              fit: BoxFit.contain,
+                            child: Center(
+                              child: Text(
+                                "GPay",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: selectedUpiApp == 'gpay'
+                                      ? kPrimaryColor
+                                      : Colors.grey,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -1101,9 +1163,17 @@ class _BodyState extends ConsumerState<Body> {
                               ),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Image.asset(
-                              'assets/icons/phonepe.png',
-                              fit: BoxFit.contain,
+                            child: Center(
+                              child: Text(
+                                "PhonePe",
+                                style: TextStyle(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                  color: selectedUpiApp == 'phonepe'
+                                      ? kPrimaryColor
+                                      : Colors.grey,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -1124,92 +1194,124 @@ class _BodyState extends ConsumerState<Body> {
                               ),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Image.asset(
-                              'assets/icons/paytm.png',
-                              fit: BoxFit.contain,
+                            child: Center(
+                              child: Text(
+                                "Paytm",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: selectedUpiApp == 'paytm'
+                                      ? kPrimaryColor
+                                      : Colors.grey,
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 16),
+
+                    SizedBox(height: 12),
+
+                    // Scan & Pay
                     InkWell(
                       onTap: () => showQrPaymentDialog(context),
-                      child: paymentMethodTile(
-                        Icons.qr_code,
-                        "Scan & Pay",
-                        "Generate QR for payment",
+                      child: Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey[300]!),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Icon(
+                                Icons.qr_code,
+                                size: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              "Scan & Pay",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Spacer(),
+                            Icon(Icons.chevron_right, color: Colors.grey),
+                          ],
+                        ),
                       ),
                     ),
-                    SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 16,
-                              horizontal: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 8,
-                                  offset: Offset(0, 2),
+
+                    SizedBox(height: 40),
+
+                    // Total Amount and Checkout Button
+                    Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Total Amount",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
                                 ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Total Amount",
-                                  style: TextStyle(
-                                    color: Colors.grey[700],
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                              ),
+                              Text(
+                                "₹${totalPrice.toStringAsFixed(0)}",
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
-                                SizedBox(height: 4),
-                                Text(
-                                  "₹${totalPrice.toStringAsFixed(0)}",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24,
-                                    color: kPrimaryColor,
-                                  ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                              ],
+                              ),
+                              onPressed: () => checkoutButtonCallback(),
+                              child: Text(
+                                "Checkout",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(width: 12),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: kPrimaryColor,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 32,
-                              vertical: 18,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () =>
-                              showCheckoutBottomSheetWithTotal(totalPrice),
-                          child: Text(
-                            "Checkout",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+
                     SizedBox(height: 20),
+
+                    // Delivery Address Section
                     FutureBuilder<Address?>(
                       future: _selectedAddressId != null
                           ? UserDatabaseHelper().getAddressFromId(
@@ -1220,55 +1322,160 @@ class _BodyState extends ConsumerState<Body> {
                         if (snapshot.hasData && snapshot.data != null) {
                           final address = snapshot.data!;
                           return Container(
+                            padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 8,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
                             ),
-                            padding: EdgeInsets.all(16),
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Delivery to",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        "${address.title ?? ''}, ${address.addressLine1 ?? ''}\n${address.addressLine2 ?? ''}\n${address.city ?? ''}, ${address.state ?? ''}\nPhone: ${address.phone ?? ''}",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.grey[700],
-                                        ),
-                                      ),
-                                    ],
+                                Text(
+                                  "Delivery to",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                    color: Colors.black,
                                   ),
                                 ),
-                                SizedBox(width: 12),
+                                SizedBox(height: 8),
+                                Text(
+                                  "${address.title ?? 'Home'}, ${address.addressLine1 ?? ''}",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 15,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  "${address.city ?? ''}, ${address.state ?? ''}",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Text(
+                                      "Phone: ${address.phone ?? '7976339567'}",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    TextButton(
+                                        onPressed: () async {
+                                        // Show address selection popup similar to the dropdown
+                                        final selected = await showDialog<String>(
+                                          context: context,
+                                          builder: (context) {
+                                          return Dialog(
+                                            shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            child: Container(
+                                            padding: EdgeInsets.all(20),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                              Text(
+                                                "Select Delivery Address",
+                                                style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                                ),
+                                              ),
+                                              SizedBox(height: 16),
+                                              ..._addresses.map((addressId) {
+                                                return FutureBuilder<Address>(
+                                                future: UserDatabaseHelper().getAddressFromId(addressId),
+                                                builder: (context, snapshot) {
+                                                  if (snapshot.hasData && snapshot.data != null) {
+                                                  final address = snapshot.data!;
+                                                  return ListTile(
+                                                    title: Text(
+                                                    address.title ?? address.addressLine1 ?? '',
+                                                    overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                    subtitle: Text(
+                                                    "${address.addressLine1 ?? ''}, ${address.city ?? ''}",
+                                                    overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                    leading: Radio<String>(
+                                                    value: addressId,
+                                                    groupValue: _selectedAddressId,
+                                                    onChanged: (val) {
+                                                      Navigator.pop(context, val);
+                                                    },
+                                                    activeColor: kPrimaryColor,
+                                                    ),
+                                                    onTap: () {
+                                                    Navigator.pop(context, addressId);
+                                                    },
+                                                  );
+                                                  }
+                                                  return SizedBox.shrink();
+                                                },
+                                                );
+                                              }).toList(),
+                                              SizedBox(height: 8),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context),
+                                                child: Text("Cancel"),
+                                              ),
+                                              ],
+                                            ),
+                                            ),
+                                          );
+                                          },
+                                        );
+                                        if (selected != null && selected != _selectedAddressId) {
+                                          setState(() {
+                                          _selectedAddressId = selected;
+                                          });
+                                        }
+                                        },
+                                      child: Text(
+                                        "Change",
+                                        style: TextStyle(
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 12),
+                                // Map placeholder
                                 Container(
-                                  width: 60,
-                                  height: 60,
+                                  height: 120,
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[200],
+                                    color: Colors.grey[100],
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Icon(
-                                    Icons.map,
-                                    color: kPrimaryColor,
-                                    size: 32,
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.map,
+                                          size: 40,
+                                          color: Colors.grey[400],
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          "Map View",
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1279,19 +1486,18 @@ class _BodyState extends ConsumerState<Body> {
                         }
                       },
                     ),
+
                     SizedBox(height: 20),
                   ],
                 ),
               );
             }
-            // Ensure a Widget is always returned
             return SizedBox.shrink();
           },
         );
       },
       loading: () {
         Logger().i('CartItemsStreamProvider loading...');
-        // Don't show indicator, just return empty widget
         return SizedBox.shrink();
       },
       error: (error, stackTrace) {
@@ -1308,433 +1514,5 @@ class _BodyState extends ConsumerState<Body> {
         );
       },
     );
-  }
-
-  void showCheckoutBottomSheetWithTotal(double totalPrice) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return CheckoutCard(
-          onCheckoutPressed: checkoutButtonCallback,
-          onRazorpayPressed: () => checkoutButtonCallback(useRazorpay: true),
-          totalPrice: totalPrice,
-        );
-      },
-    );
-  }
-
-  Widget buildCartItemDismissible(
-    BuildContext context,
-    String cartItemId,
-    int index,
-  ) {
-    return Dismissible(
-      key: Key(cartItemId),
-      direction: DismissDirection.startToEnd,
-      dismissThresholds: {DismissDirection.startToEnd: 0.65},
-      background: buildDismissibleBackground(),
-      child: buildCartItem(cartItemId, index),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          final confirmation = await showConfirmationDialog(
-            context,
-            "Remove Product from Cart?",
-          );
-          if (confirmation) {
-            if (direction == DismissDirection.startToEnd) {
-              bool result = false;
-              String snackbarMessage = "Something went wrong";
-              try {
-                result = await UserDatabaseHelper().removeProductFromCart(
-                  cartItemId,
-                );
-                if (result == true) {
-                  snackbarMessage = "Product removed from cart successfully";
-                  await refreshPage();
-                } else {
-                  throw "Coulnd't remove product from cart due to unknown reason";
-                }
-              } on FirebaseException catch (e) {
-                Logger().w("Firebase Exception: $e");
-                snackbarMessage = "Something went wrong";
-              } catch (e) {
-                Logger().w("Unknown Exception: $e");
-                snackbarMessage = "Something went wrong";
-              } finally {
-                Logger().i(snackbarMessage);
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(snackbarMessage)));
-              }
-
-              return result;
-            }
-          }
-        }
-        return false;
-      },
-      onDismissed: (direction) {},
-    );
-  }
-
-  Widget buildCartItem(String cartItemId, int index) {
-    return Container(
-      padding: EdgeInsets.only(bottom: 4, top: 4, right: 4),
-      margin: EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
-        border: Border.all(color: kTextColor.withOpacity(0.15)),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: FutureBuilder<Product?>(
-        future: ProductDatabaseHelper().getProductWithID(
-          cartItemId.split('_').first,
-        ),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data != null) {
-            Product product = snapshot.data!;
-            return Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Show product image from Firestore
-                Expanded(
-                  flex: 7,
-                  child: ProductShortDetailCard(
-                    productId: product.id,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductDetailsScreen(
-                            key: Key(product.id),
-                            productId: product.id,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: kTextColor.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        InkWell(
-                          child: Icon(Icons.arrow_drop_up, color: kTextColor),
-                          onTap: () async {
-                            // Pass productId and selectedAddressId
-                            await arrowUpCallback(
-                              cartItemId,
-                              _selectedAddressId,
-                            );
-                          },
-                        ),
-                        SizedBox(height: 8),
-                        FutureBuilder<CartItem>(
-                          future: UserDatabaseHelper().getCartItemFromId(
-                            cartItemId,
-                          ),
-                          builder: (context, snapshot) {
-                            int itemCount = 0;
-                            if (snapshot.hasData) {
-                              final cartItem = snapshot.data;
-                              if (cartItem != null) {
-                                itemCount = cartItem.itemCount;
-                              }
-                            } else if (snapshot.hasError) {
-                              final error = snapshot.error.toString();
-                              Logger().e(error);
-                            }
-                            return Text(
-                              "$itemCount",
-                              style: TextStyle(
-                                color: kPrimaryColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            );
-                          },
-                        ),
-                        SizedBox(height: 8),
-                        InkWell(
-                          child: Icon(Icons.arrow_drop_down, color: kTextColor),
-                          onTap: () async {
-                            // Pass productId and selectedAddressId
-                            await arrowDownCallback(
-                              cartItemId,
-                              _selectedAddressId,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                margin: EdgeInsets.symmetric(vertical: 8),
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 120,
-                            height: 16,
-                            color: Colors.white,
-                          ),
-                          SizedBox(height: 8),
-                          Container(width: 80, height: 12, color: Colors.white),
-                          SizedBox(height: 8),
-                          Container(width: 60, height: 12, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          } else if (snapshot.hasError) {
-            final error = snapshot.error;
-            Logger().w(error.toString());
-            return Center(child: Text(error.toString()));
-          } else {
-            return Center(child: Icon(Icons.error));
-          }
-        },
-      ),
-    );
-  }
-
-  Widget buildDismissibleBackground() {
-    return Container(
-      padding: EdgeInsets.only(left: 20),
-      decoration: BoxDecoration(
-        color: Colors.red,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Icon(Icons.delete, color: Colors.white),
-          SizedBox(width: 4),
-          Text(
-            "Delete",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<double> getCartTotal() async {
-    final cartItemsId = ref.read(cartItemsStreamProvider).value ?? [];
-    double total = 0;
-    if (cartItemsId.isNotEmpty) {
-      final cartItems = await Future.wait(
-        cartItemsId.map((id) => UserDatabaseHelper().getCartItemFromId(id)),
-      );
-      final products = await Future.wait(
-        cartItemsId.map(
-          (id) => ProductDatabaseHelper().getProductWithID(id.split('_').first),
-        ),
-      );
-      for (int i = 0; i < cartItemsId.length; i++) {
-        final cartItem = cartItems[i];
-        final product = products[i];
-        final price = product?.discountPrice ?? product?.originalPrice ?? 0;
-        total += price * (cartItem.itemCount);
-      }
-    }
-    return total;
-  }
-
-  Future<void> checkoutButtonCallback({bool useRazorpay = false}) async {
-    shutBottomSheet();
-    double amount = await getCartTotal();
-    if (amount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cart is empty or failed to calculate total.')),
-      );
-      return;
-    }
-
-    if (useRazorpay) {
-      // Replace with actual user details as needed
-      final user = FirebaseAuth.instance.currentUser;
-      final name = user?.displayName ?? 'NexoEShopee User';
-      final email = user?.email ?? 'user@example.com';
-      final contact =
-          user?.phoneNumber ??
-          '9999999999'; // TODO: Replace with user's phone if available
-
-      // Open Razorpay checkout
-      _razorpayService.openCheckout(
-        amount: amount,
-        name: name,
-        description: 'Order Payment',
-        contact: contact,
-        email: email,
-      );
-      // TODO: On payment success, move order placement logic here
-      // You can listen to payment success in RazorpayService and call order placement
-      return;
-    }
-    // Normal checkout logic (previous logic)
-    // Fetch only cart items for the selected address BEFORE deleting
-    String uid = AuthentificationService().currentUser.uid;
-    final cartSnapshot = await FirebaseFirestore.instance
-        .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
-        .doc(uid)
-        .collection(UserDatabaseHelper.CART_COLLECTION_NAME)
-        .where('address_id', isEqualTo: _selectedAddressId)
-        .get();
-
-    final dateTime = DateTime.now();
-    final isoDateTime = dateTime.toIso8601String();
-    List<OrderedProduct> orderedProducts = [];
-    // Update stock for each product in the order
-    for (final doc in cartSnapshot.docs) {
-      final data = doc.data();
-      final productId = data[CartItem.PRODUCT_ID_KEY];
-      final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
-      // Decrease reserved, increase ordered
-      await Product.orderStock(productId, quantity);
-      // Get vendorId from product.vendorId
-      String? vendorId;
-      var cachedProduct = HiveService.instance.getCachedProduct(productId);
-      if (cachedProduct != null && cachedProduct.toMap().containsKey('vendorId') && cachedProduct.toMap()['vendorId'] != null) {
-        vendorId = cachedProduct.toMap()['vendorId'];
-      } else {
-        // fallback: fetch from db if not cached
-        try {
-          final product = await ProductDatabaseHelper().getProductWithID(
-            productId,
-          );
-          if (product != null && product.toMap().containsKey('vendorId')) {
-            vendorId = product.toMap()['vendorId'];
-          }
-        } catch (_) {}
-      }
-      orderedProducts.add(
-        OrderedProduct(
-          '',
-          productUid: productId,
-          orderDate: isoDateTime,
-          addressId: _selectedAddressId,
-          quantity: quantity,
-          vendorId: vendorId,
-          userId: uid,
-          status: 'pending',
-        ),
-      );
-    }
-
-    // Now delete only cart items for the selected address
-    for (final doc in cartSnapshot.docs) {
-      await doc.reference.delete();
-    }
-
-    String snackbarmMessage = "Something went wrong";
-    try {
-      final addedProductsToMyProducts = await UserDatabaseHelper()
-          .addToMyOrders(orderedProducts);
-      if (addedProductsToMyProducts) {
-        snackbarmMessage = "Products ordered Successfully";
-      } else {
-        throw "Could not order products due to unknown issue";
-      }
-    } on FirebaseException catch (e) {
-      Logger().e(e.toString());
-      snackbarmMessage = e.toString();
-    } catch (e) {
-      Logger().e(e.toString());
-      snackbarmMessage = e.toString();
-    }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(snackbarmMessage)));
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AsyncProgressDialog(
-          Future.value(true),
-          message: Text("Placing the Order"),
-        );
-      },
-    );
-    await refreshPage();
-  }
-
-  void shutBottomSheet() {
-    // Remove bottom sheet handler since we're using modal bottom sheet
-  }
-
-  Future<void> arrowUpCallback(String cartItemId, String? addressId) async {
-    shutBottomSheet();
-    // Extract productId from cartItemId (format: productId_addressId)
-    final productIdOnly = cartItemId.split('_').first;
-    final cartItem = await UserDatabaseHelper().getCartItemByProductAndAddress(
-      productIdOnly,
-      addressId,
-    );
-    if (cartItem != null) {
-      try {
-        await UserDatabaseHelper().increaseCartItemCount(cartItem.id);
-        // Optionally, update stock here if needed
-      } catch (e) {
-        Logger().e(e.toString());
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Something went wrong")));
-      }
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AsyncProgressDialog(
-            Future.value(true),
-            message: Text("Please wait"),
-          );
-        },
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("This product is not in your selected address's cart."),
-        ),
-      );
-    }
   }
 }
