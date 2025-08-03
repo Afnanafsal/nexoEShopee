@@ -11,7 +11,7 @@ class DefaultButton extends StatelessWidget {
     Key? key,
     required this.text,
     this.press,
-    this.color = kPrimaryColor,
+    this.color = const Color.fromARGB(255, 0, 0, 0),
   }) : super(key: key);
 
   @override

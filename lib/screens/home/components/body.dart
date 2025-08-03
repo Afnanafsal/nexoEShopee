@@ -13,6 +13,7 @@ import 'package:fishkart/providers/providers.dart';
 import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:logger/logger.dart';
 import 'package:fishkart/services/cache/hive_service.dart';
 import 'package:shimmer/shimmer.dart';
@@ -201,11 +202,10 @@ class Body extends ConsumerWidget {
                         },
                       ),
                       SizedBox(height: getProportionateScreenHeight(10)),
-                      Image.asset(
-                        'assets/images/banner.png',
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+                      SvgPicture.asset(
+                    'assets/images/banner1.svg',
+                   
+                  ),
                       SizedBox(height: getProportionateScreenHeight(15)),
                       SizedBox(
                         height: SizeConfig.screenHeight * 0.191,

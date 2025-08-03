@@ -292,7 +292,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar> with Ro
                                       'Select Delivery Address',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 20,
+                                        fontSize: 16,
                                         color: kPrimaryColor,
                                       ),
                                     ),

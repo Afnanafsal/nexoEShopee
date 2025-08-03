@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -46,27 +47,45 @@ class CustomBottomNavBar extends StatelessWidget {
         items: [
           BottomNavigationBarItem(
             icon: selectedIndex == 0
-                ? Icon(Icons.home, size: 38)
-                : Icon(Icons.home_outlined, size: 38),
+                ? SvgPicture.asset(
+                    'assets/icons/home_outlined-2.svg',
+                    width: 28,
+                    height: 28,
+                  )
+                : SvgPicture.asset(
+                    'assets/icons/home-2.svg',
+                    width: 28,
+                    height: 28,
+                  ),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(
-              AssetImage('assets/icons/cart.png'),
-              size: 44,
-              color: selectedIndex == 1 ? Color(0xFF294157) : Color(0xFF757575),
-            ),
-            label: 'Cart',
+            icon: selectedIndex == 1
+                ? SvgPicture.asset(
+                    'assets/icons/bag_outlined-2.svg',
+                    width: 28,
+                    height: 28,
+                  )
+                : SvgPicture.asset(
+                    'assets/icons/bag-2.svg',
+                    width: 28,
+                    height: 28,
+                  ),
+            label: 'Orders',
           ),
+
           BottomNavigationBarItem(
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                selectedIndex == 2
-                    ? Icon(Icons.person, size: 38)
-                    : Icon(Icons.person, size: 38),
-              ],
-            ),
+            icon: selectedIndex == 2
+                ? SvgPicture.asset(
+                    'assets/icons/User.svg',
+                    width: 28,
+                    height: 28,
+                  )
+                : SvgPicture.asset(
+                    'assets/icons/user_outlined.svg',
+                    width: 28,
+                    height: 28,
+                  ),
             label: 'Profile',
           ),
         ],
