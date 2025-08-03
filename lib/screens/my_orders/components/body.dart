@@ -29,7 +29,14 @@ class Body extends StatefulWidget {
 
 class _BodyState extends State<Body> {
   int _selectedTabIndex = 0;
-  final List<String> _orderTabs = ['Completed', 'Pending', 'Cancelled'];
+  final List<String> _orderTabs = [
+    'All Orders',
+    'Pending',
+    'Completed',
+    'Accepted',
+    'Shipped',
+    'Cancelled',
+  ];
   List<String> _addresses = [];
   String? _selectedAddressId;
   late final String currentUserUid;
@@ -41,11 +48,15 @@ class _BodyState extends State<Body> {
   final List<OrderedProduct> _allOrders = [];
 
   @override
-  @override
   void initState() {
     super.initState();
     _initializeUser();
     _fetchAddresses();
+  }
+
+  void _initializeUser() {
+    final user = AuthentificationService().currentUser;
+    currentUserUid = user.uid;
   }
 
   Future<void> _fetchAddresses() async {
@@ -60,77 +71,6 @@ class _BodyState extends State<Body> {
     } catch (e) {
       Logger().e('Error fetching addresses: $e');
     }
-  }
-
-  void _initializeUser() {
-    try {
-      final user = AuthentificationService().currentUser;
-      currentUserUid = user.uid;
-      Logger().i('User authenticated: $currentUserUid');
-      _debugFirestorePath();
-      _testOrdersAccess();
-      _loadMoreOrders();
-    } catch (e) {
-      Logger().e('Error getting current user: $e');
-    }
-  }
-
-  // Test method to manually check orders
-  void _testOrdersAccess() async {
-    try {
-      Logger().i('Testing direct Firestore access...');
-
-      final snapshot = await FirebaseFirestore.instance
-          .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
-          .doc(currentUserUid)
-          .collection(UserDatabaseHelper.ORDERED_PRODUCTS_COLLECTION_NAME)
-          .get();
-
-      Logger().i('Direct query result: ${snapshot.docs.length} documents');
-
-      if (snapshot.docs.isNotEmpty) {
-        for (var doc in snapshot.docs.take(3)) {
-          // Show first 3 orders
-          Logger().i('Order ${doc.id}: ${doc.data()}');
-        }
-      }
-
-      // Also test the original method from UserDatabaseHelper
-      final orderIds = await UserDatabaseHelper().orderedProductsList;
-      Logger().i(
-        'UserDatabaseHelper.orderedProductsList: ${orderIds.length} orders',
-      );
-    } catch (e) {
-      Logger().e('Error in _testOrdersAccess: $e');
-    }
-  }
-
-  void _debugFirestorePath() {
-    Logger().i('Debug: Current user UID: $currentUserUid');
-    Logger().i(
-      'Debug: Firestore path: ${UserDatabaseHelper.USERS_COLLECTION_NAME}/$currentUserUid/${UserDatabaseHelper.ORDERED_PRODUCTS_COLLECTION_NAME}',
-    );
-
-    // Test if we can access the user document
-    FirebaseFirestore.instance
-        .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
-        .doc(currentUserUid)
-        .get()
-        .then((userDoc) {
-          if (userDoc.exists) {
-            Logger().i('Debug: User document exists: ${userDoc.data()}');
-          } else {
-            Logger().w('Debug: User document does not exist');
-          }
-        })
-        .catchError((error) {
-          Logger().e('Debug: Error accessing user document: $error');
-        });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -269,48 +209,50 @@ class _BodyState extends State<Body> {
                     ],
                   ),
                   SizedBox(height: getProportionateScreenHeight(10)),
-                  // Tab bar
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      ...List.generate(_orderTabs.length, (i) {
-                        final selected = _selectedTabIndex == i;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedTabIndex = i;
-                            });
-                          },
-                          child: Container(
-                            margin: EdgeInsets.only(right: 24),
-                            padding: EdgeInsets.symmetric(vertical: 4),
-                            decoration: BoxDecoration(
-                              border: selected
-                                  ? Border(
-                                      bottom: BorderSide(
-                                        color: kPrimaryColor,
-                                        width: 2,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                            child: Text(
-                              _orderTabs[i],
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: selected
-                                    ? kPrimaryColor
-                                    : Colors.black54,
-                                fontSize: 16,
+                  // Tab bar (horizontally scrollable)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        ...List.generate(_orderTabs.length, (i) {
+                          final selected = _selectedTabIndex == i;
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedTabIndex = i;
+                              });
+                            },
+                            child: Container(
+                              margin: EdgeInsets.only(right: 24),
+                              padding: EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                border: selected
+                                    ? Border(
+                                        bottom: BorderSide(
+                                          color: kPrimaryColor,
+                                          width: 2,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              child: Text(
+                                _orderTabs[i],
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: selected
+                                      ? kPrimaryColor
+                                      : Colors.black54,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      }),
-                    ],
+                          );
+                        }),
+                      ],
+                    ),
                   ),
                   SizedBox(height: getProportionateScreenHeight(10)),
-                  // ...existing code...
                   SizedBox(
                     height: SizeConfig.screenHeight * 0.75,
                     child: buildOrderedProductsList(),
@@ -395,18 +337,15 @@ class _BodyState extends State<Body> {
             if (s == 'completed') return 'Completed';
             if (s == 'pending') return 'Pending';
             if (s == 'cancelled' || s == 'rejected') return 'Cancelled';
+            if (s == 'shipped') return 'Shipped';
+            if (s == 'accepted') return 'Accepted';
             // fallback: capitalize first letter
             return s[0].toUpperCase() + s.substring(1);
           }
 
           // Filter by tab
           if (_selectedTabIndex == 0) {
-            // Completed
-            orderedProductsDocs = orderedProductsDocs
-                .where(
-                  (doc) => normalizeStatus(doc.data()['status']) == 'Completed',
-                )
-                .toList();
+            // All Orders: no filter
           } else if (_selectedTabIndex == 1) {
             // Pending
             orderedProductsDocs = orderedProductsDocs
@@ -415,6 +354,27 @@ class _BodyState extends State<Body> {
                 )
                 .toList();
           } else if (_selectedTabIndex == 2) {
+            // Completed
+            orderedProductsDocs = orderedProductsDocs
+                .where(
+                  (doc) => normalizeStatus(doc.data()['status']) == 'Completed',
+                )
+                .toList();
+          } else if (_selectedTabIndex == 3) {
+            // Accepted
+            orderedProductsDocs = orderedProductsDocs
+                .where(
+                  (doc) => normalizeStatus(doc.data()['status']) == 'Accepted',
+                )
+                .toList();
+          } else if (_selectedTabIndex == 4) {
+            // Shipped
+            orderedProductsDocs = orderedProductsDocs
+                .where(
+                  (doc) => normalizeStatus(doc.data()['status']) == 'Shipped',
+                )
+                .toList();
+          } else if (_selectedTabIndex == 5) {
             // Cancelled
             orderedProductsDocs = orderedProductsDocs
                 .where(
@@ -427,7 +387,13 @@ class _BodyState extends State<Body> {
           orderedProductsDocs.sort((a, b) {
             String aStatus = normalizeStatus(a.data()['status']);
             String bStatus = normalizeStatus(b.data()['status']);
-            const statusOrder = ['Pending', 'Completed', 'Cancelled'];
+            const statusOrder = [
+              'Pending',
+              'Accepted',
+              'Shipped',
+              'Completed',
+              'Cancelled',
+            ];
             int aStatusIndex = statusOrder.indexOf(aStatus);
             int bStatusIndex = statusOrder.indexOf(bStatus);
             if (aStatusIndex == -1) aStatusIndex = statusOrder.length;
@@ -518,6 +484,14 @@ class _BodyState extends State<Body> {
                   statusBgColor = const Color(0xFFFFEBEE); // light red
                   statusTextColor = const Color(0xFFD32F2F); // red
                   break;
+                case 'Accepted':
+                  statusBgColor = const Color(0xFFE3F0FF); // light blue
+                  statusTextColor = const Color(0xFF1976D2); // blue
+                  break;
+                case 'Shipped':
+                  statusBgColor = const Color(0xFFEDE7F6); // light purple
+                  statusTextColor = const Color(0xFF6C3FC7); // purple
+                  break;
                 default:
                   statusBgColor = Colors.grey.shade200;
                   statusTextColor = Colors.black54;
@@ -547,7 +521,7 @@ class _BodyState extends State<Body> {
                             style: TextStyle(
                               color: statusTextColor,
                               fontWeight: FontWeight.w600,
-                              fontSize: 15,
+                              fontSize: 12,
                             ),
                           ),
                           Row(
@@ -557,9 +531,13 @@ class _BodyState extends State<Body> {
                                     ? Icons.check_circle
                                     : status == 'Pending'
                                     ? Icons.hourglass_bottom
+                                    : status == 'Accepted'
+                                    ? Icons.verified
+                                    : status == 'Shipped'
+                                    ? Icons.local_shipping
                                     : Icons.cancel,
                                 color: statusTextColor,
-                                size: 18,
+                                size: 14,
                               ),
                               const SizedBox(width: 4),
                               Text(
