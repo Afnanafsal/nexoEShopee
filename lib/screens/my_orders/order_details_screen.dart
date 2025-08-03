@@ -8,6 +8,10 @@ import 'package:fishkart/services/database/product_database_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
+  final OrderedProduct order;
+
+  const OrderDetailsScreen({Key? key, required this.order}) : super(key: key);
+
   Widget _buildProductImage(String imageStr) {
     final isBase64 = !imageStr.startsWith('http');
     if (isBase64) {
@@ -70,9 +74,6 @@ class OrderDetailsScreen extends StatelessWidget {
     return null;
   }
 
-  final OrderedProduct order;
-  const OrderDetailsScreen({Key? key, required this.order}) : super(key: key);
-
   Future<Address?> _fetchAddress() async {
     if (order.addressId != null) {
       try {
@@ -111,6 +112,7 @@ class OrderDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF5F6F9),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -118,324 +120,362 @@ class OrderDetailsScreen extends StatelessWidget {
           icon: Icon(Icons.arrow_back_ios, color: Color(0xFF294157)),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          'Order Details',
-          style: TextStyle(
-            color: Color(0xFF294157),
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-            letterSpacing: 0.5,
-          ),
-        ),
-        centerTitle: true,
       ),
-      backgroundColor: Color(0xFFF5F6F9),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
-          child: FutureBuilder<Address?>(
-            future: _fetchAddress(),
-            builder: (context, addressSnapshot) {
-              final address = addressSnapshot.data;
-              return FutureBuilder<Product?>(
-                future: _fetchProduct(),
-                builder: (context, productSnapshot) {
-                  final product = productSnapshot.data;
-                  return FutureBuilder<Map<String, dynamic>?>(
-                    future: _fetchVendor(order.vendorId),
-                    builder: (context, vendorSnapshot) {
-                      final vendor = vendorSnapshot.data;
-                      final vendorName = vendor?['display_name'] ?? '-';
-                      final vendorPhone = vendor?['phone'] ?? '-';
-                      return SingleChildScrollView(
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(32),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 32,
-                                offset: Offset(0, 12),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: Color(0xFFE0E3E7),
-                              width: 1.2,
-                            ),
+      body: FutureBuilder<Address?>(
+        future: _fetchAddress(),
+        builder: (context, addressSnapshot) {
+          final address = addressSnapshot.data;
+          return FutureBuilder<Product?>(
+            future: _fetchProduct(),
+            builder: (context, productSnapshot) {
+              final product = productSnapshot.data;
+              return FutureBuilder<Map<String, dynamic>?>(
+                future: _fetchVendor(order.vendorId),
+                builder: (context, vendorSnapshot) {
+                  final vendor = vendorSnapshot.data;
+                  final vendorName = vendor?['display_name'] ?? '-';
+                  final vendorPhone = vendor?['phone'] ?? '-';
+                  final price = product != null
+                      ? (product.discountPrice ?? product.originalPrice ?? 0)
+                      : 0;
+                  final totalPrice = product != null
+                      ? (price * order.quantity)
+                      : 0.0;
+                  return Center(
+                    child: Container(
+                      constraints: BoxConstraints(maxWidth: 400),
+                      color: Color(0xFFF5F6F9),
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 0,
+                            vertical: 0,
                           ),
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              SizedBox(height: 32),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: _statusColor(
-                                        order.status,
-                                      ).withOpacity(0.12),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          order.status.toLowerCase() ==
-                                                  'completed'
-                                              ? Icons.check_circle
-                                              : order.status.toLowerCase() ==
-                                                    'pending'
-                                              ? Icons.hourglass_bottom
-                                              : Icons.cancel,
-                                          color: _statusColor(order.status),
-                                          size: 22,
-                                        ),
-                                        SizedBox(width: 10),
-                                        Text(
-                                          _statusLabel(order.status),
-                                          style: TextStyle(
-                                            color: _statusColor(order.status),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 17,
-                                            letterSpacing: 0.2,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 22),
-                              if (product != null) ...[
-                                Center(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(24),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black12,
-                                          blurRadius: 16,
-                                          offset: Offset(0, 6),
-                                        ),
-                                      ],
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(24),
-                                      child:
-                                          (product.images != null &&
-                                              product.images!.isNotEmpty)
-                                          ? _buildProductImage(
-                                              product.images!.first,
-                                            )
-                                          : Container(
-                                              height: 150,
-                                              width: 150,
-                                              color: Colors.grey[200],
-                                              child: Icon(
-                                                Icons.image,
-                                                size: 54,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 18),
-                                Center(
-                                  child: Text(
-                                    product.title ?? '-',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 24,
-                                      color: Color(0xFF294157),
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ),
-                                if (product.variant != null)
-                                  Center(
-                                    child: Container(
-                                      margin: EdgeInsets.only(top: 4),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blueGrey[50],
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        product.variant!,
-                                        style: TextStyle(
-                                          color: Colors.blueGrey[700],
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                              SizedBox(height: 22),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 28.0,
+                                  horizontal: 12.0,
+                                  vertical: 18,
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // ...removed Order ID display...
-                                    SizedBox(height: 10),
-                                    _infoRow(
-                                      'Order Date',
-                                      order.orderDate ?? '-',
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 16,
+                                        offset: Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 18.0,
+                                      vertical: 18.0,
                                     ),
-                                    SizedBox(height: 10),
-                                    _infoRow('Quantity', '${order.quantity}'),
-                                    SizedBox(height: 10),
-                                    _infoRow('Vendor', vendorName),
-                                    SizedBox(height: 10),
-                                    Row(
+                                    child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.center,
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Expanded(
-                                          child: _infoRow(
-                                            'Vendor Phone',
-                                            vendorPhone,
-                                            isLast: true,
+                                        Text(
+                                          'Your order received!',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Color(0xFF294157),
                                           ),
                                         ),
-                                        if (order.status.toLowerCase() ==
-                                                'pending' &&
-                                            vendorPhone != '-')
-                                          IconButton(
-                                            icon: Icon(
-                                              Icons.call,
-                                              color: Colors.green,
-                                              size: 22,
+                                        SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              'Order ID  ',
+                                              style: TextStyle(
+                                                color: Colors.black87,
+                                                fontSize: 13,
+                                              ),
                                             ),
-                                            onPressed: () {
-                                              final uri = Uri.parse(
-                                                'tel:$vendorPhone',
-                                              );
-                                              launchUrl(uri);
-                                            },
+                                            Text(
+                                              '#${order.id}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15,
+                                                color: Color(0xFF294157),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          order.orderDate ?? '-',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 13,
                                           ),
+                                        ),
+                                        SizedBox(height: 18),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              '${order.quantity} Item${order.quantity > 1 ? 's' : ''}',
+                                              style: TextStyle(
+                                                color: Colors.grey[700],
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            Text(
+                                              '₹${totalPrice.toStringAsFixed(2)}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: Color(0xFF294157),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 10),
+                                        if (product != null)
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Color(0xFFF7F7F7),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 10,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
+                                                  child: SizedBox(
+                                                    height: 48,
+                                                    width: 48,
+                                                    child:
+                                                        (product.images !=
+                                                                null &&
+                                                            product
+                                                                .images!
+                                                                .isNotEmpty)
+                                                        ? _buildProductImage(
+                                                            product
+                                                                .images!
+                                                                .first,
+                                                          )
+                                                        : Container(
+                                                            color: Colors
+                                                                .grey[200],
+                                                            child: Icon(
+                                                              Icons.image,
+                                                              size: 24,
+                                                              color:
+                                                                  Colors.grey,
+                                                            ),
+                                                          ),
+                                                  ),
+                                                ),
+                                                SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        product.title ?? '-',
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 15,
+                                                          color: Color(
+                                                            0xFF294157,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        'Net weight: ${product.variant ?? '-'}',
+                                                        style: TextStyle(
+                                                          color:
+                                                              Colors.grey[600],
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.end,
+                                                  children: [
+                                                    Text(
+                                                      '₹${price.toStringAsFixed(2)}',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 14,
+                                                        color: Color(
+                                                          0xFF294157,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      order.quantity < 10
+                                                          ? '0${order.quantity}'
+                                                          : '${order.quantity}',
+                                                      style: TextStyle(
+                                                        color: Colors.grey[600],
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        SizedBox(height: 18),
+                                        Text(
+                                          'Order Status',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                        SizedBox(height: 6),
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 14,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: Colors.black26,
+                                                  width: 1,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                color: Colors.grey[50],
+                                              ),
+                                              child: Text(
+                                                _statusLabel(order.status),
+                                                style: TextStyle(
+                                                  color: Colors.black87,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'We expect to deliver the order in 3 Hrs',
+                                                style: TextStyle(
+                                                  color: Colors.grey[700],
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 18),
+                                        Divider(
+                                          height: 24,
+                                          color: Colors.grey[300],
+                                        ),
+                                        ListTile(
+                                          contentPadding: EdgeInsets.zero,
+                                          leading: Icon(
+                                            Icons.help_outline,
+                                            color: Colors.black87,
+                                          ),
+                                          title: Text(
+                                            'Need help?',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                          onTap: () {},
+                                          dense: true,
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                        ListTile(
+                                          contentPadding: EdgeInsets.zero,
+                                          leading: Icon(
+                                            Icons.question_answer_outlined,
+                                            color: Colors.black87,
+                                          ),
+                                          title: Text(
+                                            'Have a question?',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                          onTap: () {},
+                                          dense: true,
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                        Divider(
+                                          height: 24,
+                                          color: Colors.grey[300],
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 8.0,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '100% Fresh Guarantee',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                              SizedBox(height: 2),
+                                              Text(
+                                                'Sourced daily from trusted vendors. Hygiene checked & quality certified.',
+                                                style: TextStyle(
+                                                  color: Colors.grey[700],
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ],
                                     ),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      'Delivery Address',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey[700],
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    address != null
-                                        ? Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 2.0,
-                                            ),
-                                            child: Text(
-                                              '${address.addressLine1}, ${address.city}, ${address.state}, ${address.pincode}',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 16,
-                                                color: Color(0xFF294157),
-                                              ),
-                                            ),
-                                          )
-                                        : Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 2.0,
-                                            ),
-                                            child: Text(
-                                              '-',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 16,
-                                                color: Color(0xFF294157),
-                                              ),
-                                            ),
-                                          ),
-                                  ],
+                                  ),
                                 ),
                               ),
-                              SizedBox(height: 28),
-                              Container(
-                                width: double.infinity,
-                                height: 2.5,
-                                decoration: BoxDecoration(
-                                  color: Colors.blueGrey[50],
-                                  borderRadius: BorderRadius.circular(2),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.blueGrey.withOpacity(0.10),
-                                      blurRadius: 3,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 22),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 28.0,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Thank you for ordering!',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 17,
-                                        color: Color(0xFF294157),
-                                        letterSpacing: 0.2,
-                                      ),
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Color(
-                                          0xFF294157,
-                                        ).withOpacity(0.08),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      padding: EdgeInsets.all(6),
-                                      child: Icon(
-                                        Icons.local_shipping,
-                                        color: Color(0xFF294157),
-                                        size: 26,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 32),
                             ],
                           ),
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   );
                 },
               );
             },
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 
-  // Helper widget for info rows
   Widget _infoRow(String label, String value, {bool isLast = false}) {
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 2.0),
