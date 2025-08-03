@@ -13,7 +13,7 @@ class Review extends Model {
 
   String? reviewerUid;
   int rating;
-  String? feedback;
+  String? review;
   DateTime? createdAt;
   int likes;
   int replyCount;
@@ -24,7 +24,7 @@ class Review extends Model {
     String? id, {
     this.reviewerUid,
     this.rating = 3,
-    this.feedback,
+    this.review,
     this.createdAt,
     this.likes = 0,
     this.replyCount = 0,
@@ -37,7 +37,7 @@ class Review extends Model {
       id,
       reviewerUid: map[REVIEWER_UID_KEY],
       rating: map[RATING_KEY] ?? 3,
-      feedback: map[FEEDBACK_KEY],
+      review: map['review'],
       createdAt: map[CREATED_AT_KEY] != null
           ? (map[CREATED_AT_KEY] is Timestamp
                 ? (map[CREATED_AT_KEY] as Timestamp).toDate()
@@ -55,7 +55,7 @@ class Review extends Model {
     return {
       REVIEWER_UID_KEY: reviewerUid,
       RATING_KEY: rating,
-      FEEDBACK_KEY: feedback,
+      'review': review,
       CREATED_AT_KEY:
           createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
       LIKES_KEY: likes,
@@ -70,7 +70,7 @@ class Review extends Model {
     final map = <String, dynamic>{};
     if (reviewerUid != null) map[REVIEWER_UID_KEY] = reviewerUid;
     map[RATING_KEY] = rating;
-    if (feedback != null) map[FEEDBACK_KEY] = feedback;
+    if (review != null) map['review'] = review;
     if (createdAt != null) map[CREATED_AT_KEY] = createdAt!.toIso8601String();
     map[LIKES_KEY] = likes;
     map[REPLY_COUNT_KEY] = replyCount;
@@ -83,7 +83,7 @@ class Review extends Model {
     String? id,
     String? reviewerUid,
     int? rating,
-    String? feedback,
+    String? review,
     DateTime? createdAt,
     int? likes,
     int? replyCount,
@@ -94,7 +94,7 @@ class Review extends Model {
       id ?? this.id,
       reviewerUid: reviewerUid ?? this.reviewerUid,
       rating: rating ?? this.rating,
-      feedback: feedback ?? this.feedback,
+      review: review ?? this.review,
       createdAt: createdAt ?? this.createdAt,
       likes: likes ?? this.likes,
       replyCount: replyCount ?? this.replyCount,

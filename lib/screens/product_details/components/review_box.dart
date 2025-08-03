@@ -212,7 +212,7 @@ class _ReviewBoxState extends State<ReviewBox> {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          review.feedback ?? '',
+                          review.review ?? '',
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 15,
