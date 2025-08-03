@@ -357,24 +357,8 @@ class _BodyState extends State<Body> {
                 .toList();
           }
 
-          // Sort by status, then by date descending
+          // Sort strictly by most recent order date descending
           orderedProductsDocs.sort((a, b) {
-            String aStatus = normalizeStatus(a.data()['status']);
-            String bStatus = normalizeStatus(b.data()['status']);
-            const statusOrder = [
-              'Pending',
-              'Accepted',
-              'Shipped',
-              'Completed',
-              'Cancelled',
-            ];
-            int aStatusIndex = statusOrder.indexOf(aStatus);
-            int bStatusIndex = statusOrder.indexOf(bStatus);
-            if (aStatusIndex == -1) aStatusIndex = statusOrder.length;
-            if (bStatusIndex == -1) bStatusIndex = statusOrder.length;
-            if (aStatusIndex != bStatusIndex) {
-              return aStatusIndex.compareTo(bStatusIndex);
-            }
             final aDate = a.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
             final bDate = b.data()[OrderedProduct.ORDER_DATE_KEY] as String?;
             if (aDate == null && bDate == null) return 0;
