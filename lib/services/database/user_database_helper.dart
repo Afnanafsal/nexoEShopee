@@ -437,6 +437,16 @@ class UserDatabaseHelper {
     return doc.data()?[DP_KEY];
   }
 
+  /// Stream of display picture for the current user (real-time updates)
+  Stream<String?> get displayPictureStreamForCurrentUser {
+    final uid = AuthentificationService().currentUser.uid;
+    return firestore
+        .collection(USERS_COLLECTION_NAME)
+        .doc(uid)
+        .snapshots()
+        .map((doc) => doc.data()?[DP_KEY] as String?);
+  }
+
   Future<bool> removeFavoriteProduct(String productId) async {
     String uid = AuthentificationService().currentUser.uid;
     try {

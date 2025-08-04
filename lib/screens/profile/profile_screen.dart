@@ -2,27 +2,21 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fishkart/screens/sign_in/sign_in_screen.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
 import 'package:fishkart/services/cache/hive_service.dart';
 import '../../constants.dart';
-import '../about_developer/about_developer_screen.dart';
 import '../change_display_picture/change_display_picture_screen.dart';
 import '../change_email/change_email_screen.dart';
 import '../my_favorites/my_favorites_screen.dart';
 import '../change_password/change_password_screen.dart';
 import '../change_phone/change_phone_screen.dart';
-import '../edit_product/edit_product_screen.dart';
 import '../manage_addresses/manage_addresses_screen.dart';
 import '../my_orders/my_orders_screen.dart';
-import '../my_products/my_products_screen.dart';
 import '../../utils.dart';
 import '../change_display_name/change_display_name_screen.dart';
 import 'package:fishkart/components/async_progress_dialog.dart';
-
-import '../home/home_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -32,44 +26,44 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Column(
-            children: [
+          children: [
             Stack(
               children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 24,
-                ),
-                decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 24,
                   ),
-                ],
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 32),
+                      _ProfileHeader(avatarOverlap: true),
+                    ],
+                  ),
                 ),
-                child: Column(
-                children: [
-                  const SizedBox(height: 32),
-                  _ProfileHeader(avatarOverlap: true),
-                ],
-                ),
-              ),
-              // Back button removed
+                // Back button removed
               ],
             ),
             Expanded(
               child: ListView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 0,
-              ),
-              children: [const SizedBox(height: 8), _ProfileActions()],
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 0,
+                ),
+                children: [const SizedBox(height: 8), _ProfileActions()],
               ),
             ),
           ],
@@ -86,15 +80,16 @@ class _ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
       stream: AuthentificationService().userChanges,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final user = snapshot.data!;
+      builder: (context, userSnapshot) {
+        if (userSnapshot.hasData) {
+          final user = userSnapshot.data!;
           return Column(
             children: [
-              FutureBuilder<String?>(
-                future: UserDatabaseHelper().displayPictureForCurrentUser,
-                builder: (context, snap) {
-                  if (snap.connectionState == ConnectionState.waiting) {
+              // Listen to display picture changes in real time (from DB or cache)
+              StreamBuilder<String?>(
+                stream: UserDatabaseHelper().displayPictureStreamForCurrentUser,
+                builder: (context, picSnapshot) {
+                  if (picSnapshot.connectionState == ConnectionState.waiting) {
                     return CircleAvatar(
                       radius: 40,
                       backgroundColor: kTextColor.withOpacity(0.2),
@@ -105,13 +100,13 @@ class _ProfileHeader extends StatelessWidget {
                       ),
                     );
                   }
-                  if (snap.hasData &&
-                      snap.data != null &&
-                      (snap.data as String).isNotEmpty) {
+                  if (picSnapshot.hasData &&
+                      picSnapshot.data != null &&
+                      (picSnapshot.data as String).isNotEmpty) {
                     return CircleAvatar(
                       radius: 40,
                       backgroundImage: Base64ImageService()
-                          .base64ToImageProvider(snap.data as String),
+                          .base64ToImageProvider(picSnapshot.data as String),
                     );
                   }
                   return CircleAvatar(
@@ -137,7 +132,7 @@ class _ProfileHeader extends StatelessWidget {
               ),
             ],
           );
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
+        } else if (userSnapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else {
           return Center(child: Icon(Icons.error));
@@ -205,6 +200,7 @@ class _ProfileActions extends StatelessWidget {
           onTap: () => _handleVerifiedAction(context, MyOrdersScreen()),
         ),
         const SizedBox(height: 8),
+
         // _ProfileExpansion(
         //   icon: Icons.business,
         //   title: 'I am Seller',
@@ -224,7 +220,6 @@ class _ProfileActions extends StatelessWidget {
         //     ),
         //   ],
         // ),
-
         const SizedBox(height: 16),
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
