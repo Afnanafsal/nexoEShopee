@@ -707,30 +707,30 @@ class _BodyState extends ConsumerState<Body> {
           );
         }
       },
-      borderRadius: BorderRadius.circular(25.r),
+      borderRadius: BorderRadius.circular(20.r),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        margin: EdgeInsets.symmetric(vertical: 4.h),
+        margin: EdgeInsets.symmetric(vertical: 2.h),
         decoration: BoxDecoration(
           color: isAvailable ? Colors.white : Colors.white.withOpacity(0.7),
-          borderRadius: BorderRadius.circular(25.r),
+          borderRadius: BorderRadius.circular(20.r),
           boxShadow: [
             BoxShadow(
-              blurRadius: 8.r,
+              blurRadius: 6.r,
               color: Colors.black.withOpacity(isAvailable ? 0.06 : 0.03),
               offset: Offset(0, 2.h),
             ),
           ],
         ),
-        height: 120.h,
+        height: 90.h, // Reduced height
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             imageWidget,
-            SizedBox(width: 16.w),
+            SizedBox(width: 10.w), // Reduced gap
             Expanded(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 8.w),
+                padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 6.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -742,7 +742,7 @@ class _BodyState extends ConsumerState<Body> {
                           productTitle,
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            fontSize: 16.sp,
+                            fontSize: 13.sp,
                             color: isAvailable
                                 ? Colors.black
                                 : Colors.grey.shade600,
@@ -751,20 +751,23 @@ class _BodyState extends ConsumerState<Body> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 4.h),
                         if (productVariant.isNotEmpty)
-                          Text(
-                            'Net weight: $productVariant',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: isAvailable
-                                  ? const Color(0xFF8E8E93)
-                                  : Colors.grey.shade500,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w400,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Text(
+                                'Net weight: $productVariant',
+                                style: TextStyle(
+                                  fontSize: 10.sp,
+                                  color: isAvailable
+                                      ? const Color(0xFF8E8E93)
+                                      : Colors.grey.shade500,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                       ],
                     ),
@@ -779,20 +782,20 @@ class _BodyState extends ConsumerState<Body> {
                                 '₹${discountPrice.toStringAsFixed(2)}',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
-                                  fontSize: 14.sp,
+                                  fontSize: 12.sp,
                                   color: isAvailable
                                       ? Colors.black
                                       : Colors.grey.shade600,
                                   fontFamily: 'Poppins',
                                 ),
                               ),
-                              SizedBox(width: 8.w),
+                              SizedBox(width: 6.w),
                               if (originalPrice > 0 &&
                                   originalPrice != discountPrice)
                                 Text(
                                   '₹${originalPrice.toStringAsFixed(2)}',
                                   style: TextStyle(
-                                    fontSize: 12.sp,
+                                    fontSize: 10.sp,
                                     color: isAvailable
                                         ? const Color(0xFFB0B0B0)
                                         : Colors.grey.shade500,
@@ -807,8 +810,8 @@ class _BodyState extends ConsumerState<Body> {
                         Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(32.r),
-                            onTap: () {
+                            borderRadius: BorderRadius.circular(24.r),
+                            onTap: () async {
                               final selectedAddressId = ref.read(
                                 selectedAddressIdProvider,
                               );
@@ -825,40 +828,39 @@ class _BodyState extends ConsumerState<Body> {
                                 }
                                 return;
                               }
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '$productTitle added to cart!',
+                              try {
+                                final success = await UserDatabaseHelper()
+                                    .addProductToCart(
+                                      product.id,
+                                      addressId: selectedAddressId,
+                                    );
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        success
+                                            ? '$productTitle added to cart!'
+                                            : 'Failed to add to cart.',
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Failed to add to cart: $e',
+                                      ),
+                                    ),
+                                  );
+                                }
                               }
-                              UserDatabaseHelper()
-                                  .addProductToCart(
-                                    product.id,
-                                    addressId: selectedAddressId,
-                                  )
-                                  .catchError((e) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Failed to add to cart: $e',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                    return false;
-                                  });
                             },
                             child: Container(
-                              // Add border radius to the add-to-cart button
                               clipBehavior: Clip.antiAlias,
-                              width: 32.w,
-                              height: 32.w,
+                              width: 28.w,
+                              height: 28.w,
                               decoration: BoxDecoration(
                                 color: isAvailable
                                     ? const Color.fromARGB(255, 0, 0, 0)
@@ -867,14 +869,14 @@ class _BodyState extends ConsumerState<Body> {
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 8.r,
+                                    blurRadius: 6.r,
                                     offset: Offset(0, 2.h),
                                   ),
                                 ],
                               ),
                               child: Icon(
                                 Icons.add,
-                                size: 24.sp,
+                                size: 18.sp,
                                 color: Colors.white,
                               ),
                             ),
