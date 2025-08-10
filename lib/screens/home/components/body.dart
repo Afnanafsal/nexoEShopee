@@ -239,61 +239,76 @@ class _BodyState extends ConsumerState<Body> {
                           itemBuilder: (context, index) {
                             final cat = productCategories[index];
                             return Container(
-                              width: 100.w, // Increased width
+                              width: 100.w,
                               height: 120.h,
                               alignment: Alignment.center,
-                              child: Container(
-                                width: 90.w, // Increased inner card width
-                                height: 108.h,
-                                margin: EdgeInsets.symmetric(vertical: 12.h),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(50.r),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
-                                      blurRadius: 6.r,
-                                      offset: Offset(0, 2.h),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(50.r),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          CategoryProductsScreen(
+                                            key: UniqueKey(),
+                                            productType: cat[PRODUCT_TYPE_KEY],
+                                          ),
                                     ),
-                                  ],
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(height: 8.h),
-                                    Container(
-                                      width: 48.w,
-                                      height: 48.w,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
+                                  );
+                                },
+                                child: Container(
+                                  width: 90.w,
+                                  height: 108.h,
+                                  margin: EdgeInsets.symmetric(vertical: 12.h),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(50.r),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 6.r,
+                                        offset: Offset(0, 2.h),
                                       ),
-                                      child: ClipOval(
-                                        child: Image.asset(
-                                          cat[ICON_KEY],
-                                          width: 48.w,
-                                          height: 48.w,
-                                          fit: BoxFit.cover,
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      SizedBox(height: 8.h),
+                                      Container(
+                                        width: 48.w,
+                                        height: 48.w,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: ClipOval(
+                                          child: Image.asset(
+                                            cat[ICON_KEY],
+                                            width: 48.w,
+                                            height: 48.w,
+                                            fit: BoxFit.cover,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    SizedBox(
-                                      width: 60.w,
-                                      child: Text(
-                                        cat[TITLE_KEY],
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 11.sp,
-                                          fontFamily: 'Poppins',
+                                      SizedBox(height: 6.h),
+                                      SizedBox(
+                                        width: 60.w,
+                                        child: Text(
+                                          cat[TITLE_KEY],
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 11.sp,
+                                            fontFamily: 'Poppins',
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             );
@@ -751,6 +766,7 @@ class _BodyState extends ConsumerState<Body> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                        SizedBox(height: 8.h),
                         if (productVariant.isNotEmpty)
                           Row(
                             children: [
@@ -772,7 +788,6 @@ class _BodyState extends ConsumerState<Body> {
                       ],
                     ),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
                           child: Row(
