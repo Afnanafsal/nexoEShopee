@@ -5,9 +5,6 @@ import 'package:fishkart/screens/product_details/product_details_screen.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:fishkart/services/database/product_database_helper.dart';
 import 'package:fishkart/models/Product.dart';
-import 'package:fishkart/components/product_card.dart';
-import 'package:fishkart/components/search_field.dart';
-import 'package:fishkart/components/nothingtoshow_container.dart';
 import 'package:fishkart/providers/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
@@ -22,6 +19,21 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  // Helper to truncate product name at '/' or '('
+  String _truncateProductName(String name) {
+    final slashIdx = name.indexOf('/');
+    final parenIdx = name.indexOf('(');
+    int cutIdx = name.length;
+    if (slashIdx != -1 && parenIdx != -1) {
+      cutIdx = slashIdx < parenIdx ? slashIdx : parenIdx;
+    } else if (slashIdx != -1) {
+      cutIdx = slashIdx;
+    } else if (parenIdx != -1) {
+      cutIdx = parenIdx;
+    }
+    return name.substring(0, cutIdx).trim();
+  }
+
   List<Product> frequentlyBoughtProducts = [];
   List<Product> searchResults = [];
   bool isSearching = false;
@@ -259,55 +271,72 @@ class _SearchScreenState extends State<SearchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
+              borderRadius: BorderRadius.circular(25),
               child: Container(
-                height: 135,
+                height: 150,
                 width: double.infinity,
-                color: Colors.grey[200],
-                child: Builder(
-                  builder: (context) {
-                    final img =
-                        product.images != null && product.images!.isNotEmpty
-                        ? product.images!.first
-                        : null;
-                    if (img == null || img.isEmpty) {
-                      return Icon(Icons.image, size: 32, color: Colors.grey);
-                    } else if (img.startsWith('http')) {
-                      return Image.network(
-                        img,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Icon(Icons.image, size: 32, color: Colors.grey),
-                      );
-                    } else if (img.startsWith('assets/')) {
-                      return Image.asset(
-                        img,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Icon(Icons.image, size: 32, color: Colors.grey),
-                      );
-                    } else if (img.startsWith('data:image') ||
-                        img.length > 100) {
-                      try {
-                        final base64Str = img.contains(',')
-                            ? img.split(',').last
-                            : img;
-                        return Image.memory(
-                          base64Decode(base64Str),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Icon(Icons.image, size: 32, color: Colors.grey),
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(12), // Padding around image
+                  child: Builder(
+                    builder: (context) {
+                      final img =
+                          product.images != null && product.images!.isNotEmpty
+                          ? product.images!.first
+                          : null;
+                      if (img == null || img.isEmpty) {
+                        return Icon(Icons.image, size: 32, color: Colors.grey);
+                      } else if (img.startsWith('http')) {
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(25),
+                          child: Image.network(
+                            img,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(Icons.image, size: 32, color: Colors.grey),
+                          ),
                         );
-                      } catch (_) {
+                      } else if (img.startsWith('assets/')) {
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(25),
+                          child: Image.asset(
+                            img,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(Icons.image, size: 32, color: Colors.grey),
+                          ),
+                        );
+                      } else if (img.startsWith('data:image') ||
+                          img.length > 100) {
+                        try {
+                          final base64Str = img.contains(',')
+                              ? img.split(',').last
+                              : img;
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(25),
+                            child: Image.memory(
+                              base64Decode(base64Str),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    Icons.image,
+                                    size: 32,
+                                    color: Colors.grey,
+                                  ),
+                            ),
+                          );
+                        } catch (_) {
+                          return Icon(
+                            Icons.image,
+                            size: 32,
+                            color: Colors.grey,
+                          );
+                        }
+                      } else {
                         return Icon(Icons.image, size: 32, color: Colors.grey);
                       }
-                    } else {
-                      return Icon(Icons.image, size: 32, color: Colors.grey);
-                    }
-                  },
+                    },
+                  ),
                 ),
               ),
             ),
@@ -317,7 +346,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product.title ?? 'Product Name',
+                    _truncateProductName(product.title ?? 'Product Name'),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -347,15 +376,14 @@ class _SearchScreenState extends State<SearchScreen> {
                             if (product.originalPrice != null &&
                                 product.originalPrice! > 0 &&
                                 product.originalPrice != product.discountPrice)
-                              
-                            Text(
-                              '₹${product.discountPrice?.toStringAsFixed(2) ?? product.originalPrice?.toStringAsFixed(2) ?? '0.00'}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
+                              Text(
+                                '₹${product.discountPrice?.toStringAsFixed(2) ?? product.originalPrice?.toStringAsFixed(2) ?? '0.00'}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black,
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),
