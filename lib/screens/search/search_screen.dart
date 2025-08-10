@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fishkart/screens/product_details/product_details_screen.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:fishkart/services/database/product_database_helper.dart';
@@ -182,10 +183,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildCustomSearchBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(25.r),
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: Row(
@@ -193,7 +194,7 @@ class _SearchScreenState extends State<SearchScreen> {
           GestureDetector(
             onTap: () => Navigator.of(context).pop(),
             child: Container(
-              padding: const EdgeInsets.all(4),
+              padding: EdgeInsets.all(4.w),
               child: const Icon(
                 Icons.arrow_back_ios,
                 color: Colors.black87,
@@ -201,24 +202,24 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Expanded(
             child: TextField(
               controller: _searchController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Type your fish...',
                 hintStyle: TextStyle(
                   color: Colors.grey,
-                  fontSize: 16,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.normal,
                 ),
                 border: InputBorder.none,
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 8),
+                contentPadding: EdgeInsets.symmetric(vertical: 8.h),
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
               ),
-              style: const TextStyle(fontSize: 16, color: Colors.black87),
+              style: TextStyle(fontSize: 16.sp, color: Colors.black87),
               onSubmitted: (value) {
                 if (value.trim().isNotEmpty) {
                   onSearch(value.trim());
@@ -271,13 +272,13 @@ class _SearchScreenState extends State<SearchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(25.r),
               child: Container(
-                height: 150,
+                height: 120.h,
                 width: double.infinity,
                 color: Colors.white,
                 child: Padding(
-                  padding: const EdgeInsets.all(12), // Padding around image
+                  padding: EdgeInsets.all(12.w), // Padding around image
                   child: Builder(
                     builder: (context) {
                       final img =
@@ -285,25 +286,35 @@ class _SearchScreenState extends State<SearchScreen> {
                           ? product.images!.first
                           : null;
                       if (img == null || img.isEmpty) {
-                        return Icon(Icons.image, size: 32, color: Colors.grey);
+                        return Icon(
+                          Icons.image,
+                          size: 32.sp,
+                          color: Colors.grey,
+                        );
                       } else if (img.startsWith('http')) {
                         return ClipRRect(
-                          borderRadius: BorderRadius.circular(25),
+                          borderRadius: BorderRadius.circular(25.r),
                           child: Image.network(
                             img,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Icon(Icons.image, size: 32, color: Colors.grey),
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.image,
+                              size: 32.sp,
+                              color: Colors.grey,
+                            ),
                           ),
                         );
                       } else if (img.startsWith('assets/')) {
                         return ClipRRect(
-                          borderRadius: BorderRadius.circular(25),
+                          borderRadius: BorderRadius.circular(25.r),
                           child: Image.asset(
                             img,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Icon(Icons.image, size: 32, color: Colors.grey),
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.image,
+                              size: 32.sp,
+                              color: Colors.grey,
+                            ),
                           ),
                         );
                       } else if (img.startsWith('data:image') ||
@@ -313,14 +324,14 @@ class _SearchScreenState extends State<SearchScreen> {
                               ? img.split(',').last
                               : img;
                           return ClipRRect(
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(25.r),
                             child: Image.memory(
                               base64Decode(base64Str),
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   Icon(
                                     Icons.image,
-                                    size: 32,
+                                    size: 32.sp,
                                     color: Colors.grey,
                                   ),
                             ),
@@ -341,27 +352,27 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 3),
+              padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 3.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     _truncateProductName(product.title ?? 'Product Name'),
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: TextStyle(
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
                       color: Colors.black,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.h),
                   Text(
                     product.variant != null && product.variant!.isNotEmpty
                         ? product.variant!
                         : '500 gms',
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: 12.sp,
                       color: Color(0xFF8E8E93),
                       fontWeight: FontWeight.normal,
                     ),
@@ -378,8 +389,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                 product.originalPrice != product.discountPrice)
                               Text(
                                 '₹${product.discountPrice?.toStringAsFixed(2) ?? product.originalPrice?.toStringAsFixed(2) ?? '0.00'}',
-                                style: const TextStyle(
-                                  fontSize: 14,
+                                style: TextStyle(
+                                  fontSize: 14.sp,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.black,
                                 ),
@@ -392,19 +403,19 @@ class _SearchScreenState extends State<SearchScreen> {
                         child: GestureDetector(
                           onTap: () => addToCart(context, product.id),
                           child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: const BoxDecoration(
+                            width: 32.w,
+                            height: 32.w,
+                            decoration: BoxDecoration(
                               color: Colors.black,
                               shape: BoxShape.rectangle,
                               borderRadius: BorderRadius.all(
-                                Radius.circular(8),
+                                Radius.circular(8.r),
                               ),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.add,
                               color: Colors.white,
-                              size: 20,
+                              size: 20.sp,
                             ),
                           ),
                         ),
