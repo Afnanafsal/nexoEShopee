@@ -291,7 +291,7 @@ class _BodyState extends ConsumerState<Body> {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(height: 6.h),
+                                      SizedBox(height: 16.h),
                                       SizedBox(
                                         width: 60.w,
                                         child: Text(
