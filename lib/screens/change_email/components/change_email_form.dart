@@ -53,11 +53,11 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
                 children: const [
                   TextSpan(
                     text: 'Fish',
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: Color(0xFF29465B)),
                   ),
                   TextSpan(
                     text: 'Kart',
-                    style: TextStyle(color: Color(0xFF29465B)),
+                    style: TextStyle(color: Color(0xFF000000)),
                   ),
                 ],
               ),

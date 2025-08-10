@@ -6,7 +6,7 @@ class Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFF7F8FA), // very light grey
+      color: const Color(0xFFFFFFFF).withOpacity(0.41), // very light grey with 41% opacity
       child: SafeArea(
         child: SingleChildScrollView(
           physics: BouncingScrollPhysics(),
@@ -27,15 +27,15 @@ class Body extends StatelessWidget {
                     TextSpan(
                       text: 'Fish',
                       style: TextStyle(
-                      color: Colors.black,
+                      color: Color(0xFF29465B),
                       fontSize: getProportionateScreenWidth(32),
                       ),
                     ),
                     TextSpan(
                       text: 'Kart',
                       style: TextStyle(
-                      color: Color(0xFF29465B),
-                      fontSize: getProportionateScreenWidth(32),
+                        color: Colors.black,
+                        fontSize: getProportionateScreenWidth(32),
                       ),
                     ),
                   ],
@@ -148,7 +148,7 @@ class _ForgotPasswordFormExactState extends State<ForgotPasswordFormExact> {
           child: ElevatedButton(
             onPressed: _isLoading ? null : _sendResetLink,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF29465B),
+              backgroundColor: Color(0xFF000000),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),

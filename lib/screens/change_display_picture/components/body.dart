@@ -140,13 +140,12 @@ class _BodyState extends ConsumerState<Body> {
                 children: [
                   TextSpan(
                     text: 'Fish',
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: Color(0xFF29465B)),
                   ),
                   TextSpan(
                     text: 'Kart',
-                    style: TextStyle(color: Color(0xFF29465B)),
+                    style: TextStyle(color: Color(0xFF000000)),
                   ),
-                  
                 ],
               ),
             ),
@@ -179,49 +178,60 @@ class _BodyState extends ConsumerState<Body> {
                             ? CircleAvatar(
                                 radius: 80,
                                 backgroundColor: Colors.grey.shade200,
-                                backgroundImage: MemoryImage(_chosenImageBytes!),
+                                backgroundImage: MemoryImage(
+                                  _chosenImageBytes!,
+                                ),
                               )
-                            : (_displayPictureUrl != null && _displayPictureUrl!.isNotEmpty)
-                                ? (_displayPictureUrl!.startsWith('http')
-                                    ? CircleAvatar(
-                                        radius: 80,
-                                        backgroundColor: Colors.grey.shade200,
-                                        backgroundImage: NetworkImage(_displayPictureUrl!),
-                                        onBackgroundImageError: (error, stackTrace) {
-                                          Logger().e('Failed to load image: ${_displayPictureUrl!}');
-                                        },
-                                      )
-                                    : (() {
-                                        // Try to decode base64 and show as MemoryImage
-                                        try {
-                                          final bytes = base64Decode(_displayPictureUrl!);
-                                          return CircleAvatar(
-                                            radius: 80,
-                                            backgroundColor: Colors.grey.shade200,
-                                            backgroundImage: MemoryImage(bytes),
-                                          );
-                                        } catch (e) {
-                                          Logger().e('Failed to decode base64 for avatar: $e');
-                                          return CircleAvatar(
-                                            radius: 80,
-                                            backgroundColor: Colors.grey.shade200,
-                                            child: Icon(
-                                              Icons.person,
-                                              size: 80,
-                                              color: kTextColor.withOpacity(0.3),
-                                            ),
-                                          );
-                                        }
-                                      })())
-                                : CircleAvatar(
-                                    radius: 80,
-                                    backgroundColor: Colors.grey.shade200,
-                                    child: Icon(
-                                      Icons.person,
-                                      size: 80,
-                                      color: kTextColor.withOpacity(0.3),
-                                    ),
-                                  ),
+                            : (_displayPictureUrl != null &&
+                                  _displayPictureUrl!.isNotEmpty)
+                            ? (_displayPictureUrl!.startsWith('http')
+                                  ? CircleAvatar(
+                                      radius: 80,
+                                      backgroundColor: Colors.grey.shade200,
+                                      backgroundImage: NetworkImage(
+                                        _displayPictureUrl!,
+                                      ),
+                                      onBackgroundImageError: (error, stackTrace) {
+                                        Logger().e(
+                                          'Failed to load image: ${_displayPictureUrl!}',
+                                        );
+                                      },
+                                    )
+                                  : (() {
+                                      // Try to decode base64 and show as MemoryImage
+                                      try {
+                                        final bytes = base64Decode(
+                                          _displayPictureUrl!,
+                                        );
+                                        return CircleAvatar(
+                                          radius: 80,
+                                          backgroundColor: Colors.grey.shade200,
+                                          backgroundImage: MemoryImage(bytes),
+                                        );
+                                      } catch (e) {
+                                        Logger().e(
+                                          'Failed to decode base64 for avatar: $e',
+                                        );
+                                        return CircleAvatar(
+                                          radius: 80,
+                                          backgroundColor: Colors.grey.shade200,
+                                          child: Icon(
+                                            Icons.person,
+                                            size: 80,
+                                            color: kTextColor.withOpacity(0.3),
+                                          ),
+                                        );
+                                      }
+                                    })())
+                            : CircleAvatar(
+                                radius: 80,
+                                backgroundColor: Colors.grey.shade200,
+                                child: Icon(
+                                  Icons.person,
+                                  size: 80,
+                                  color: kTextColor.withOpacity(0.3),
+                                ),
+                              ),
                         Positioned(
                           bottom: 8,
                           right: 8,

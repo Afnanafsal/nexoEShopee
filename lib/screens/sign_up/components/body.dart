@@ -7,7 +7,7 @@ class Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xF5F6F8FF), // light background
+      backgroundColor: const Color(0xEFF1F5FF), // light background
       body: Center(
         child: SingleChildScrollView(
           physics: BouncingScrollPhysics(),
@@ -28,11 +28,11 @@ class Body extends StatelessWidget {
                   children: [
                     TextSpan(
                       text: 'Fish',
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(color: Color(0xFF29465B)),
                     ),
                     TextSpan(
                       text: 'Kart',
-                      style: TextStyle(color: Color(0xFF29465B)),
+                      style: TextStyle(color: Color(0xFF000000)),
                     ),
                   ],
                 ),
