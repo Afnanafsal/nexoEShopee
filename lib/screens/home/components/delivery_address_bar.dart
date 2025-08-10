@@ -7,7 +7,8 @@ import 'package:fishkart/constants.dart';
 // import 'package:fishkart/screens/manage_addresses/manage_addresses_screen.dart';
 import 'package:fishkart/providers/product_providers.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
-import 'package:fishkart/size_config.dart';
+// import 'package:fishkart/size_config.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 final _addressesListProvider = FutureProvider<List<String>>((ref) async {
   return await UserDatabaseHelper().addressesList;
@@ -85,13 +86,10 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
             return Dialog(
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(16.r),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 18,
-                  horizontal: 12,
-                ),
+                padding: EdgeInsets.symmetric(vertical: 18.h, horizontal: 12.w),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,26 +138,26 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                               : '';
                           final isSelected = addressId == selectedAddressId;
                           return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            padding: EdgeInsets.symmetric(vertical: 6.h),
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(12.r),
                                 onTap: () {
                                   Navigator.pop(context, addressId);
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: EdgeInsets.all(16.w),
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? kPrimaryColor.withOpacity(0.08)
                                         : Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(12.r),
                                     border: Border.all(
                                       color: isSelected
                                           ? kPrimaryColor
                                           : Colors.grey[300]!,
-                                      width: isSelected ? 2 : 1,
+                                      width: isSelected ? 2.w : 1.w,
                                     ),
                                   ),
                                   child: Row(
@@ -169,9 +167,9 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                                         color: isSelected
                                             ? kPrimaryColor
                                             : Colors.grey[500],
-                                        size: 22,
+                                        size: 22.sp,
                                       ),
-                                      SizedBox(width: 12),
+                                      SizedBox(width: 12.w),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
@@ -181,7 +179,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                                               title,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 16,
+                                                fontSize: 16.sp,
                                                 color: isSelected
                                                     ? kPrimaryColor
                                                     : Colors.black,
@@ -195,7 +193,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                                                 child: Text(
                                                   details,
                                                   style: TextStyle(
-                                                    fontSize: 13,
+                                                    fontSize: 13.sp,
                                                     color: Colors.grey[700],
                                                   ),
                                                 ),
@@ -207,7 +205,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                                         Icon(
                                           Icons.check_circle,
                                           color: kPrimaryColor,
-                                          size: 22,
+                                          size: 22.sp,
                                         ),
                                     ],
                                   ),
@@ -292,15 +290,15 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
             });
           }
           return Container(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.w),
             child: Row(
               children: [
-                SizedBox(width: 8),
+                SizedBox(width: 8.w),
                 Expanded(
                   child: Text(
                     "No address found. Please add a delivery address.",
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 16.sp,
                       color: kPrimaryColor,
                       fontWeight: FontWeight.w600,
                     ),
@@ -308,7 +306,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                 ),
                 IconButton(
                   onPressed: _navigateToSearch,
-                  icon: Icon(Icons.search, color: kPrimaryColor, size: 24),
+                  icon: Icon(Icons.search, color: kPrimaryColor, size: 24.sp),
                 ),
               ],
             ),
@@ -319,10 +317,10 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
 
         return Container(
           padding: EdgeInsets.only(
-            left: getProportionateScreenWidth(8),
-            right: getProportionateScreenWidth(10),
-            top: getProportionateScreenHeight(8),
-            bottom: getProportionateScreenHeight(8),
+            left: 8.w,
+            right: 10.w,
+            top: 8.h,
+            bottom: 8.h,
           ),
           decoration: BoxDecoration(color: Colors.white),
           child: Row(
@@ -359,7 +357,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                                 return Text(
                                   "${title[0].toUpperCase()}${title.substring(1)}",
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: 18.sp,
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -368,7 +366,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                               loading: () => Text(
                                 "Loading...",
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 12.sp,
                                   color: Colors.grey[400],
                                   fontWeight: FontWeight.w400,
                                 ),
@@ -376,7 +374,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                               error: (err, stack) => Text(
                                 "Error loading address",
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 12.sp,
                                   color: Colors.red,
                                   fontWeight: FontWeight.w400,
                                 ),
@@ -387,7 +385,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                               Icon(
                                 Icons.keyboard_arrow_down,
                                 color: kPrimaryColor,
-                                size: 20,
+                                size: 20.sp,
                               ),
                           ],
                         ),
@@ -397,7 +395,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                         Text(
                           "Add delivery address",
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
                             color: Colors.grey[600],
                           ),
@@ -429,7 +427,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                             return Text(
                               displayAddress,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 14.sp,
                                 fontWeight: FontWeight.w500,
                                 color: Color(0xFF646161),
                               ),
@@ -440,7 +438,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                           loading: () => Text(
                             "Loading...",
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 14.sp,
                               fontWeight: FontWeight.w600,
                               color: Colors.grey[400],
                             ),
@@ -448,7 +446,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                           error: (err, stack) => Text(
                             "Error loading address",
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 14.sp,
                               fontWeight: FontWeight.w600,
                               color: Colors.red,
                             ),
@@ -461,36 +459,36 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
               // Search icon
               IconButton(
                 onPressed: _navigateToSearch,
-                icon: Icon(Icons.search, color: kPrimaryColor, size: 32),
+                icon: Icon(Icons.search, color: kPrimaryColor, size: 32.sp),
               ),
             ],
           ),
         );
       },
       loading: () => Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.w),
         child: Row(
           children: [
             CircularProgressIndicator(),
-            SizedBox(width: 12),
+            SizedBox(width: 12.w),
             Expanded(child: Text('Loading addresses...')),
             IconButton(
               onPressed: _navigateToSearch,
-              icon: Icon(Icons.search, color: kPrimaryColor, size: 32),
+              icon: Icon(Icons.search, color: kPrimaryColor, size: 32.sp),
             ),
           ],
         ),
       ),
       error: (err, stack) => Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.w),
         child: Row(
           children: [
             Icon(Icons.error, color: Colors.red),
-            SizedBox(width: 12),
+            SizedBox(width: 12.w),
             Expanded(child: Text('Error loading addresses')),
             IconButton(
               onPressed: _navigateToSearch,
-              icon: Icon(Icons.search, color: kPrimaryColor, size: 32),
+              icon: Icon(Icons.search, color: kPrimaryColor, size: 32.sp),
             ),
           ],
         ),
