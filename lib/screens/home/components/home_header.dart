@@ -25,7 +25,7 @@ class HomeHeader extends StatelessWidget {
           Expanded(child: DeliveryAddressBar()),
           SizedBox(width: 8),
           Material(
-            color: Colors.white,
+            color: Color(0xFFEFF1F5),
             shape: const CircleBorder(),
             elevation: 2,
             

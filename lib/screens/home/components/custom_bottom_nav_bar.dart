@@ -31,7 +31,7 @@ class CustomBottomNavBar extends StatelessWidget {
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        selectedItemColor: Color(0xFF294157),
+        selectedItemColor: Color(0xFF000000),
         unselectedItemColor: Color(0xFF757575),
         selectedLabelStyle: TextStyle(
           fontWeight: FontWeight.w600,

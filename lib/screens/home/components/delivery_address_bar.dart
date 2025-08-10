@@ -322,7 +322,6 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
             top: 8.h,
             bottom: 8.h,
           ),
-          decoration: BoxDecoration(color: Colors.white),
           child: Row(
             children: [
               Expanded(

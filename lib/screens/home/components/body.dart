@@ -18,6 +18,7 @@ import 'package:logger/logger.dart';
 import 'package:fishkart/services/cache/hive_service.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:convert';
 import '../../../utils.dart';
 import '../components/home_header.dart';
 import 'product_type_box.dart';
@@ -55,7 +56,7 @@ class _BodyState extends ConsumerState<Body> {
     },
     <String, dynamic>{
       ICON_KEY: "assets/icons/salmon.png",
-      TITLE_KEY: "Exotic Fish",
+      TITLE_KEY: "Exotic",
       PRODUCT_TYPE_KEY: ProductType.Exotic,
       "examples": ["Salmon", "Tuna", "Snapper"],
     },
@@ -105,14 +106,12 @@ class _BodyState extends ConsumerState<Body> {
               child: SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                  ), // Consistent horizontal padding
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: Column(
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      SizedBox(height: 20.h), // More top space
+                      SizedBox(height: 20.h),
                       HomeHeader(
                         onSearchSubmitted: (value) async {
                           final query = value.toString();
@@ -222,36 +221,31 @@ class _BodyState extends ConsumerState<Body> {
                           child: Text(
                             'Fresh Fish Category',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.sp,
-                              color: Color(0xFF2B344F),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16.sp,
+                              color: Colors.black,
                             ),
                           ),
                         ),
                       ),
-                      // Updated Category Section with Vendor Style
                       SizedBox(
                         height: 140.h,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8.w,
-                          ), // Add horizontal padding
+                          padding: EdgeInsets.symmetric(horizontal: 8.w),
                           itemCount: productCategories.length,
                           separatorBuilder: (context, i) =>
-                              SizedBox(width: 12.w), // More space between items
+                              SizedBox(width: 2.w),
                           itemBuilder: (context, index) {
                             final cat = productCategories[index];
                             return Container(
-                              width: 80.w,
+                              width: 100.w, // Increased width
                               height: 120.h,
                               alignment: Alignment.center,
                               child: Container(
-                                width: 72.w,
+                                width: 90.w, // Increased inner card width
                                 height: 108.h,
-                                margin: EdgeInsets.symmetric(
-                                  vertical: 12.h,
-                                ), // More vertical margin
+                                margin: EdgeInsets.symmetric(vertical: 12.h),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(50.r),
@@ -269,7 +263,7 @@ class _BodyState extends ConsumerState<Body> {
                                     SizedBox(height: 8.h),
                                     Container(
                                       width: 48.w,
-                                      height: 40.h,
+                                      height: 48.w,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         shape: BoxShape.circle,
@@ -290,7 +284,7 @@ class _BodyState extends ConsumerState<Body> {
                                         cat[TITLE_KEY],
                                         style: TextStyle(
                                           color: Colors.black,
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w600,
                                           fontSize: 11.sp,
                                           fontFamily: 'Poppins',
                                         ),
@@ -306,26 +300,21 @@ class _BodyState extends ConsumerState<Body> {
                           },
                         ),
                       ),
-                      SizedBox(height: 18.h),
                       // Popular Items Section
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 4.h,
-                            horizontal: 4.w,
-                          ),
-                          child: Text(
-                            'Popular Items',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 20.sp,
-                              color: Color(0xFF2B344F),
-                            ),
+
+                        child: Text(
+                          'Popular Items',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16.sp,
+                            color: Colors.black,
                           ),
                         ),
                       ),
-                      // Only load a small batch of products for first-time users for speed
+                      SizedBox(height: 18.h),
+
                       Consumer(
                         builder: (context, ref, _) {
                           final allProductsAsync = ref.watch(
@@ -424,7 +413,7 @@ class _BodyState extends ConsumerState<Body> {
                                                         Container(
                                                           width:
                                                               double.infinity,
-                                                          height: 18.h,
+                                                          height: 20.h,
                                                           color:
                                                               Colors.grey[300],
                                                         ),
@@ -579,275 +568,10 @@ class _BodyState extends ConsumerState<Body> {
                                     physics: NeverScrollableScrollPhysics(),
                                     itemCount: products.length,
                                     separatorBuilder: (context, index) =>
-                                        SizedBox(
-                                          height: 24.h,
-                                        ), // More space between product cards
+                                        SizedBox(height: 16.h),
                                     itemBuilder: (context, index) {
                                       final product = products[index];
-                                      // Null safety and fallback values for all fields
-                                      final productTitle =
-                                          product.title ?? 'Unknown';
-                                      final productImages =
-                                          product.images ?? [];
-                                      final productImage =
-                                          (productImages.isNotEmpty &&
-                                              productImages.first.isNotEmpty)
-                                          ? productImages.first
-                                          : null;
-                                      final productVariant =
-                                          product.variant ?? '';
-                                      final discountPrice =
-                                          product.discountPrice ?? 0.0;
-                                      final originalPrice =
-                                          product.originalPrice ?? 0.0;
-                                      return InkWell(
-                                        onTap: () {
-                                          if (context.mounted) {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    ProductDetailsScreen(
-                                                      key: UniqueKey(),
-                                                      productId: product.id,
-                                                    ),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        borderRadius: BorderRadius.circular(24),
-                                        child: Container(
-                                          margin: EdgeInsets.symmetric(
-                                            horizontal: 8
-                                                .w, // More margin from screen edge
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                              24,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black12,
-                                                blurRadius: 16,
-                                                offset: Offset(0, 8),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              Padding(
-                                                padding: EdgeInsets.all(
-                                                  16.w,
-                                                ), // More padding for image
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        16.r,
-                                                      ),
-                                                  child: Container(
-                                                    width: 80.w,
-                                                    height: 80.w,
-                                                    color: Colors.grey[200],
-                                                    child: productImage != null
-                                                        ? Base64ImageService()
-                                                              .base64ToImage(
-                                                                productImage,
-                                                                fit: BoxFit
-                                                                    .cover,
-                                                                width: 80.w,
-                                                                height: 80.w,
-                                                              )
-                                                        : Center(
-                                                            child: Icon(
-                                                              Icons.image,
-                                                              color:
-                                                                  Colors.grey,
-                                                              size: 40.sp,
-                                                            ),
-                                                          ),
-                                                  ),
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: Padding(
-                                                  padding: EdgeInsets.symmetric(
-                                                    vertical: 18.h,
-                                                    horizontal: 8
-                                                        .w, // More horizontal padding for text
-                                                  ),
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        productTitle,
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          fontSize: 17.sp,
-                                                          color: Color(
-                                                            0xFF2B344F,
-                                                          ),
-                                                        ),
-                                                        maxLines: 2,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                      if (productVariant
-                                                          .isNotEmpty)
-                                                        Padding(
-                                                          padding:
-                                                              EdgeInsets.only(
-                                                                top: 2.h,
-                                                              ),
-                                                          child: Text(
-                                                            'Net weight: $productVariant',
-                                                            style: TextStyle(
-                                                              fontSize: 13.sp,
-                                                              color: Colors
-                                                                  .black54,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      SizedBox(height: 6.h),
-                                                      Row(
-                                                        children: [
-                                                          Text(
-                                                            '₹${discountPrice.toStringAsFixed(2)}',
-                                                            style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              fontSize: 15.sp,
-                                                              color:
-                                                                  Colors.black,
-                                                            ),
-                                                          ),
-                                                          if (originalPrice > 0)
-                                                            Padding(
-                                                              padding:
-                                                                  EdgeInsets.only(
-                                                                    left: 6.w,
-                                                                  ),
-                                                              child: Text(
-                                                                '₹${originalPrice.toStringAsFixed(2)}',
-                                                                style: TextStyle(
-                                                                  fontSize:
-                                                                      12.sp,
-                                                                  color: Colors
-                                                                      .black38,
-                                                                  decoration:
-                                                                      TextDecoration
-                                                                          .lineThrough,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 12
-                                                      .w, // Less padding for add button
-                                                ),
-                                                child: Material(
-                                                  color: Colors.transparent,
-                                                  child: InkWell(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          32.r,
-                                                        ),
-                                                    onTap: () {
-                                                      final selectedAddressId =
-                                                          ref.read(
-                                                            selectedAddressIdProvider,
-                                                          );
-                                                      if (selectedAddressId ==
-                                                          null) {
-                                                        if (context.mounted) {
-                                                          ScaffoldMessenger.of(
-                                                            context,
-                                                          ).showSnackBar(
-                                                            SnackBar(
-                                                              content: Text(
-                                                                "Please select a delivery address before adding to cart.",
-                                                              ),
-                                                              backgroundColor:
-                                                                  Colors.red,
-                                                            ),
-                                                          );
-                                                        }
-                                                        return;
-                                                      }
-                                                      if (context.mounted) {
-                                                        ScaffoldMessenger.of(
-                                                          context,
-                                                        ).showSnackBar(
-                                                          SnackBar(
-                                                            content: Text(
-                                                              '$productTitle added to cart!',
-                                                            ),
-                                                          ),
-                                                        );
-                                                      }
-                                                      UserDatabaseHelper()
-                                                          .addProductToCart(
-                                                            product.id,
-                                                            addressId:
-                                                                selectedAddressId,
-                                                          )
-                                                          .catchError((e) {
-                                                            if (context
-                                                                .mounted) {
-                                                              ScaffoldMessenger.of(
-                                                                context,
-                                                              ).showSnackBar(
-                                                                SnackBar(
-                                                                  content: Text(
-                                                                    'Failed to add to cart: $e',
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            }
-                                                            return false;
-                                                          });
-                                                    },
-                                                    child: Container(
-                                                      width: 56.w,
-                                                      height: 56.w,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        shape: BoxShape.circle,
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color:
-                                                                Colors.black12,
-                                                            blurRadius: 12.r,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Icon(
-                                                        Icons.add,
-                                                        size: 36.sp,
-                                                        color: Color(
-                                                          0xFF2B344F,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
+                                      return _buildProductCard(product, ref);
                                     },
                                   );
                                 },
@@ -863,6 +587,302 @@ class _BodyState extends ConsumerState<Body> {
                       SizedBox(height: 80.h),
                     ],
                   ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductCard(Product product, WidgetRef ref) {
+    final isAvailable = (product as dynamic).isAvailable ?? true;
+
+    // Null safety and fallback values for all fields
+    final productTitle = product.title ?? 'Unknown';
+    final productImages = product.images ?? [];
+    final productImage =
+        (productImages.isNotEmpty && productImages.first.isNotEmpty)
+        ? productImages.first
+        : null;
+    final productVariant = product.variant ?? '';
+    final discountPrice = product.discountPrice ?? 0.0;
+    final originalPrice = product.originalPrice ?? 0.0;
+
+    // Build image widget with proper scaling and positioning
+    Widget imageWidget;
+    if (productImage != null) {
+      Widget imgChild;
+      if (productImage.startsWith('data:image')) {
+        try {
+          final base64Str = productImage.split(',').last;
+          imgChild = Image.memory(
+            base64Decode(base64Str),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            errorBuilder: (context, error, stackTrace) =>
+                Icon(Icons.image, size: 32.sp, color: Colors.grey),
+          );
+        } catch (_) {
+          imgChild = Icon(Icons.image, size: 32.sp, color: Colors.grey);
+        }
+      } else if (productImage.startsWith('http')) {
+        imgChild = Image.network(
+          productImage,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (context, error, stackTrace) =>
+              Icon(Icons.image, size: 32.sp, color: Colors.grey),
+        );
+      } else if (productImage.length > 100) {
+        try {
+          imgChild = Image.memory(
+            base64Decode(productImage),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            errorBuilder: (context, error, stackTrace) =>
+                Icon(Icons.image, size: 32.sp, color: Colors.grey),
+          );
+        } catch (_) {
+          imgChild = Icon(Icons.image, size: 32.sp, color: Colors.grey);
+        }
+      } else {
+        imgChild = Base64ImageService().base64ToImage(
+          productImage,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+        );
+      }
+
+      imageWidget = Container(
+        width: 120.w,
+        height: double.infinity,
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(25.r)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(25.r),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                isAvailable ? Colors.transparent : Colors.grey.withOpacity(0.6),
+                isAvailable ? BlendMode.multiply : BlendMode.saturation,
+              ),
+              child: imgChild,
+            ),
+          ),
+        ),
+      );
+    } else {
+      imageWidget = Container(
+        width: 120.w,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: isAvailable
+              ? const Color(0xFFE0E0E0)
+              : const Color(0xFFE0E0E0).withOpacity(0.5),
+          borderRadius: BorderRadius.circular(25.r),
+        ),
+        child: Icon(
+          Icons.image,
+          size: 32.sp,
+          color: isAvailable ? Colors.grey : Colors.grey.withOpacity(0.5),
+        ),
+      );
+    }
+
+    return InkWell(
+      onTap: () {
+        if (context.mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  ProductDetailsScreen(key: UniqueKey(), productId: product.id),
+            ),
+          );
+        }
+      },
+      borderRadius: BorderRadius.circular(25.r),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: EdgeInsets.symmetric(vertical: 4.h),
+        decoration: BoxDecoration(
+          color: isAvailable ? Colors.white : Colors.white.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(25.r),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 8.r,
+              color: Colors.black.withOpacity(isAvailable ? 0.06 : 0.03),
+              offset: Offset(0, 2.h),
+            ),
+          ],
+        ),
+        height: 120.h,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            imageWidget,
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 8.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          productTitle,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16.sp,
+                            color: isAvailable
+                                ? Colors.black
+                                : Colors.grey.shade600,
+                            fontFamily: 'Poppins',
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 4.h),
+                        if (productVariant.isNotEmpty)
+                          Text(
+                            'Net weight: $productVariant',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: isAvailable
+                                  ? const Color(0xFF8E8E93)
+                                  : Colors.grey.shade500,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w400,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '₹${discountPrice.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14.sp,
+                                  color: isAvailable
+                                      ? Colors.black
+                                      : Colors.grey.shade600,
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              if (originalPrice > 0 &&
+                                  originalPrice != discountPrice)
+                                Text(
+                                  '₹${originalPrice.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    color: isAvailable
+                                        ? const Color(0xFFB0B0B0)
+                                        : Colors.grey.shade500,
+                                    decoration: TextDecoration.lineThrough,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(32.r),
+                            onTap: () {
+                              final selectedAddressId = ref.read(
+                                selectedAddressIdProvider,
+                              );
+                              if (selectedAddressId == null) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "Please select a delivery address before adding to cart.",
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '$productTitle added to cart!',
+                                    ),
+                                  ),
+                                );
+                              }
+                              UserDatabaseHelper()
+                                  .addProductToCart(
+                                    product.id,
+                                    addressId: selectedAddressId,
+                                  )
+                                  .catchError((e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Failed to add to cart: $e',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    return false;
+                                  });
+                            },
+                            child: Container(
+                              // Add border radius to the add-to-cart button
+                              clipBehavior: Clip.antiAlias,
+                              width: 32.w,
+                              height: 32.w,
+                              decoration: BoxDecoration(
+                                color: isAvailable
+                                    ? const Color.fromARGB(255, 0, 0, 0)
+                                    : const Color(0xFFB0B0B0),
+                                borderRadius: BorderRadius.circular(8.r),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8.r,
+                                    offset: Offset(0, 2.h),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.add,
+                                size: 24.sp,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
