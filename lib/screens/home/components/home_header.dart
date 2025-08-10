@@ -28,15 +28,7 @@ class HomeHeader extends StatelessWidget {
             color: Colors.white,
             shape: const CircleBorder(),
             elevation: 2,
-            child: IconButton(
-              icon: Icon(Icons.search, color: Colors.black),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SearchScreen()),
-                );
-              },
-            ),
+            
           ),
         ],
       ),

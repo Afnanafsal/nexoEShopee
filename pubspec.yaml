@@ -57,6 +57,7 @@ dependencies:
   flutter_facebook_auth: ^6.0.3
   razorpay_flutter: ^1.4.0
   android_intent_plus: ^5.3.0
+  flutter_screenutil: ^5.9.3
 
 dev_dependencies:
   flutter_test:

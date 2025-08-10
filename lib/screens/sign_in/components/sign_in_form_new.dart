@@ -36,11 +36,11 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
       contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Color(0xFF2B344F), width: 1.5),
+        borderSide: BorderSide(color: Colors.black, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Color(0xFF2B344F), width: 2),
+        borderSide: BorderSide(color: Colors.black, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -77,7 +77,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
-              color: Color(0xFF2B344F),
+              color: Colors.black,
             ),
           ),
           buildDisplayNameFormField(),
@@ -88,7 +88,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
-              color: Color(0xFF2B344F),
+              color: Colors.black,
             ),
           ),
           buildPhoneNumberFormField(),
@@ -99,7 +99,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
-              color: Color(0xFF2B344F),
+              color: Colors.black,
             ),
           ),
           buildEmailFormField(),
@@ -110,7 +110,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
-              color: Color(0xFF2B344F),
+              color: Colors.black,
             ),
           ),
           buildPasswordFormField(),
@@ -121,7 +121,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
-              color: Color(0xFF2B344F),
+              color: Colors.black,
             ),
           ),
           buildConfirmPasswordFormField(),
@@ -132,7 +132,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF2B344F),
+                backgroundColor: Colors.black,
                 padding: EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -340,7 +340,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
           email: emailFieldController.text,
           password: passwordFieldController.text,
           displayName: displayNameController.text,
-          phoneNumber: phoneNumberController.text, 
+          phoneNumber: phoneNumberController.text,
         );
 
         signUpFuture.then((value) => signUpStatus = value);

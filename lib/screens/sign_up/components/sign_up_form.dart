@@ -64,7 +64,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
-              color: Color(0xFF2B344F),
+              color: Colors.black,
             ),
           ),
           SizedBox(height: 3),
@@ -76,7 +76,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
-              color: Color(0xFF2B344F),
+              color: Colors.black,
             ),
           ),
           SizedBox(height: 3),
@@ -88,7 +88,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
-              color: Color(0xFF2B344F),
+              color: Colors.black,
             ),
           ),
           SizedBox(height: 3),
@@ -100,7 +100,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
-              color: Color(0xFF2B344F),
+              color: Colors.black,
             ),
           ),
           SizedBox(height: 3),
@@ -112,7 +112,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
-              color: Color(0xFF2B344F),
+              color: Colors.black,
             ),
           ),
           SizedBox(height: 3),
@@ -124,7 +124,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF2B344F),
+                backgroundColor: Colors.black,
                 padding: EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -157,11 +157,11 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 12),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF2B344F), width: 1.5),
+          borderSide: BorderSide(color: Colors.black, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF2B344F), width: 2),
+          borderSide: BorderSide(color: Colors.black, width: 2),
         ),
       ),
       onChanged: (value) {
@@ -195,11 +195,11 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF2B344F), width: 1.5),
+          borderSide: BorderSide(color: Colors.black, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF2B344F), width: 2),
+          borderSide: BorderSide(color: Colors.black, width: 2),
         ),
       ),
 
@@ -231,11 +231,11 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Color(0xFF2B344F), width: 1.5),
+              borderSide: BorderSide(color: Colors.black, width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Color(0xFF2B344F), width: 2),
+              borderSide: BorderSide(color: Colors.black, width: 2),
             ),
             suffixIcon: IconButton(
               icon: Icon(
@@ -284,11 +284,11 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF2B344F), width: 1.5),
+          borderSide: BorderSide(color: Colors.black, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF2B344F), width: 2),
+          borderSide: BorderSide(color: Colors.black, width: 2),
         ),
       ),
       validator: (value) {
@@ -314,11 +314,11 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Color(0xFF2B344F), width: 1.5),
+              borderSide: BorderSide(color: Colors.black, width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Color(0xFF2B344F), width: 2),
+              borderSide: BorderSide(color: Colors.black, width: 2),
             ),
             suffixIcon: IconButton(
               icon: Icon(
@@ -367,7 +367,8 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             .limit(1)
             .get();
         if (existing.docs.isNotEmpty) {
-          snackbarMessage = "This email is already registered. Please login or use 'Forgot Password' if you can't access your account.";
+          snackbarMessage =
+              "This email is already registered. Please login or use 'Forgot Password' if you can't access your account.";
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(snackbarMessage),
@@ -388,7 +389,8 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         // Check if email exists in Firebase Auth (for Google sign-in edge case)
         final methods = await authService.fetchSignInMethodsForEmail(email);
         if (methods.isNotEmpty) {
-          snackbarMessage = "This email is already registered. Please login or use 'Forgot Password' if you can't access your account.";
+          snackbarMessage =
+              "This email is already registered. Please login or use 'Forgot Password' if you can't access your account.";
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(snackbarMessage),
@@ -429,12 +431,13 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         // Instead of relying on result == true, check if user exists in Auth and Firestore
         final user = authService.currentUser;
         final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+            .collection('users')
+            .doc(user.uid)
+            .get();
         final userType = userDoc.data()?['userType'];
         if (user != null && userDoc.exists && userType == 'customer') {
-          snackbarMessage = "Account created successfully! Please verify your email.";
+          snackbarMessage =
+              "Account created successfully! Please verify your email.";
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(snackbarMessage),

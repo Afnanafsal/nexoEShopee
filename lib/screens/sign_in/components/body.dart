@@ -159,7 +159,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
             fontSize: 16,
-            color: Color(0xFF2B344F),
+            color: Colors.black,
           ),
         ),
         SizedBox(height: 8),
@@ -170,15 +170,15 @@ class _SignInCardContentState extends State<_SignInCardContent> {
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Color(0xFF2B344F)),
+              borderSide: BorderSide(color: Colors.black),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Color(0xFF2B344F)),
+              borderSide: BorderSide(color: Colors.black),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Color(0xFF2B344F), width: 2),
+              borderSide: BorderSide(color: Colors.black, width: 2),
             ),
           ),
         ),
@@ -189,7 +189,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
             fontSize: 16,
-            color: Color(0xFF2B344F),
+            color: Colors.black,
           ),
         ),
         SizedBox(height: 8),
@@ -201,20 +201,20 @@ class _SignInCardContentState extends State<_SignInCardContent> {
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Color(0xFF2B344F)),
+              borderSide: BorderSide(color: Colors.black),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Color(0xFF2B344F)),
+              borderSide: BorderSide(color: Colors.black),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Color(0xFF2B344F), width: 2),
+              borderSide: BorderSide(color: Colors.black, width: 2),
             ),
             suffixIcon: IconButton(
               icon: Icon(
                 passwordVisible ? Icons.visibility : Icons.visibility_off,
-                color: Color(0xFF2B344F),
+                color: Colors.black,
               ),
               onPressed: () {
                 setState(() {
@@ -229,7 +229,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
           children: [
             Checkbox(
               value: keepLoggedIn,
-              activeColor: Color(0xFF2B344F),
+              activeColor: Colors.black,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -244,7 +244,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 15,
-                color: Color(0xFF2B344F),
+                color: Colors.black,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -260,7 +260,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF2B344F),
+                  color: Colors.black,
                   decoration: TextDecoration.underline,
                   fontSize: 15,
                 ),
@@ -282,7 +282,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
                 "Forgot Password?",
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  color: Color(0xFF2B344F),
+                  color: Colors.black,
                   decoration: TextDecoration.underline,
                   fontWeight: FontWeight.w400,
                   fontSize: 15,
@@ -297,7 +297,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
           height: 48,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF2B344F),
+              backgroundColor: Colors.black,
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -369,7 +369,8 @@ class _SignInCardContentState extends State<_SignInCardContent> {
                           label: "Sign Up",
                           textColor: Colors.white,
                           onPressed: () async {
-                            final googleUser = await GoogleSignIn().signInSilently();
+                            final googleUser = await GoogleSignIn()
+                                .signInSilently();
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
                                 builder: (context) => SignUpScreen(),
@@ -390,11 +391,9 @@ class _SignInCardContentState extends State<_SignInCardContent> {
                       SnackBar(content: Text("Google sign-in failed")),
                     );
                   } else if (result is MessagedFirebaseAuthException) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(result.message),
-                      ),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(result.message)));
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -463,7 +462,7 @@ class _SocialButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
-          foregroundColor: Color(0xFF2B344F),
+          foregroundColor: Colors.black,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -491,7 +490,7 @@ class _SocialButton extends StatelessWidget {
                 fontFamily: 'Poppins',
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF2B344F),
+                color: Colors.black,
               ),
             ),
           ],

@@ -127,7 +127,6 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
             padding: EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(Icons.location_on, color: kPrimaryColor, size: 20),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -155,7 +154,6 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
           decoration: BoxDecoration(color: Colors.white),
           child: Row(
             children: [
-              Icon(Icons.location_on, color: kPrimaryColor, size: 20),
               SizedBox(width: getProportionateScreenWidth(8)),
               Expanded(
                 child: InkWell(
@@ -286,11 +284,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                               children: [
                                 Row(
                                   children: [
-                                    Icon(
-                                      Icons.location_on,
-                                      color: kPrimaryColor,
-                                      size: 24,
-                                    ),
+                                    
                                     SizedBox(width: 8),
                                     Text(
                                       'Select Delivery Address',

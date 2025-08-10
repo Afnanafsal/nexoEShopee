@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:logger/logger.dart';
 import 'package:fishkart/services/cache/hive_service.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../utils.dart';
 import '../components/home_header.dart';
 import 'product_type_box.dart';
@@ -25,17 +26,24 @@ const String ICON_KEY = "icon";
 const String TITLE_KEY = "title";
 const String PRODUCT_TYPE_KEY = "product_type";
 
-class Body extends ConsumerWidget {
+class Body extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<Body> createState() => _BodyState();
+}
+
+class _BodyState extends ConsumerState<Body> {
+  int selectedIndex = 0;
+
   final productCategories = <Map>[
     <String, dynamic>{
       ICON_KEY: "assets/icons/rohu.png",
-      TITLE_KEY: "Freshwater Fish",
+      TITLE_KEY: "Freshwater",
       PRODUCT_TYPE_KEY: ProductType.Freshwater,
       "examples": ["Rohu", "Catla", "Tilapia"],
     },
     <String, dynamic>{
       ICON_KEY: "assets/icons/Pomfret.png",
-      TITLE_KEY: "Saltwater Fish",
+      TITLE_KEY: "Saltwater",
       PRODUCT_TYPE_KEY: ProductType.Saltwater,
       "examples": ["Pomfret", "King Fish", "Mackerel"],
     },
@@ -66,7 +74,7 @@ class Body extends ConsumerWidget {
   ];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     // Show alert if user is not verified (only once per build)
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       bool allowed = AuthentificationService().currentUserVerified;
@@ -218,36 +226,77 @@ class Body extends ConsumerWidget {
                           ),
                         ),
                       ),
+                      // Updated Category Section with Vendor Style
                       SizedBox(
-                        height: SizeConfig.screenHeight * 0.191,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            physics: BouncingScrollPhysics(),
-                            itemCount: productCategories.length,
-                            itemBuilder: (context, index) {
-                              return ProductTypeBox(
-                                icon: productCategories[index][ICON_KEY],
-                                title: productCategories[index][TITLE_KEY],
-                                onPress: () {
-                                  if (context.mounted) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            CategoryProductsScreen(
-                                              key: UniqueKey(),
-                                              productType:
-                                                  productCategories[index][PRODUCT_TYPE_KEY],
-                                            ),
+                        height: 140.h,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding: EdgeInsets.only(left: 0),
+                          itemCount: productCategories.length,
+                          separatorBuilder: (context, i) =>
+                              SizedBox(width: 4.w),
+                          itemBuilder: (context, index) {
+                            final cat = productCategories[index];
+                            return Container(
+                              width: 80.w,
+                              height: 120.h,
+                              alignment: Alignment.center,
+                              child: Container(
+                                width: 72.w,
+                                height: 108.h,
+                                margin: EdgeInsets.only(top: 8.h, bottom: 8.h),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(50.r),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 6.r,
+                                      offset: Offset(0, 2.h),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SizedBox(height: 8.h),
+                                    Container(
+                                      width: 48.w,
+                                      height: 40.h,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
                                       ),
-                                    );
-                                  }
-                                },
-                              );
-                            },
-                          ),
+                                      child: ClipOval(
+                                        child: Image.asset(
+                                          cat[ICON_KEY],
+                                          width: 48.w,
+                                          height: 48.w,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 6.h),
+                                    SizedBox(
+                                      width: 60.w,
+                                      child: Text(
+                                        cat[TITLE_KEY],
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 11.sp,
+                                          fontFamily: 'Poppins',
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                       SizedBox(height: getProportionateScreenHeight(5)),

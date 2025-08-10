@@ -74,12 +74,11 @@ class Body extends StatelessWidget {
                                 "Already have an account?",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF2B344F),
+                                  color: Colors.black,
                                   fontSize: 14,
                                 ),
                               ),
                             ),
-                            
                           ],
                         ),
                       ],
