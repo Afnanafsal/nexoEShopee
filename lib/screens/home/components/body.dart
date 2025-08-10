@@ -10,7 +10,7 @@ import 'package:fishkart/services/authentification/authentification_service.dart
 import 'package:fishkart/services/database/product_database_helper.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:fishkart/providers/providers.dart';
-import 'package:fishkart/size_config.dart';
+// import 'package:fishkart/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -106,13 +106,13 @@ class _BodyState extends ConsumerState<Body> {
                 physics: AlwaysScrollableScrollPhysics(),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: getProportionateScreenWidth(screenPadding),
-                  ),
+                    horizontal: 16.w,
+                  ), // Consistent horizontal padding
                   child: Column(
                     mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      SizedBox(height: getProportionateScreenHeight(15)),
+                      SizedBox(height: 20.h), // More top space
                       HomeHeader(
                         onSearchSubmitted: (value) async {
                           final query = value.toString();
@@ -209,18 +209,21 @@ class _BodyState extends ConsumerState<Body> {
                           }
                         },
                       ),
-                      SizedBox(height: getProportionateScreenHeight(5)),
+                      SizedBox(height: 12.h),
                       SvgPicture.asset('assets/images/banner1.svg'),
-                      SizedBox(height: getProportionateScreenHeight(5)),
+                      SizedBox(height: 18.h),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(
+                            vertical: 4.h,
+                            horizontal: 4.w,
+                          ),
                           child: Text(
                             'Fresh Fish Category',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 18,
+                              fontSize: 18.sp,
                               color: Color(0xFF2B344F),
                             ),
                           ),
@@ -231,10 +234,12 @@ class _BodyState extends ConsumerState<Body> {
                         height: 140.h,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.only(left: 0),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                          ), // Add horizontal padding
                           itemCount: productCategories.length,
                           separatorBuilder: (context, i) =>
-                              SizedBox(width: 4.w),
+                              SizedBox(width: 12.w), // More space between items
                           itemBuilder: (context, index) {
                             final cat = productCategories[index];
                             return Container(
@@ -244,7 +249,9 @@ class _BodyState extends ConsumerState<Body> {
                               child: Container(
                                 width: 72.w,
                                 height: 108.h,
-                                margin: EdgeInsets.only(top: 8.h, bottom: 8.h),
+                                margin: EdgeInsets.symmetric(
+                                  vertical: 12.h,
+                                ), // More vertical margin
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(50.r),
@@ -299,17 +306,20 @@ class _BodyState extends ConsumerState<Body> {
                           },
                         ),
                       ),
-                      SizedBox(height: getProportionateScreenHeight(5)),
+                      SizedBox(height: 18.h),
                       // Popular Items Section
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          padding: EdgeInsets.symmetric(
+                            vertical: 4.h,
+                            horizontal: 4.w,
+                          ),
                           child: Text(
                             'Popular Items',
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
-                              fontSize: 20,
+                              fontSize: 20.sp,
                               color: Color(0xFF2B344F),
                             ),
                           ),
@@ -360,24 +370,24 @@ class _BodyState extends ConsumerState<Body> {
                                       physics: NeverScrollableScrollPhysics(),
                                       itemCount: 6,
                                       separatorBuilder: (context, index) =>
-                                          SizedBox(height: 20),
+                                          SizedBox(height: 20.h),
                                       itemBuilder: (context, index) {
                                         return Shimmer.fromColors(
                                           baseColor: Colors.grey[300]!,
                                           highlightColor: Colors.grey[100]!,
                                           child: Container(
                                             margin: EdgeInsets.symmetric(
-                                              horizontal: 2,
+                                              horizontal: 2.w,
                                             ),
                                             decoration: BoxDecoration(
                                               color: Colors.white,
                                               borderRadius:
-                                                  BorderRadius.circular(24),
+                                                  BorderRadius.circular(24.r),
                                               boxShadow: [
                                                 BoxShadow(
                                                   color: Colors.black12,
-                                                  blurRadius: 16,
-                                                  offset: Offset(0, 8),
+                                                  blurRadius: 16.r,
+                                                  offset: Offset(0, 8.h),
                                                 ),
                                               ],
                                             ),
@@ -386,17 +396,15 @@ class _BodyState extends ConsumerState<Body> {
                                                   CrossAxisAlignment.center,
                                               children: [
                                                 Padding(
-                                                  padding: const EdgeInsets.all(
-                                                    12.0,
-                                                  ),
+                                                  padding: EdgeInsets.all(12.w),
                                                   child: ClipRRect(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          16,
+                                                          16.r,
                                                         ),
                                                     child: Container(
-                                                      width: 80,
-                                                      height: 80,
+                                                      width: 80.w,
+                                                      height: 80.w,
                                                       color: Colors.grey[200],
                                                     ),
                                                   ),
@@ -404,9 +412,9 @@ class _BodyState extends ConsumerState<Body> {
                                                 Expanded(
                                                   child: Padding(
                                                     padding:
-                                                        const EdgeInsets.symmetric(
-                                                          vertical: 18.0,
-                                                          horizontal: 4.0,
+                                                        EdgeInsets.symmetric(
+                                                          vertical: 18.h,
+                                                          horizontal: 4.w,
                                                         ),
                                                     child: Column(
                                                       crossAxisAlignment:
@@ -416,30 +424,32 @@ class _BodyState extends ConsumerState<Body> {
                                                         Container(
                                                           width:
                                                               double.infinity,
-                                                          height: 18,
+                                                          height: 18.h,
                                                           color:
                                                               Colors.grey[300],
                                                         ),
-                                                        SizedBox(height: 8),
+                                                        SizedBox(height: 8.h),
                                                         Container(
-                                                          width: 80,
-                                                          height: 14,
+                                                          width: 80.w,
+                                                          height: 14.h,
                                                           color:
                                                               Colors.grey[300],
                                                         ),
-                                                        SizedBox(height: 6),
+                                                        SizedBox(height: 6.h),
                                                         Row(
                                                           children: [
                                                             Container(
-                                                              width: 40,
-                                                              height: 16,
+                                                              width: 40.w,
+                                                              height: 16.h,
                                                               color: Colors
                                                                   .grey[300],
                                                             ),
-                                                            SizedBox(width: 8),
+                                                            SizedBox(
+                                                              width: 8.w,
+                                                            ),
                                                             Container(
-                                                              width: 40,
-                                                              height: 14,
+                                                              width: 40.w,
+                                                              height: 14.h,
                                                               color: Colors
                                                                   .grey[300],
                                                             ),
@@ -569,7 +579,9 @@ class _BodyState extends ConsumerState<Body> {
                                     physics: NeverScrollableScrollPhysics(),
                                     itemCount: products.length,
                                     separatorBuilder: (context, index) =>
-                                        SizedBox(height: 20),
+                                        SizedBox(
+                                          height: 24.h,
+                                        ), // More space between product cards
                                     itemBuilder: (context, index) {
                                       final product = products[index];
                                       // Null safety and fallback values for all fields
@@ -606,7 +618,8 @@ class _BodyState extends ConsumerState<Body> {
                                         borderRadius: BorderRadius.circular(24),
                                         child: Container(
                                           margin: EdgeInsets.symmetric(
-                                            horizontal: 2,
+                                            horizontal: 8
+                                                .w, // More margin from screen edge
                                           ),
                                           decoration: BoxDecoration(
                                             color: Colors.white,
@@ -626,15 +639,17 @@ class _BodyState extends ConsumerState<Body> {
                                                 CrossAxisAlignment.center,
                                             children: [
                                               Padding(
-                                                padding: const EdgeInsets.all(
-                                                  12.0,
-                                                ),
+                                                padding: EdgeInsets.all(
+                                                  16.w,
+                                                ), // More padding for image
                                                 child: ClipRRect(
                                                   borderRadius:
-                                                      BorderRadius.circular(16),
+                                                      BorderRadius.circular(
+                                                        16.r,
+                                                      ),
                                                   child: Container(
-                                                    width: 80,
-                                                    height: 80,
+                                                    width: 80.w,
+                                                    height: 80.w,
                                                     color: Colors.grey[200],
                                                     child: productImage != null
                                                         ? Base64ImageService()
@@ -642,15 +657,15 @@ class _BodyState extends ConsumerState<Body> {
                                                                 productImage,
                                                                 fit: BoxFit
                                                                     .cover,
-                                                                width: 80,
-                                                                height: 80,
+                                                                width: 80.w,
+                                                                height: 80.w,
                                                               )
                                                         : Center(
                                                             child: Icon(
                                                               Icons.image,
                                                               color:
                                                                   Colors.grey,
-                                                              size: 40,
+                                                              size: 40.sp,
                                                             ),
                                                           ),
                                                   ),
@@ -658,11 +673,11 @@ class _BodyState extends ConsumerState<Body> {
                                               ),
                                               Expanded(
                                                 child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 18.0,
-                                                        horizontal: 4.0,
-                                                      ),
+                                                  padding: EdgeInsets.symmetric(
+                                                    vertical: 18.h,
+                                                    horizontal: 8
+                                                        .w, // More horizontal padding for text
+                                                  ),
                                                   child: Column(
                                                     crossAxisAlignment:
                                                         CrossAxisAlignment
@@ -673,7 +688,7 @@ class _BodyState extends ConsumerState<Body> {
                                                         style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.w700,
-                                                          fontSize: 17,
+                                                          fontSize: 17.sp,
                                                           color: Color(
                                                             0xFF2B344F,
                                                           ),
@@ -686,19 +701,19 @@ class _BodyState extends ConsumerState<Body> {
                                                           .isNotEmpty)
                                                         Padding(
                                                           padding:
-                                                              const EdgeInsets.only(
-                                                                top: 2.0,
+                                                              EdgeInsets.only(
+                                                                top: 2.h,
                                                               ),
                                                           child: Text(
                                                             'Net weight: $productVariant',
                                                             style: TextStyle(
-                                                              fontSize: 13,
+                                                              fontSize: 13.sp,
                                                               color: Colors
                                                                   .black54,
                                                             ),
                                                           ),
                                                         ),
-                                                      SizedBox(height: 6),
+                                                      SizedBox(height: 6.h),
                                                       Row(
                                                         children: [
                                                           Text(
@@ -707,7 +722,7 @@ class _BodyState extends ConsumerState<Body> {
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w700,
-                                                              fontSize: 15,
+                                                              fontSize: 15.sp,
                                                               color:
                                                                   Colors.black,
                                                             ),
@@ -715,13 +730,14 @@ class _BodyState extends ConsumerState<Body> {
                                                           if (originalPrice > 0)
                                                             Padding(
                                                               padding:
-                                                                  const EdgeInsets.only(
-                                                                    left: 6.0,
+                                                                  EdgeInsets.only(
+                                                                    left: 6.w,
                                                                   ),
                                                               child: Text(
                                                                 '₹${originalPrice.toStringAsFixed(2)}',
                                                                 style: TextStyle(
-                                                                  fontSize: 12,
+                                                                  fontSize:
+                                                                      12.sp,
                                                                   color: Colors
                                                                       .black38,
                                                                   decoration:
@@ -737,16 +753,16 @@ class _BodyState extends ConsumerState<Body> {
                                                 ),
                                               ),
                                               Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 16.0,
-                                                    ),
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 12
+                                                      .w, // Less padding for add button
+                                                ),
                                                 child: Material(
                                                   color: Colors.transparent,
                                                   child: InkWell(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          32,
+                                                          32.r,
                                                         ),
                                                     onTap: () {
                                                       final selectedAddressId =
@@ -804,8 +820,8 @@ class _BodyState extends ConsumerState<Body> {
                                                           });
                                                     },
                                                     child: Container(
-                                                      width: 56,
-                                                      height: 56,
+                                                      width: 56.w,
+                                                      height: 56.w,
                                                       decoration: BoxDecoration(
                                                         color: Colors.white,
                                                         shape: BoxShape.circle,
@@ -813,13 +829,13 @@ class _BodyState extends ConsumerState<Body> {
                                                           BoxShadow(
                                                             color:
                                                                 Colors.black12,
-                                                            blurRadius: 12,
+                                                            blurRadius: 12.r,
                                                           ),
                                                         ],
                                                       ),
                                                       child: Icon(
                                                         Icons.add,
-                                                        size: 36,
+                                                        size: 36.sp,
                                                         color: Color(
                                                           0xFF2B344F,
                                                         ),
@@ -844,7 +860,7 @@ class _BodyState extends ConsumerState<Body> {
                           );
                         },
                       ),
-                      SizedBox(height: getProportionateScreenHeight(80)),
+                      SizedBox(height: 80.h),
                     ],
                   ),
                 ),
