@@ -187,7 +187,7 @@ class _SearchScreenState extends State<SearchScreen> {
       decoration: BoxDecoration(
         color: Colors.grey[100],
         borderRadius: BorderRadius.circular(25.r),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: Colors.black),
       ),
       child: Row(
         children: [
@@ -198,7 +198,7 @@ class _SearchScreenState extends State<SearchScreen> {
               child: const Icon(
                 Icons.arrow_back_ios,
                 color: Colors.black,
-                size: 20,
+                size: 32,
               ),
             ),
           ),
@@ -235,7 +235,7 @@ class _SearchScreenState extends State<SearchScreen> {
             },
             child: Container(
               padding: const EdgeInsets.all(4),
-              child: const Icon(Icons.search, color: Colors.black, size: 20),
+              child: const Icon(Icons.search, color: Colors.black, size: 32),
             ),
           ),
         ],
@@ -274,11 +274,11 @@ class _SearchScreenState extends State<SearchScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(25.r),
               child: Container(
-                height: 120.h,
+                height: 150.h, // Increased image height
                 width: double.infinity,
                 color: Colors.white,
                 child: Padding(
-                  padding: EdgeInsets.all(12.w), // Padding around image
+                    padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h), // Slightly reduced padding
                   child: Builder(
                     builder: (context) {
                       final img =
@@ -352,7 +352,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 3.h),
+              padding: EdgeInsets.fromLTRB(12.w, 3.h, 12.w, 0.5.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -366,7 +366,6 @@ class _SearchScreenState extends State<SearchScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 2.h),
                   Text(
                     product.variant != null && product.variant!.isNotEmpty
                         ? product.variant!
@@ -403,19 +402,19 @@ class _SearchScreenState extends State<SearchScreen> {
                         child: GestureDetector(
                           onTap: () => addToCart(context, product.id),
                           child: Container(
-                            width: 32.w,
-                            height: 32.w,
+                            width: 24.w,
+                            height: 24.w,
                             decoration: BoxDecoration(
                               color: Colors.black,
                               shape: BoxShape.rectangle,
                               borderRadius: BorderRadius.all(
-                                Radius.circular(8.r),
+                                Radius.circular(6.r),
                               ),
                             ),
                             child: Icon(
                               Icons.add,
                               color: Colors.white,
-                              size: 20.sp,
+                              size: 16.sp,
                             ),
                           ),
                         ),
@@ -429,6 +428,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
     );
+
   }
 
   Widget _buildShimmerCard() {
@@ -490,10 +490,10 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Color(0XFFEFF1F5),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0),
           child: Column(
             children: [
               _buildCustomSearchBar(),
@@ -508,7 +508,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                        itemCount: 6,
+                        itemCount: 8,
                         itemBuilder: (context, index) => _buildShimmerCard(),
                       )
                     : GridView.builder(
