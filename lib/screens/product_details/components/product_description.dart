@@ -134,10 +134,11 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
     final isOutOfStock = product.stock == 0;
     final selectedAddressId = ref.watch(selectedAddressIdProvider);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 1.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: 32), // More space between image and text
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -148,7 +149,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                     Text(
                       product.title ?? '',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
@@ -157,11 +158,11 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Text(
-                          product.variant!,
+                          'Net Weight: ${product.variant!}',
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 12,
                             fontWeight: FontWeight.normal,
-                            color: Colors.black87,
+                            color: Color(0xFF646161),
                           ),
                         ),
                       ),
@@ -176,8 +177,8 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
               Text(
                 '\₹${product.discountPrice ?? product.originalPrice}',
                 style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
                   color: Colors.black,
                 ),
               ),
@@ -186,7 +187,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                 Text(
                   '\₹${product.originalPrice}',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 12,
                     color: Colors.grey,
                     decoration: TextDecoration.lineThrough,
                   ),
@@ -234,83 +235,88 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
           SizedBox(height: 12),
           Text(
             product.description ?? '',
-            style: TextStyle(fontSize: 16, color: Colors.black54),
+            style: TextStyle(fontSize: 16, color: Color(0xFF626262)),
           ),
           SizedBox(height: 20),
           Row(
             children: [
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 18),
+                  margin: EdgeInsets.only(right: 8),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
+                    color: Color(0xFFF7F8FA),
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  padding: EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        'assets/icons/leaf.png',
-                        width: 32,
-                        height: 32,
+                      Icon(
+                        Icons.water_drop,
+                        color: Color(0xFF7A8C9E),
+                        size: 38,
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        '100%',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                      Text(
-                        'Fresh',
-                        style: TextStyle(fontSize: 15, color: Colors.black54),
+                      SizedBox(width: 14),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '100%',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Fresh',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Color(0xFFB0B6BE),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(width: 12),
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 18),
+                  margin: EdgeInsets.only(left: 8),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
+                    color: Color(0xFFF7F8FA),
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  padding: EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        'assets/icons/star.png',
-                        width: 32,
-                        height: 32,
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        '${product.rating}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                      Text(
-                        'Rated',
-                        style: TextStyle(fontSize: 15, color: Colors.black54),
+                      Icon(Icons.star, color: Color(0xFF7A8C9E), size: 38),
+                      SizedBox(width: 14),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${product.rating}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Rated',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Color(0xFFB0B6BE),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -319,7 +325,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
             ],
           ),
 
-          SizedBox(height: 20),
+          SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: FutureBuilder<Address?>(
@@ -332,35 +338,38 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                 final areaLocation = (product.areaLocation ?? '')
                     .trim()
                     .toLowerCase();
-                print('Product areaLocation: "$areaLocation"');
-                print('User city: "$city"');
                 final isAreaAvailable =
                     city.isNotEmpty &&
                     areaLocation.isNotEmpty &&
                     city == areaLocation;
-                return ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isOutOfStock || !isAreaAvailable
-                        ? Colors.grey
-                        : Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                return Container(
+                  margin: EdgeInsets.symmetric(horizontal: 0),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isOutOfStock || !isAreaAvailable
+                          ? Colors.grey
+                          : Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      elevation: 0,
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 18),
-                  ),
-                  onPressed: isOutOfStock || !isAreaAvailable
-                      ? null
-                      : _proceedToCheckout,
-                  child: Text(
-                    isOutOfStock
-                        ? 'Stock Out'
-                        : !isAreaAvailable
-                        ? 'Product not available in your area'
-                        : 'Proceed To Checkout',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    onPressed: isOutOfStock || !isAreaAvailable
+                        ? null
+                        : _proceedToCheckout,
+                    child: Text(
+                      isOutOfStock
+                          ? 'Stock Out'
+                          : !isAreaAvailable
+                          ? 'Product not available in your area'
+                          : 'Proceed To Checkout',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 0.2,
+                      ),
                     ),
                   ),
                 );

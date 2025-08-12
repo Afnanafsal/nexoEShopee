@@ -17,7 +17,7 @@ class ProductImages extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final swiperState = ref.watch(productImageSwiperProvider(product.id));
     return Container(
-      color: const Color(0xFFF6F7FA),
+      color: const Color(0xFFEFF1F5),
       child: _ProductDetailsContent(
         product: product,
         swiperState: swiperState,
@@ -137,12 +137,13 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
       children: [
         ClipRRect(
           borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(24),
-            bottomRight: Radius.circular(24),
+            bottomLeft: Radius.circular(84),
+            bottomRight: Radius.circular(84),
           ),
           child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: getProportionateScreenHeight(370),
             color: const Color(0xFFF6F7FA),
-            height: getProportionateScreenHeight(260),
             child: images.isNotEmpty
                 ? PageView.builder(
                     controller: _pageController,
@@ -179,7 +180,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
         // Dot pagination overlay
         if (images.length > 1)
           Positioned(
-            bottom: 20,
+            bottom: 18,
             left: 0,
             right: 0,
             child: Row(
@@ -189,7 +190,7 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
                 (index) => AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _currentPage == index ? 12 : 8,
+                  width: _currentPage == index ? 14 : 8,
                   height: 8,
                   decoration: BoxDecoration(
                     color: _currentPage == index
@@ -201,27 +202,23 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
               ),
             ),
           ),
-        // Back button
+        // Back button (no background)
         Positioned(
-          top: 16,
-          left: 16,
+          top: 18,
+          left: 18,
           child: GestureDetector(
             onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
-              ),
-              padding: EdgeInsets.all(8),
-              child: Icon(Icons.arrow_back, color: Colors.black),
+            child: Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.black,
+              size: 28,
             ),
           ),
         ),
         // Favorite button
         Positioned(
-          top: 16,
-          right: 16,
+          top: 18,
+          right: 18,
           child: GestureDetector(
             onTap: () async {
               await _toggleFavorite();
@@ -240,12 +237,13 @@ class _ProductDetailsContentState extends State<_ProductDetailsContent> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
               ),
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.all(10),
               child: Icon(
                 isFavorite ? Icons.favorite : Icons.favorite_border,
                 color: isFavorite ? Colors.red : Colors.black,
+                size: 22,
               ),
             ),
           ),
