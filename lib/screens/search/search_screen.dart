@@ -247,17 +247,19 @@ class _SearchScreenState extends State<SearchScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(
+          12.r,
+        ), // Slightly smaller border radius
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04), // Reduced shadow opacity
+            blurRadius: 4, // Reduced blur radius
+            offset: const Offset(0, 1), // Smaller shadow offset
           ),
         ],
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12.r),
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -272,13 +274,13 @@ class _SearchScreenState extends State<SearchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(25.r),
+              borderRadius: BorderRadius.circular(12.r),
               child: Container(
-                height: 150.h, // Increased image height
+                height: 100.h, // Reduced image height significantly
                 width: double.infinity,
                 color: Colors.white,
                 child: Padding(
-                    padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h), // Slightly reduced padding
+                  padding: EdgeInsets.all(8.w), // Reduced padding
                   child: Builder(
                     builder: (context) {
                       final img =
@@ -288,31 +290,31 @@ class _SearchScreenState extends State<SearchScreen> {
                       if (img == null || img.isEmpty) {
                         return Icon(
                           Icons.image,
-                          size: 32.sp,
+                          size: 24.sp, // Smaller icon
                           color: Colors.grey,
                         );
                       } else if (img.startsWith('http')) {
                         return ClipRRect(
-                          borderRadius: BorderRadius.circular(25.r),
+                          borderRadius: BorderRadius.circular(8.r),
                           child: Image.network(
                             img,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => Icon(
                               Icons.image,
-                              size: 32.sp,
+                              size: 24.sp,
                               color: Colors.grey,
                             ),
                           ),
                         );
                       } else if (img.startsWith('assets/')) {
                         return ClipRRect(
-                          borderRadius: BorderRadius.circular(25.r),
+                          borderRadius: BorderRadius.circular(8.r),
                           child: Image.asset(
                             img,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => Icon(
                               Icons.image,
-                              size: 32.sp,
+                              size: 24.sp,
                               color: Colors.grey,
                             ),
                           ),
@@ -324,14 +326,14 @@ class _SearchScreenState extends State<SearchScreen> {
                               ? img.split(',').last
                               : img;
                           return ClipRRect(
-                            borderRadius: BorderRadius.circular(25.r),
+                            borderRadius: BorderRadius.circular(8.r),
                             child: Image.memory(
                               base64Decode(base64Str),
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   Icon(
                                     Icons.image,
-                                    size: 32.sp,
+                                    size: 24.sp,
                                     color: Colors.grey,
                                   ),
                             ),
@@ -339,12 +341,12 @@ class _SearchScreenState extends State<SearchScreen> {
                         } catch (_) {
                           return Icon(
                             Icons.image,
-                            size: 32,
+                            size: 24,
                             color: Colors.grey,
                           );
                         }
                       } else {
-                        return Icon(Icons.image, size: 32, color: Colors.grey);
+                        return Icon(Icons.image, size: 24, color: Colors.grey);
                       }
                     },
                   ),
@@ -352,32 +354,39 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(12.w, 3.h, 12.w, 0.5.h),
+              padding: EdgeInsets.fromLTRB(
+                8.w,
+                6.h,
+                8.w,
+                8.h,
+              ), // Reduced padding
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     _truncateProductName(product.title ?? 'Product Name'),
                     style: TextStyle(
-                      fontSize: 14.sp,
+                      fontSize: 12.sp, // Smaller font size
                       fontWeight: FontWeight.w600,
                       color: Colors.black,
                     ),
-                    maxLines: 2,
+                    maxLines: 1, // Reduced to 1 line
                     overflow: TextOverflow.ellipsis,
                   ),
+                  SizedBox(height: 2.h), // Smaller spacing
                   Text(
                     product.variant != null && product.variant!.isNotEmpty
                         ? product.variant!
                         : '500 gms',
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: 10.sp, // Smaller variant text
                       color: Color(0xFF8E8E93),
                       fontWeight: FontWeight.normal,
                     ),
                   ),
+                  SizedBox(height: 4.h), // Small spacing before price row
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
                         child: Column(
@@ -389,7 +398,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               Text(
                                 '₹${product.discountPrice?.toStringAsFixed(2) ?? product.originalPrice?.toStringAsFixed(2) ?? '0.00'}',
                                 style: TextStyle(
-                                  fontSize: 14.sp,
+                                  fontSize: 12.sp, // Smaller price text
                                   fontWeight: FontWeight.w700,
                                   color: Colors.black,
                                 ),
@@ -397,25 +406,22 @@ class _SearchScreenState extends State<SearchScreen> {
                           ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(0),
-                        child: GestureDetector(
-                          onTap: () => addToCart(context, product.id),
-                          child: Container(
-                            width: 24.w,
-                            height: 24.w,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              shape: BoxShape.rectangle,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(6.r),
-                              ),
+                      GestureDetector(
+                        onTap: () => addToCart(context, product.id),
+                        child: Container(
+                          width: 20.w, // Smaller add button
+                          height: 20.w,
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            shape: BoxShape.rectangle,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(4.r), // Smaller border radius
                             ),
-                            child: Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 16.sp,
-                            ),
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 12.sp, // Smaller icon
                           ),
                         ),
                       ),
@@ -428,19 +434,18 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
     );
-
   }
 
   Widget _buildShimmerCard() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 4,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -451,19 +456,19 @@ class _SearchScreenState extends State<SearchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 3,
+              flex: 2, // Adjusted flex ratio for smaller image area
               child: Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                   color: Colors.grey,
                 ),
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: 2, // Adjusted flex ratio
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8), // Reduced padding
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -471,12 +476,16 @@ class _SearchScreenState extends State<SearchScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(width: 100, height: 16, color: Colors.grey),
-                        const SizedBox(height: 4),
-                        Container(width: 60, height: 12, color: Colors.grey),
+                        Container(
+                          width: 80,
+                          height: 12,
+                          color: Colors.grey,
+                        ), // Smaller shimmer blocks
+                        const SizedBox(height: 3),
+                        Container(width: 50, height: 10, color: Colors.grey),
                       ],
                     ),
-                    Container(width: 50, height: 16, color: Colors.grey),
+                    Container(width: 40, height: 12, color: Colors.grey),
                   ],
                 ),
               ),
@@ -504,9 +513,11 @@ class _SearchScreenState extends State<SearchScreen> {
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: 0.75,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
+                              childAspectRatio:
+                                  0.9, // Adjusted aspect ratio for smaller cards
+                              crossAxisSpacing:
+                                  24, // Increased horizontal spacing
+                              mainAxisSpacing: 24, // Increased vertical spacing
                             ),
                         itemCount: 8,
                         itemBuilder: (context, index) => _buildShimmerCard(),
@@ -515,9 +526,11 @@ class _SearchScreenState extends State<SearchScreen> {
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: 0.75,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
+                              childAspectRatio:
+                                  0.9, // Adjusted aspect ratio for smaller cards
+                              crossAxisSpacing:
+                                  24, // Increased horizontal spacing
+                              mainAxisSpacing: 24, // Increased vertical spacing
                             ),
                         itemCount: isSearching
                             ? searchResults.length
