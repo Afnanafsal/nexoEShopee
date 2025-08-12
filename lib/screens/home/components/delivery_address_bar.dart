@@ -455,6 +455,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                   ),
                 ),
               ),
+              SizedBox(width: 18.w),
               // Search icon
               IconButton(
                 onPressed: _navigateToSearch,
