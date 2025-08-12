@@ -167,17 +167,40 @@ class _SearchScreenState extends State<SearchScreen> {
       final container = ProviderScope.containerOf(context);
       selectedAddressId = container.read(selectedAddressIdProvider);
     } catch (_) {}
+    if (selectedAddressId == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Please select a delivery address before adding to cart."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
     UserDatabaseHelper()
         .addProductToCart(productId, addressId: selectedAddressId)
         .then((success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                success ? 'Added to cart' : 'Failed to add to cart',
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  success ? 'Added to cart!' : 'Failed to add to cart.',
+                ),
+                backgroundColor: success ? Colors.green : Colors.red,
               ),
-              backgroundColor: success ? Colors.green : Colors.red,
-            ),
-          );
+            );
+          }
+        })
+        .catchError((e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to add to cart: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         });
   }
 
