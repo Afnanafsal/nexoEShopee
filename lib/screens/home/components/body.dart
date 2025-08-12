@@ -209,14 +209,21 @@ class _BodyState extends ConsumerState<Body> {
                         },
                       ),
                       SizedBox(height: 12.h),
-                      Image.asset('assets/images/banner.png'),
+                      Image.asset(
+                        'assets/images/banner.png',
+                        width: double.infinity,
+                        height: 190.h,
+                        fit: BoxFit.cover,
+                      ),
                       SizedBox(height: 18.h),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 4.h,
-                            horizontal: 4.w,
+                          padding: EdgeInsets.only(
+                            top: 4.h,
+                            left: 4.w,
+                            right: 4.w,
+                            bottom: 0, // Reduce bottom padding
                           ),
                           child: Text(
                             'Fresh Fish Category',
@@ -229,77 +236,111 @@ class _BodyState extends ConsumerState<Body> {
                         ),
                       ),
                       SizedBox(
-                        height: 140.h,
+                        height: 180.h,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.symmetric(horizontal: 8.w),
+                          padding: EdgeInsets.only(left: 0),
                           itemCount: productCategories.length,
                           separatorBuilder: (context, i) =>
-                              SizedBox(width: 2.w),
+                              SizedBox(width: 6.w),
                           itemBuilder: (context, index) {
                             final cat = productCategories[index];
-                            return Container(
-                              width: 100.w,
-                              height: 120.h,
-                              alignment: Alignment.center,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(50.r),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          CategoryProductsScreen(
-                                            key: UniqueKey(),
-                                            productType: cat[PRODUCT_TYPE_KEY],
-                                          ),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: 90.w,
-                                  height: 108.h,
-                                  margin: EdgeInsets.symmetric(vertical: 12.h),
+                            final selected = index == selectedIndex;
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedIndex = index;
+                                });
+                              },
+                              child: Container(
+                                width: 105.w,
+                                height: 160.h,
+                                alignment: Alignment.center,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  curve: Curves.easeInOut,
+                                  width: 95.w,
+                                  height: 140.h,
+                                  margin: EdgeInsets.only(
+                                    top: 16.h,
+                                    bottom: 16.h,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(50.r),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 6.r,
-                                        offset: Offset(0, 2.h),
-                                      ),
-                                    ],
+                                    borderRadius: BorderRadius.circular(70.r),
+                                    border: selected
+                                        ? Border.all(
+                                            color: const Color(0xFFE0E0E0),
+                                            width: 1.w,
+                                          )
+                                        : Border.all(
+                                            color: Colors.transparent,
+                                            width: 0,
+                                          ),
+                                    boxShadow: selected
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.14,
+                                              ),
+                                              blurRadius: 10.r,
+                                              offset: Offset(0, 6.h),
+                                              spreadRadius: 1.r,
+                                            ),
+                                          ]
+                                        : [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.06,
+                                              ),
+                                              blurRadius: 8.r,
+                                              offset: Offset(0, 2.h),
+                                            ),
+                                          ],
                                   ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       SizedBox(height: 8.h),
                                       Container(
-                                        width: 48.w,
-                                        height: 48.w,
+                                        width: 70.w,
+                                        height: 70.h, // Increased image height
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           shape: BoxShape.circle,
+                                          boxShadow: selected
+                                              ? [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withOpacity(0.10),
+                                                    blurRadius: 8.r,
+                                                    offset: Offset(0, 2.h),
+                                                  ),
+                                                ]
+                                              : null,
                                         ),
                                         child: ClipOval(
                                           child: Image.asset(
                                             cat[ICON_KEY],
-                                            width: 48.w,
-                                            height: 48.w,
+                                            width: 70.w,
+                                            height: 80.h,
                                             fit: BoxFit.cover,
                                           ),
                                         ),
                                       ),
-                                      SizedBox(height: 16.h),
                                       SizedBox(
-                                        width: 60.w,
+                                        height: 20.h,
+                                      ), // Increased gap between image and title
+                                      SizedBox(
+                                        width: 85.w,
                                         child: Text(
                                           cat[TITLE_KEY],
                                           style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 11.sp,
+                                            color: selected
+                                                ? const Color(0xFF2C2C2C)
+                                                : Colors.black,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 12.sp,
                                             fontFamily: 'Poppins',
                                           ),
                                           textAlign: TextAlign.center,
@@ -615,7 +656,7 @@ class _BodyState extends ConsumerState<Body> {
     final isAvailable = (product as dynamic).isAvailable ?? true;
 
     // Null safety and fallback values for all fields
-    final productTitle = product.title ?? 'Unknown';
+    final productTitle = (product.title ?? 'Unknown').split('/').first.trim();
     final productImages = product.images ?? [];
     final productImage =
         (productImages.isNotEmpty && productImages.first.isNotEmpty)
@@ -675,11 +716,11 @@ class _BodyState extends ConsumerState<Body> {
       }
 
       imageWidget = Container(
-        width: 120.w,
-        height: double.infinity,
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(25.r)),
+        width: 104.w,
+        height: 93.h,
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(20.r)),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(25.r),
+          borderRadius: BorderRadius.circular(20.r),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             child: ColorFiltered(
@@ -694,13 +735,13 @@ class _BodyState extends ConsumerState<Body> {
       );
     } else {
       imageWidget = Container(
-        width: 120.w,
-        height: double.infinity,
+        width: 93.w,
+        height: 93.h,
         decoration: BoxDecoration(
           color: isAvailable
               ? const Color(0xFFE0E0E0)
               : const Color(0xFFE0E0E0).withOpacity(0.5),
-          borderRadius: BorderRadius.circular(25.r),
+          borderRadius: BorderRadius.circular(20.r),
         ),
         child: Icon(
           Icons.image,
@@ -737,12 +778,12 @@ class _BodyState extends ConsumerState<Body> {
             ),
           ],
         ),
-        height: 90.h, // Reduced height
+        height: 110.h,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             imageWidget,
-            SizedBox(width: 10.w), // Reduced gap
+            SizedBox(width: 16.w),
             Expanded(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 6.w),
@@ -757,7 +798,7 @@ class _BodyState extends ConsumerState<Body> {
                           productTitle,
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            fontSize: 13.sp,
+                            fontSize: 16.sp,
                             color: isAvailable
                                 ? Colors.black
                                 : Colors.grey.shade600,
@@ -773,7 +814,7 @@ class _BodyState extends ConsumerState<Body> {
                               Text(
                                 'Net weight: $productVariant',
                                 style: TextStyle(
-                                  fontSize: 10.sp,
+                                  fontSize: 12.sp,
                                   color: isAvailable
                                       ? const Color(0xFF8E8E93)
                                       : Colors.grey.shade500,
@@ -797,7 +838,7 @@ class _BodyState extends ConsumerState<Body> {
                                 '₹${discountPrice.toStringAsFixed(2)}',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
-                                  fontSize: 12.sp,
+                                  fontSize: 14.sp,
                                   color: isAvailable
                                       ? Colors.black
                                       : Colors.grey.shade600,
@@ -891,7 +932,7 @@ class _BodyState extends ConsumerState<Body> {
                               ),
                               child: Icon(
                                 Icons.add,
-                                size: 18.sp,
+                                size: 22.sp,
                                 color: Colors.white,
                               ),
                             ),
