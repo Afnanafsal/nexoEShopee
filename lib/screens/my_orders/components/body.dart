@@ -94,7 +94,7 @@ class _BodyState extends State<Body> {
                   IconButton(
                     icon: const Icon(
                       Icons.arrow_back_ios_new,
-                      color: Colors.black87,
+                      color: Colors.black,
                       size: 22,
                     ),
                     onPressed: () => Navigator.of(context).maybePop(),
@@ -125,7 +125,7 @@ class _BodyState extends State<Body> {
                                       isExpanded: true,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w500,
-                                        color: Colors.black87,
+                                        color: Colors.black,
                                       ),
                                       items: _addresses.map((addressId) {
                                         return DropdownMenuItem<String>(

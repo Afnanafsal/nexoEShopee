@@ -197,7 +197,7 @@ class _SearchScreenState extends State<SearchScreen> {
               padding: EdgeInsets.all(4.w),
               child: const Icon(
                 Icons.arrow_back_ios,
-                color: Colors.black87,
+                color: Colors.black,
                 size: 20,
               ),
             ),
@@ -219,7 +219,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
               ),
-              style: TextStyle(fontSize: 16.sp, color: Colors.black87),
+              style: TextStyle(fontSize: 16.sp, color: Colors.black),
               onSubmitted: (value) {
                 if (value.trim().isNotEmpty) {
                   onSearch(value.trim());
@@ -235,7 +235,7 @@ class _SearchScreenState extends State<SearchScreen> {
             },
             child: Container(
               padding: const EdgeInsets.all(4),
-              child: const Icon(Icons.search, color: Colors.black87, size: 20),
+              child: const Icon(Icons.search, color: Colors.black, size: 20),
             ),
           ),
         ],

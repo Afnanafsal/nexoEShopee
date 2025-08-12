@@ -1,22 +1,16 @@
-import 'dart:io';
-import 'package:flutter/services.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:fishkart/screens/manage_addresses/manage_addresses_screen.dart';
+import 'package:fishkart/screens/my_orders/my_orders_screen.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
-import 'package:fishkart/services/database/user_database_helper.dart';
-import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
-import 'package:fishkart/services/cache/hive_service.dart';
-import '../../constants.dart';
-import '../change_display_picture/change_display_picture_screen.dart';
-import '../change_email/change_email_screen.dart';
-import '../my_favorites/my_favorites_screen.dart';
-import '../change_password/change_password_screen.dart';
-import '../change_phone/change_phone_screen.dart';
-import '../manage_addresses/manage_addresses_screen.dart';
-import '../my_orders/my_orders_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../utils.dart';
-import '../change_display_name/change_display_name_screen.dart';
-import 'package:fishkart/components/async_progress_dialog.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -24,317 +18,230 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Stack(
+      backgroundColor: const Color(0xFFEFF1F5),
+      body: Padding(
+        padding: EdgeInsets.fromLTRB(24.w, 24.h, 24.w, 0.h),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 18.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 24,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 32),
-                      _ProfileHeader(avatarOverlap: true),
-                    ],
-                  ),
+                SizedBox(height: 20.h),
+                const _ProfileCard(),
+                SizedBox(height: 44.h),
+                _ProfileMenuItem(
+                  icon: Icon(Icons.person, size: 22.sp, color: Colors.black),
+                  title: 'Edit Account',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => EditProfileScreen()),
+                    );
+                  },
                 ),
-                // Back button removed
+                SizedBox(height: 20.h),
+                _ProfileMenuItem(
+                  icon: Icon(
+                    Icons.location_on,
+                    size: 22.sp,
+                    color: Colors.black,
+                  ),
+                  title: 'Manage Addresses',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ManageAddressesScreen(),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 20.h),
+                _ProfileMenuItem(
+                  icon: Icon(Icons.list_alt, size: 22.sp, color: Colors.black),
+                  title: 'My Orders',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => MyOrdersScreen()),
+                    );
+                  },
+                ),
+                SizedBox(height: 20.h),
+                _ProfileMenuItem(
+                  icon: ImageIcon(
+                    AssetImage('assets/icons/signout.png'),
+                    color: Colors.black,
+                    size: 22.sp,
+                  ),
+                  title: 'Sign Out',
+                  onTap: () async {
+                    final confirmation = await showConfirmationDialog(
+                      context,
+                      "Confirm Sign out?",
+                    );
+                    if (confirmation) {
+                      await AuthentificationService().signOut();
+                      try {
+                        final googleSignIn = GoogleSignIn();
+                        await googleSignIn.disconnect();
+                      } catch (_) {}
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        SystemNavigator.pop();
+                      });
+                    }
+                  },
+                ),
               ],
             ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 0,
-                ),
-                children: [const SizedBox(height: 8), _ProfileActions()],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ProfileHeader extends StatelessWidget {
-  final bool avatarOverlap;
-  const _ProfileHeader({this.avatarOverlap = false});
+class _ProfileCard extends StatelessWidget {
+  const _ProfileCard({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: AuthentificationService().userChanges,
-      builder: (context, userSnapshot) {
-        if (userSnapshot.hasData) {
-          final user = userSnapshot.data!;
-          return Column(
-            children: [
-              // Listen to display picture changes in real time (from DB or cache)
-              StreamBuilder<String?>(
-                stream: UserDatabaseHelper().displayPictureStreamForCurrentUser,
-                builder: (context, picSnapshot) {
-                  if (picSnapshot.connectionState == ConnectionState.waiting) {
-                    return CircleAvatar(
-                      radius: 40,
-                      backgroundColor: kTextColor.withOpacity(0.2),
-                      child: Icon(
-                        Icons.person_rounded,
-                        size: 44,
-                        color: kTextColor,
-                      ),
-                    );
-                  }
-                  if (picSnapshot.hasData &&
-                      picSnapshot.data != null &&
-                      (picSnapshot.data as String).isNotEmpty) {
-                    return CircleAvatar(
-                      radius: 40,
-                      backgroundImage: Base64ImageService()
-                          .base64ToImageProvider(picSnapshot.data as String),
-                    );
-                  }
-                  return CircleAvatar(
-                    radius: 40,
-                    backgroundColor: kTextColor.withOpacity(0.2),
-                    child: Icon(
-                      Icons.person_rounded,
-                      size: 44,
-                      color: kTextColor,
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 8),
-              Text(
-                user.displayName ?? 'No Name',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                user.email ?? 'No Email',
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+    final user = AuthentificationService().currentUser;
+
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        Uint8List? chosenImageBytes;
+        String? displayPictureUrl;
+        String displayName = 'No Name';
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final data = snapshot.data?.data();
+        if (data != null) {
+          displayName = data['display_name'] ?? user.displayName ?? 'No Name';
+          final fetched = data['display_picture'] as String?;
+          if (fetched != null && fetched.isNotEmpty) {
+            if (fetched.startsWith('http')) {
+              displayPictureUrl = fetched;
+              chosenImageBytes = null;
+            } else if (!fetched.startsWith('blob:')) {
+              try {
+                chosenImageBytes = base64Decode(fetched);
+                displayPictureUrl = null;
+              } catch (_) {
+                chosenImageBytes = null;
+                displayPictureUrl = null;
+              }
+            } else {
+              // blob: url, treat as no image
+              chosenImageBytes = null;
+              displayPictureUrl = null;
+            }
+          }
+        }
+
+        Widget avatar;
+        if (chosenImageBytes != null) {
+          avatar = CircleAvatar(
+            radius: 30.r,
+            backgroundImage: MemoryImage(chosenImageBytes),
+          );
+        } else if (displayPictureUrl != null && displayPictureUrl.isNotEmpty) {
+          avatar = CircleAvatar(
+            radius: 30.r,
+            backgroundImage: NetworkImage(displayPictureUrl),
+          );
+        } else {
+          avatar = CircleAvatar(radius: 40.r, backgroundColor: Colors.grey);
+        }
+
+        return Container(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF6F7F9),
+            borderRadius: BorderRadius.circular(20.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 12.r,
+                offset: Offset(0, 6.h),
               ),
             ],
-          );
-        } else if (userSnapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else {
-          return Center(child: Icon(Icons.error));
-        }
+          ),
+
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              avatar,
+              SizedBox(width: 16.w),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hi, there!',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    displayName.toLowerCase(),
+                    style: TextStyle(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
       },
     );
   }
 }
 
-class _ProfileActions extends StatelessWidget {
-  void _push(BuildContext context, Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-  }
+class _ProfileMenuItem extends StatelessWidget {
+  final Widget icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _ProfileMenuItem({
+    Key? key,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _ProfileExpansion(
-          icon: Icons.person,
-          title: 'Edit Account',
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 2.h),
+        child: Row(
           children: [
-            _ProfileActionTile(
-              title: 'Change Display Picture',
-              icon: Icons.image,
-              onTap: () => _push(context, ChangeDisplayPictureScreen()),
-            ),
-            _ProfileActionTile(
-              title: 'Change Display Name',
-              icon: Icons.edit,
-              onTap: () => _push(context, ChangeDisplayNameScreen()),
-            ),
-            _ProfileActionTile(
-              title: 'Change Phone Number',
-              icon: Icons.phone,
-              onTap: () => _push(context, ChangePhoneScreen()),
-            ),
-            _ProfileActionTile(
-              title: 'Change Email',
-              icon: Icons.email,
-              onTap: () => _push(context, ChangeEmailScreen()),
-            ),
-            _ProfileActionTile(
-              title: 'Change Password',
-              icon: Icons.lock,
-              onTap: () => _push(context, ChangePasswordScreen()),
+            icon,
+            SizedBox(width: 16.w),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        _ProfileActionTile(
-          title: 'Manage Addresses',
-          icon: Icons.edit_location,
-          onTap: () => _handleVerifiedAction(context, ManageAddressesScreen()),
-        ),
-        _ProfileActionTile(
-          title: 'My Favorites',
-          icon: Icons.favorite,
-          onTap: () => _handleVerifiedAction(context, MyFavoritesScreen()),
-        ),
-        _ProfileActionTile(
-          title: 'My Orders',
-          icon: Icons.receipt_long,
-          onTap: () => _handleVerifiedAction(context, MyOrdersScreen()),
-        ),
-        const SizedBox(height: 8),
-
-        // _ProfileExpansion(
-        //   icon: Icons.business,
-        //   title: 'I am Seller',
-        //   children: [
-        //     _ProfileActionTile(
-        //       title: 'Add New Product',
-        //       icon: Icons.add_box,
-        //       onTap: () => _handleVerifiedAction(
-        //         context,
-        //         EditProductScreen(key: UniqueKey(), productToEdit: null),
-        //       ),
-        //     ),
-        //     _ProfileActionTile(
-        //       title: 'Manage My Products',
-        //       icon: Icons.inventory,
-        //       onTap: () => _handleVerifiedAction(context, MyProductsScreen()),
-        //     ),
-        //   ],
-        // ),
-        const SizedBox(height: 16),
-        ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red[600],
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          icon: Icon(Icons.logout),
-          label: Text(
-            'Sign Out',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          onPressed: () async {
-            final confirmation = await showConfirmationDialog(
-              context,
-              "Confirm Sign out ?",
-            );
-            if (confirmation) {
-              await AuthentificationService().signOut();
-              await HiveService.instance.clearUserCache();
-              // Optionally clear all cache if needed
-              // await HiveService.instance.clearAllCache();
-              // Optionally clear product cache if user-specific
-              // await HiveService.instance.clearProductCache();
-              // Exit the app after sign out
-              if (Platform.isAndroid) {
-                SystemNavigator.pop();
-              } else if (Platform.isIOS) {
-                exit(0);
-              }
-            }
-          },
-        ),
-      ],
-    );
-  }
-
-  void _handleVerifiedAction(BuildContext context, Widget screen) async {
-    bool allowed = AuthentificationService().currentUserVerified;
-    if (!allowed) {
-      final reverify = await showConfirmationDialog(
-        context,
-        "You haven't verified your email address. This action is only allowed for verified users.",
-        positiveResponse: "Resend verification email",
-        negativeResponse: "Go back",
-      );
-      if (reverify) {
-        final future = AuthentificationService()
-            .sendVerificationEmailToCurrentUser();
-        await showDialog(
-          context: context,
-          builder: (context) => AsyncProgressDialog(
-            future,
-            message: Text("Resending verification email"),
-          ),
-        );
-      }
-      return;
-    }
-    _push(context, screen);
-  }
-}
-
-class _ProfileActionTile extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final VoidCallback onTap;
-  const _ProfileActionTile({
-    required this.title,
-    required this.icon,
-    required this.onTap,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: Color(0xFF294157)),
-      title: Text(
-        title,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-      ),
-      onTap: onTap,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      minLeadingWidth: 32,
-      horizontalTitleGap: 12,
-    );
-  }
-}
-
-class _ProfileExpansion extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final List<Widget> children;
-  const _ProfileExpansion({
-    required this.title,
-    required this.icon,
-    required this.children,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
-        leading: Icon(icon, color: Color(0xFF294157)),
-        title: Text(
-          title,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        children: children,
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-        childrenPadding: const EdgeInsets.only(left: 16, right: 8, bottom: 8),
       ),
     );
   }

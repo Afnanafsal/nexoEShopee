@@ -13,7 +13,7 @@ class ProductDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5F6F9),
+      backgroundColor: Color(0xFFEFF1F5),
       body: Body(key: key!, productId: productId),
     );
   }

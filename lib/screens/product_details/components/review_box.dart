@@ -312,7 +312,7 @@ class _ReviewBoxState extends State<ReviewBox> {
                   'View Replies (${review.replyCount}) \u25BC',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.black87,
+                    color: Colors.black,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

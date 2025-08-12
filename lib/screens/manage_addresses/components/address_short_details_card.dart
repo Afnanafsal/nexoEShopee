@@ -63,7 +63,7 @@ class AddressShortDetailsCard extends StatelessWidget {
                         Text(
                           _getAddressLine(address),
                           style: const TextStyle(
-                            color: Colors.black87,
+                            color: Colors.black,
                             fontSize: 14,
                           ),
                           maxLines: 2,

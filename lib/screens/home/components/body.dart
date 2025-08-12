@@ -209,7 +209,7 @@ class _BodyState extends ConsumerState<Body> {
                         },
                       ),
                       SizedBox(height: 12.h),
-                      SvgPicture.asset('assets/images/banner1.svg'),
+                      Image.asset('assets/images/banner.png'),
                       SizedBox(height: 18.h),
                       Align(
                         alignment: Alignment.centerLeft,
@@ -766,7 +766,7 @@ class _BodyState extends ConsumerState<Body> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 8.h),
+                        SizedBox(height: 4.h),
                         if (productVariant.isNotEmpty)
                           Row(
                             children: [

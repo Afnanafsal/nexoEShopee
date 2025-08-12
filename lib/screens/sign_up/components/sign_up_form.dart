@@ -5,6 +5,7 @@ import 'package:fishkart/exceptions/firebaseauth/messeged_firebaseauth_exception
 import 'package:fishkart/exceptions/firebaseauth/signup_exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:logger/logger.dart';
 import '../../../constants.dart';
 import '../../home/home_screen.dart';
@@ -67,9 +68,9 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
               color: Colors.black,
             ),
           ),
-          SizedBox(height: 3),
+          SizedBox(height: 3.h),
           buildDisplayNameFormField(),
-          SizedBox(height: 8),
+          SizedBox(height: 8.h),
           // Phone number
           Text(
             "Phone number",
@@ -79,9 +80,9 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
               color: Colors.black,
             ),
           ),
-          SizedBox(height: 3),
+          SizedBox(height: 3.h),
           buildPhoneNumberFormField(),
-          SizedBox(height: 8),
+          SizedBox(height: 8.h),
           // Email
           Text(
             "Email",
@@ -91,9 +92,9 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
               color: Colors.black,
             ),
           ),
-          SizedBox(height: 3),
+          SizedBox(height: 3.h),
           buildEmailFormField(),
-          SizedBox(height: 8),
+          SizedBox(height: 8.h),
           // Password
           Text(
             "Password",
@@ -103,9 +104,9 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
               color: Colors.black,
             ),
           ),
-          SizedBox(height: 3),
+          SizedBox(height: 3.h),
           buildPasswordFormField(),
-          SizedBox(height: 8),
+          SizedBox(height: 8.h),
           // Confirm Password
           Text(
             "Confirm Password",
@@ -115,9 +116,9 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
               color: Colors.black,
             ),
           ),
-          SizedBox(height: 3),
+          SizedBox(height: 3.h),
           buildConfirmPasswordFormField(),
-          SizedBox(height: 8),
+          SizedBox(height: 8.h),
 
           // Name
           SizedBox(
@@ -154,7 +155,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/User.svg"),
 
         isDense: true,
-        contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+        contentPadding: EdgeInsets.symmetric(vertical: 0.h, horizontal: 12.w),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.black, width: 1.5),
@@ -192,7 +193,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         hintText: "your_phone_number",
         counterText: "", // Hide character counter
         suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Phone.svg"),
-        contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        contentPadding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 16.w),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.black, width: 1.5),
@@ -281,7 +282,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
         hintText: "youremail@gmail.com",
         suffixIcon: CustomSuffixIcon(svgIcon: "assets/icons/Mail.svg"),
         isDense: true,
-        contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+        contentPadding: EdgeInsets.symmetric(vertical: 0.h, horizontal: 16.w),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.black, width: 1.5),
