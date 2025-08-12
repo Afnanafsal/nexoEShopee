@@ -185,7 +185,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Colors.white,
         borderRadius: BorderRadius.circular(25.r),
         border: Border.all(color: Colors.black),
       ),
@@ -499,10 +499,10 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0XFFEFF1F5),
+      backgroundColor: const Color(0xFFEFF1F5),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0),
+          padding: EdgeInsets.all(24.0), // Increased full padding
           child: Column(
             children: [
               _buildCustomSearchBar(),
@@ -513,11 +513,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio:
-                                  0.9, // Adjusted aspect ratio for smaller cards
-                              crossAxisSpacing:
-                                  24, // Increased horizontal spacing
-                              mainAxisSpacing: 24, // Increased vertical spacing
+                              childAspectRatio: 0.9,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
                             ),
                         itemCount: 8,
                         itemBuilder: (context, index) => _buildShimmerCard(),
@@ -526,11 +524,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio:
-                                  0.9, // Adjusted aspect ratio for smaller cards
-                              crossAxisSpacing:
-                                  24, // Increased horizontal spacing
-                              mainAxisSpacing: 24, // Increased vertical spacing
+                              childAspectRatio: 0.9,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
                             ),
                         itemCount: isSearching
                             ? searchResults.length
