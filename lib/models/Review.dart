@@ -19,6 +19,7 @@ class Review extends Model {
   int replyCount;
   String? userAvatar;
   String? userName;
+  List<String>? likedBy;
 
   Review(
     String? id, {
@@ -30,6 +31,7 @@ class Review extends Model {
     this.replyCount = 0,
     this.userAvatar,
     this.userName,
+    this.likedBy,
   }) : super(id ?? '');
 
   factory Review.fromMap(Map<String, dynamic> map, {String? id}) {
@@ -47,6 +49,9 @@ class Review extends Model {
       replyCount: map[REPLY_COUNT_KEY] ?? 0,
       userAvatar: map[USER_AVATAR_KEY],
       userName: map[USER_NAME_KEY],
+      likedBy: (map['likedBy'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
     );
   }
 
@@ -62,6 +67,7 @@ class Review extends Model {
       REPLY_COUNT_KEY: replyCount,
       USER_AVATAR_KEY: userAvatar,
       USER_NAME_KEY: userName,
+      'likedBy': likedBy,
     };
   }
 
@@ -89,6 +95,7 @@ class Review extends Model {
     int? replyCount,
     String? userAvatar,
     String? userName,
+    List<String>? likedBy,
   }) {
     return Review(
       id ?? this.id,
@@ -100,6 +107,7 @@ class Review extends Model {
       replyCount: replyCount ?? this.replyCount,
       userAvatar: userAvatar ?? this.userAvatar,
       userName: userName ?? this.userName,
+      likedBy: likedBy ?? this.likedBy,
     );
   }
 }

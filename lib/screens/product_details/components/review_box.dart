@@ -1,12 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fishkart/models/Review.dart';
 import 'package:flutter/material.dart';
-// import '../../../constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 
 class ReviewBox extends StatefulWidget {
   final Review review;
   final String productId;
+
   const ReviewBox({
     required Key key,
     required this.review,
@@ -18,6 +20,22 @@ class ReviewBox extends StatefulWidget {
 }
 
 class _ReviewBoxState extends State<ReviewBox> {
+  late Review review;
+
+  @override
+  void initState() {
+    super.initState();
+    review = widget.review;
+  }
+
+  Uint8List _decodeBase64(String base64String) {
+    try {
+      return base64Decode(base64String.split(',').last);
+    } catch (_) {
+      return Uint8List(0);
+    }
+  }
+
   Future<List<Map<String, dynamic>>> fetchReplies() async {
     final db = FirebaseFirestore.instance;
     final snapshot = await db
@@ -31,11 +49,20 @@ class _ReviewBoxState extends State<ReviewBox> {
     return snapshot.docs.map((doc) => doc.data()).toList();
   }
 
+  Future<String> _getCurrentUserId() async {
+    try {
+      return FirebaseAuth.instance.currentUser?.uid ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   Future<void> showReplyDialog() async {
     String replyText = '';
     final currentUserId = await _getCurrentUserId();
     String? avatar;
     String? name;
+
     // Fetch user avatar and name from Firestore
     final userDoc = await FirebaseFirestore.instance
         .collection('users')
@@ -43,22 +70,23 @@ class _ReviewBoxState extends State<ReviewBox> {
         .get();
     final userData = userDoc.data();
     if (userData != null) {
-      avatar = userData['display_picture'] ?? null;
+      avatar = userData['display_picture'];
       name = userData['display_name'] ?? 'User';
     }
+
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Reply to Review'),
+        title: const Text('Reply to Review'),
         content: TextField(
           autofocus: true,
-          decoration: InputDecoration(hintText: 'Type your reply...'),
+          decoration: const InputDecoration(hintText: 'Type your reply...'),
           onChanged: (val) => replyText = val,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -76,9 +104,11 @@ class _ReviewBoxState extends State<ReviewBox> {
                       'userAvatar': avatar,
                       'userName': name,
                     });
+
                 setState(() {
                   review = review.copyWith(replyCount: review.replyCount + 1);
                 });
+
                 await db
                     .collection('products')
                     .doc(widget.productId)
@@ -88,19 +118,32 @@ class _ReviewBoxState extends State<ReviewBox> {
               }
               Navigator.pop(context);
             },
-            child: Text('Post'),
+            child: const Text('Post'),
           ),
         ],
       ),
     );
   }
 
-  late Review review;
+  Future<void> likeReview() async {
+    final db = FirebaseFirestore.instance;
+    final currentUserId = await _getCurrentUserId();
+    final reviewRef = db
+        .collection('products')
+        .doc(widget.productId)
+        .collection('reviews')
+        .doc(review.reviewerUid);
 
-  @override
-  void initState() {
-    super.initState();
-    review = widget.review;
+    final reviewDoc = await reviewRef.get();
+    List<dynamic> likedBy = reviewDoc.data()?['likedBy'] ?? [];
+
+    if (!likedBy.contains(currentUserId)) {
+      likedBy.add(currentUserId);
+      setState(() {
+        review = review.copyWith(likes: likedBy.length, likedBy: likedBy.map((e) => e.toString()).toList());
+      });
+      await reviewRef.update({'likes': likedBy.length, 'likedBy': likedBy});
+    }
   }
 
   String getTimeAgo(DateTime? dateTime) {
@@ -115,7 +158,7 @@ class _ReviewBoxState extends State<ReviewBox> {
 
   ImageProvider _getAvatarProvider() {
     if (review.userAvatar == null || review.userAvatar!.isEmpty) {
-      return AssetImage('assets/images/default_avatar.png');
+      return const AssetImage('assets/images/default_avatar.png');
     }
     if (review.userAvatar!.startsWith('http')) {
       return NetworkImage(review.userAvatar!);
@@ -126,53 +169,7 @@ class _ReviewBoxState extends State<ReviewBox> {
         return MemoryImage(bytes);
       }
     } catch (_) {}
-    return AssetImage('assets/images/default_avatar.png');
-  }
-
-  Future<void> likeReview() async {
-    final db = FirebaseFirestore.instance;
-    final currentUserId = await _getCurrentUserId();
-    final reviewRef = db
-        .collection('products')
-        .doc(widget.productId)
-        .collection('reviews')
-        .doc(review.reviewerUid);
-    final reviewDoc = await reviewRef.get();
-    List<dynamic> likedBy = reviewDoc.data()?['likedBy'] ?? [];
-    if (!likedBy.contains(currentUserId)) {
-      likedBy.add(currentUserId);
-      setState(() {
-        review = review.copyWith(likes: likedBy.length);
-      });
-      await reviewRef.update({'likes': likedBy.length, 'likedBy': likedBy});
-    }
-  }
-
-  Future<String> _getCurrentUserId() async {
-    // You may want to use your AuthentificationService here
-    // For Firebase Auth:
-    // import 'package:firebase_auth/firebase_auth.dart';
-    // return FirebaseAuth.instance.currentUser?.uid ?? '';
-    // For now, return empty string if not available
-    try {
-      return FirebaseAuth.instance.currentUser?.uid ?? '';
-    } catch (_) {
-      return '';
-    }
-  }
-
-  Future<void> replyToReview() async {
-    setState(() {
-      review = review.copyWith(replyCount: review.replyCount + 1);
-    });
-    final db = FirebaseFirestore.instance;
-    await db
-        .collection('products')
-        .doc(widget.productId)
-        .collection('reviews')
-        .doc(review.reviewerUid)
-        .update({'replyCount': review.replyCount});
-    // You can show a reply dialog here
+    return const AssetImage('assets/images/default_avatar.png');
   }
 
   @override
@@ -181,9 +178,10 @@ class _ReviewBoxState extends State<ReviewBox> {
       future: fetchReplies(),
       builder: (context, snapshot) {
         final replies = snapshot.data ?? [];
+
         return Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          margin: EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
@@ -191,6 +189,7 @@ class _ReviewBoxState extends State<ReviewBox> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              /// Review Header
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -198,22 +197,22 @@ class _ReviewBoxState extends State<ReviewBox> {
                     radius: 18,
                     backgroundImage: _getAvatarProvider(),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           review.userName ?? 'User',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           review.review ?? '',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.black,
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
@@ -222,34 +221,61 @@ class _ReviewBoxState extends State<ReviewBox> {
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.favorite_border, color: Colors.redAccent),
-                    onPressed: likeReview,
-                  ),
-                  Text(
-                    '${review.likes}',
-                    style: TextStyle(fontSize: 13, color: Colors.black),
+                  Column(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          review.likedBy?.contains(
+                                    FirebaseAuth.instance.currentUser?.uid,
+                                  ) ==
+                                  true
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color:
+                              review.likedBy?.contains(
+                                    FirebaseAuth.instance.currentUser?.uid,
+                                  ) ==
+                                  true
+                              ? Colors.red
+                              : Colors.grey,
+                        ),
+                        onPressed: likeReview,
+                      ),
+                      Text(
+                        '${review.likes}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              SizedBox(height: 8),
+
+              const SizedBox(height: 8),
+
+              /// Time & Reply Button
               Row(
                 children: [
                   Text(
                     getTimeAgo(review.createdAt),
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   GestureDetector(
                     onTap: showReplyDialog,
-                    child: Text(
+                    child: const Text(
                       'Reply',
-                      style: TextStyle(fontSize: 12, color: Colors.blue),
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 8),
+
+              const SizedBox(height: 8),
+
+              /// Replies
               if (replies.isNotEmpty)
                 ...replies.map(
                   (reply) => Padding(
@@ -262,24 +288,25 @@ class _ReviewBoxState extends State<ReviewBox> {
                           backgroundImage:
                               (reply['userAvatar'] == null ||
                                   reply['userAvatar'].isEmpty)
-                              ? AssetImage('assets/images/default_avatar.png')
+                              ? const AssetImage(
+                                  'assets/images/default_avatar.png',
+                                )
                               : (reply['userAvatar'].toString().startsWith(
-                                          'http',
-                                        )
-                                        ? NetworkImage(reply['userAvatar'])
-                                        : AssetImage(
-                                            'assets/images/default_avatar.png',
-                                          ))
-                                    as ImageProvider,
+                                      'http',
+                                    )
+                                    ? NetworkImage(reply['userAvatar'])
+                                    : MemoryImage(
+                                        _decodeBase64(reply['userAvatar']),
+                                      )),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.grey[100],
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: 10,
                               vertical: 6,
                             ),
@@ -288,15 +315,15 @@ class _ReviewBoxState extends State<ReviewBox> {
                               children: [
                                 Text(
                                   reply['userName'] ?? 'User',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),
                                 ),
-                                SizedBox(height: 2),
+                                const SizedBox(height: 2),
                                 Text(
                                   reply['text'] ?? '',
-                                  style: TextStyle(fontSize: 13),
+                                  style: const TextStyle(fontSize: 13),
                                 ),
                               ],
                             ),
@@ -306,11 +333,13 @@ class _ReviewBoxState extends State<ReviewBox> {
                     ),
                   ),
                 ),
+
+              /// View Replies Count
               GestureDetector(
                 onTap: () {},
                 child: Text(
                   'View Replies (${review.replyCount}) \u25BC',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     color: Colors.black,
                     fontWeight: FontWeight.w500,
