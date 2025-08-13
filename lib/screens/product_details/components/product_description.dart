@@ -208,8 +208,8 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                   ],
                 ),
                 padding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
+                  horizontal: 14,
+                  vertical: 2,
                 ), // Increased height
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -219,12 +219,12 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                       onPressed: isOutOfStock ? null : _decrementCounter,
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 6.0),
                       child: Text(
                         isOutOfStock ? '0' : '$cartCount',
                         style: TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -260,15 +260,15 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                        // Use SvgPicture for SVG asset
-                        // Make sure to add flutter_svg to pubspec.yaml
-                        // and leaf.svg exists in assets/images/
-                        SvgPicture.asset(
+                      // Use SvgPicture for SVG asset
+                      // Make sure to add flutter_svg to pubspec.yaml
+                      // and leaf.svg exists in assets/images/
+                      SvgPicture.asset(
                         'assets/images/leaf.svg',
                         width: 38,
                         height: 38,
                         color: Color(0xFF7A8C9E),
-                        ),
+                      ),
                       SizedBox(width: 14),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

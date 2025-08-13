@@ -864,11 +864,14 @@ class _BodyState extends ConsumerState<Body> {
                             ],
                           ),
                         ),
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(24.r),
-                            onTap: () async {
+                        Padding(
+                          padding: EdgeInsets.only(right: 4.w,bottom: 4.h),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              
+                              borderRadius: BorderRadius.circular(24.r),
+                              onTap: () async {
                               final selectedAddressId = ref.read(
                                 selectedAddressIdProvider,
                               );
@@ -938,6 +941,7 @@ class _BodyState extends ConsumerState<Body> {
                               ),
                             ),
                           ),
+                        ),
                         ),
                       ],
                     ),
