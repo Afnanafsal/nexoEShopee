@@ -143,7 +143,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
                 "Sign Up",
                 style: TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   fontSize: 18,
                 ),
               ),

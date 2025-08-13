@@ -6,6 +6,7 @@ import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fishkart/providers/user_providers.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:logger/logger.dart';
 import '../../../utils.dart';
 import 'package:flutter/material.dart';
@@ -178,7 +179,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                 '\₹${product.discountPrice ?? product.originalPrice}',
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Colors.black,
                 ),
               ),
@@ -242,7 +243,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
             style: TextStyle(
               fontSize: 16,
               color: Color(0xFF626262),
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
           ),
           SizedBox(height: 20),
@@ -259,11 +260,15 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.water_drop,
+                        // Use SvgPicture for SVG asset
+                        // Make sure to add flutter_svg to pubspec.yaml
+                        // and leaf.svg exists in assets/images/
+                        SvgPicture.asset(
+                        'assets/images/leaf.svg',
+                        width: 38,
+                        height: 38,
                         color: Color(0xFF7A8C9E),
-                        size: 38,
-                      ),
+                        ),
                       SizedBox(width: 14),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

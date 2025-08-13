@@ -60,7 +60,7 @@ class _CheckoutCardState extends State<CheckoutCard> {
                         style: const TextStyle(
                           fontSize: 18,
                           color: Colors.black,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -69,10 +69,7 @@ class _CheckoutCardState extends State<CheckoutCard> {
               ],
             ),
             SizedBox(height: getProportionateScreenHeight(20)),
-            DefaultButton(
-              text: "Checkout",
-              press: _handleNormalCheckout,
-            ),
+            DefaultButton(text: "Checkout", press: _handleNormalCheckout),
             SizedBox(height: getProportionateScreenHeight(10)),
             DefaultButton(
               text: "Checkout with Razorpay",

@@ -116,7 +116,7 @@ class ProductShortDetailCard extends StatelessWidget {
                               "\₹${product.discountPrice}",
                               style: TextStyle(
                                 color: kPrimaryColor,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                                 fontSize: 13,
                               ),
                               maxLines: 1,
@@ -136,7 +136,6 @@ class ProductShortDetailCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        
                       ],
                     ),
                   ),

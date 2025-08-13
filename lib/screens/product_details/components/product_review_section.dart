@@ -3,6 +3,7 @@ import 'package:fishkart/models/Product.dart';
 import 'package:fishkart/providers/product_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
@@ -22,13 +23,13 @@ class ProductReviewsSection extends ConsumerWidget {
     final reviewsAsync = ref.watch(productReviewsProvider(product.id));
 
     return SizedBox(
-      height: getProportionateScreenHeight(320),
+      height: 320.h,
       child: Stack(
         children: [
           TopRoundedContainer(
             key: const Key('top_rounded_container'),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: Column(
                 children: [
                   Align(
@@ -36,13 +37,13 @@ class ProductReviewsSection extends ConsumerWidget {
                     child: Text(
                       "Product Reviews",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  SizedBox(height: getProportionateScreenHeight(20)),
+                  SizedBox(height: 20.h),
                   Expanded(
                     child: reviewsAsync.when(
                       data: (reviewsList) {
@@ -53,12 +54,15 @@ class ProductReviewsSection extends ConsumerWidget {
                                 SvgPicture.asset(
                                   "assets/icons/review.svg",
                                   color: kTextColor,
-                                  width: 40,
+                                  width: 40.w,
                                 ),
-                                SizedBox(height: 8),
+                                SizedBox(height: 8.h),
                                 Text(
                                   "No reviews yet",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14.sp,
+                                  ),
                                 ),
                               ],
                             ),
@@ -77,19 +81,19 @@ class ProductReviewsSection extends ConsumerWidget {
                         );
                       },
                       loading: () => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        padding: EdgeInsets.symmetric(horizontal: 8.w),
                         child: ListView.builder(
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: 3,
                           itemBuilder: (context, index) => Container(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            margin: EdgeInsets.symmetric(vertical: 8.h),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(18),
+                              borderRadius: BorderRadius.circular(18.r),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black12,
-                                  blurRadius: 6,
+                                  blurRadius: 6.r,
                                   offset: Offset(0, 2),
                                 ),
                               ],
@@ -98,25 +102,25 @@ class ProductReviewsSection extends ConsumerWidget {
                               baseColor: Colors.grey[300]!,
                               highlightColor: Colors.grey[100]!,
                               child: Padding(
-                                padding: const EdgeInsets.all(16.0),
+                                padding: EdgeInsets.all(16.w),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Container(
-                                      width: 120,
-                                      height: 16,
+                                      width: 120.w,
+                                      height: 16.h,
                                       color: Colors.white,
                                     ),
-                                    const SizedBox(height: 8),
+                                    SizedBox(height: 8.h),
                                     Container(
                                       width: double.infinity,
-                                      height: 12,
+                                      height: 12.h,
                                       color: Colors.white,
                                     ),
-                                    const SizedBox(height: 8),
+                                    SizedBox(height: 8.h),
                                     Container(
-                                      width: 80,
-                                      height: 12,
+                                      width: 80.w,
+                                      height: 12.h,
                                       color: Colors.white,
                                     ),
                                   ],
@@ -131,22 +135,22 @@ class ProductReviewsSection extends ConsumerWidget {
                           children: [
                             Icon(
                               Icons.error_outline,
-                              size: 60,
+                              size: 60.sp,
                               color: kPrimaryColor,
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: 8.h),
                             Text(
                               "Something went wrong!",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                                fontSize: 15.sp,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: 8.h),
                             Text(
                               "$error",
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 13),
+                              style: TextStyle(fontSize: 13.sp),
                             ),
                           ],
                         ),

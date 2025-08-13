@@ -259,7 +259,7 @@ class _SignInCardContentState extends State<_SignInCardContent> {
                 "Sign Up",
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Colors.black,
                   decoration: TextDecoration.underline,
                   fontSize: 15,

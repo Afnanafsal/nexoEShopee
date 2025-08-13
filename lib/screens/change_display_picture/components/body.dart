@@ -265,7 +265,7 @@ class _BodyState extends ConsumerState<Body> {
                     Text(
                       displayName,
                       style: TextStyle(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         fontSize: 20,
                         color: const Color(0xFF527085),
                         letterSpacing: 1.1,
