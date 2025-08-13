@@ -342,7 +342,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                                 style: TextStyle(
                                   fontSize: 18.sp,
                                   color: kPrimaryColor,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               );
                             },
@@ -376,7 +376,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                           "Add delivery address",
                           style: TextStyle(
                             fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w400,
                             color: Colors.grey[600],
                           ),
                         )
@@ -407,7 +407,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                               displayAddress,
                               style: TextStyle(
                                 fontSize: 14.sp,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w400,
                                 color: Color(0xFF646161),
                               ),
                               maxLines: 1,
@@ -436,7 +436,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                 ),
               ),
               SizedBox(
-                width: 25.w,
+                width: 40.w,
               ), // 🔹 Added more space between address and search icon
               IconButton(
                 onPressed: _navigateToSearch,

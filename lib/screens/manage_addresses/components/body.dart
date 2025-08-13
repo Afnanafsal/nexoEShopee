@@ -123,78 +123,35 @@ class _BodyState extends State<Body> with RouteAware {
                     style: TextStyle(fontSize: 13, color: Colors.black54),
                   ),
                   const SizedBox(height: 24),
+
                   // Address list (cache-first)
-                  
-                    StreamBuilder<List<String>>(
-                      stream: addressesStream.stream.cast<List<String>>(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          final addresses = snapshot.data;
-                          if (addresses!.isEmpty) {
-                            return Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                NothingToShowContainer(
-                                  iconPath: "assets/icons/add_location.svg",
-                                  secondaryMessage: "Add your first Address",
-                                ),
-                                const SizedBox(height: 24),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 56,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF34495E),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      padding: EdgeInsets.zero,
-                                    ),
-                                    onPressed: () async {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              EditAddressScreen(
-                                                key: UniqueKey(),
-                                                addressIdToEdit: null,
-                                              ),
-                                        ),
-                                      );
-                                    },
-                                    child: const Text(
-                                      "Add New Address",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                              ],
-                            );
-                          }
+                  StreamBuilder<List<String>>(
+                    stream: addressesStream.stream.cast<List<String>>(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        final addresses = snapshot.data;
+                        if (addresses!.isEmpty) {
                           return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              ...addresses
-                                  .map((id) => buildAddressItemCard(id))
-                                  .toList(),
-                              const SizedBox(height: 32),
+                              NothingToShowContainer(
+                                iconPath: "assets/icons/add_location.svg",
+                                secondaryMessage: "Add your first Address",
+                              ),
+                              const SizedBox(height: 24),
                               SizedBox(
                                 width: double.infinity,
                                 height: 56,
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.black,
+                                    backgroundColor: const Color(0xFF34495E),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     padding: EdgeInsets.zero,
                                   ),
                                   onPressed: () async {
-                                    final result = await Navigator.push(
+                                    Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => EditAddressScreen(
@@ -203,11 +160,6 @@ class _BodyState extends State<Body> with RouteAware {
                                         ),
                                       ),
                                     );
-                                    if (result == true) {
-                                      setState(() {
-                                        addressesStream.reload();
-                                      });
-                                    }
                                   },
                                   child: const Text(
                                     "Add New Address",
@@ -222,43 +174,90 @@ class _BodyState extends State<Body> with RouteAware {
                               const SizedBox(height: 24),
                             ],
                           );
-                        } else if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(
-                            child: Shimmer.fromColors(
-                              baseColor: Colors.grey[300]!,
-                              highlightColor: Colors.grey[100]!,
-                              child: Column(
-                                children: List.generate(
-                                  2,
-                                  (index) => Container(
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 8,
+                        }
+                        return Column(
+                          children: [
+                            ...addresses
+                                .map((id) => buildAddressItemCard(id))
+                                .toList(),
+                            const SizedBox(height: 32),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                onPressed: () async {
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EditAddressScreen(
+                                        key: UniqueKey(),
+                                        addressIdToEdit: null,
+                                      ),
                                     ),
-                                    width: double.infinity,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
+                                  );
+                                  if (result == true) {
+                                    setState(() {
+                                      addressesStream.reload();
+                                    });
+                                  }
+                                },
+                                child: const Text(
+                                  "Add New Address",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
                             ),
-                          );
-                        } else if (snapshot.hasError) {
-                          final error = snapshot.error;
-                          Logger().w(error.toString());
-                        }
+                            const SizedBox(height: 24),
+                          ],
+                        );
+                      } else if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
                         return Center(
-                          child: NothingToShowContainer(
-                            iconPath: "assets/icons/network_error.svg",
-                            primaryMessage: "Something went wrong",
-                            secondaryMessage: "Unable to connect to Database",
+                          child: Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Column(
+                              children: List.generate(
+                                2,
+                                (index) => Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  width: double.infinity,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         );
-                      },
-                    ),
+                      } else if (snapshot.hasError) {
+                        final error = snapshot.error;
+                        Logger().w(error.toString());
+                      }
+                      return Center(
+                        child: NothingToShowContainer(
+                          iconPath: "assets/icons/network_error.svg",
+                          primaryMessage: "Something went wrong",
+                          secondaryMessage: "Unable to connect to Database",
+                        ),
+                      );
+                    },
+                  ),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -374,45 +373,77 @@ class _BodyState extends State<Body> with RouteAware {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Dismissible(
         key: Key(addressId),
-        direction: DismissDirection.startToEnd, // Only allow swipe right to delete
+        direction:
+            DismissDirection.startToEnd, // Only allow swipe right to delete
         background: buildDismissibleSecondaryBackground(),
-        dismissThresholds: {
-          DismissDirection.startToEnd: 0.65,
-        },
-        child: Stack(
-          children: [
-            AddressShortDetailsCard(
-              key: Key(addressId),
-              addressId: addressId,
-              onTap: () async {
-                await addressItemTapCallback(addressId);
-              },
-            ),
-            Positioned(
-              right: 16,
-              top: 16,
-              child: TextButton.icon(
-                style: TextButton.styleFrom(
-                  foregroundColor: Color(0xFF616161),
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size(0, 0),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                icon: Icon(Icons.edit, size: 18, color: Color(0xFF616161)),
-                label: Text(
-                  "Edit",
-                  style: TextStyle(
-                    color: Color(0xFF616161),
-                    fontWeight: FontWeight.normal,
-                    fontSize: 15,
+        dismissThresholds: {DismissDirection.startToEnd: 0.65},
+        child: Card(
+          elevation: 0,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          color: Colors.white,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () async {
+              await addressItemTapCallback(addressId);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          getAddressTitle(addressId),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.black,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Color(0xFF616161),
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size(0, 0),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        icon: Icon(
+                          Icons.edit,
+                          size: 18,
+                          color: Color(0xFF616161),
+                        ),
+                        label: Text(
+                          "Edit",
+                          style: TextStyle(
+                            color: Color(0xFF616161),
+                            fontWeight: FontWeight.normal,
+                            fontSize: 15,
+                          ),
+                        ),
+                        onPressed: () async {
+                          await editButtonCallback(context, addressId);
+                        },
+                      ),
+                    ],
                   ),
-                ),
-                onPressed: () async {
-                  await editButtonCallback(context, addressId);
-                },
+                  SizedBox(height: 4),
+                  Text(
+                    getAddressDetails(addressId),
+                    style: TextStyle(color: Colors.black87, fontSize: 14),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.startToEnd) {
@@ -428,9 +459,23 @@ class _BodyState extends State<Body> with RouteAware {
     );
   }
 
+  // Helper to get address title (replace with your actual logic)
+  String getAddressTitle(String addressId) {
+    // TODO: Replace with actual title fetch logic
+    // For now, return "Home" for demo
+    return "Home";
+  }
+
+  // Helper to get address details (replace with your actual logic)
+  String getAddressDetails(String addressId) {
+    // TODO: Replace with actual details fetch logic
+    // For now, return demo address
+    return "Gurupuram, opp believers, 330012.";
+  }
+
   Widget buildDismissiblePrimaryBackground() {
-  // Removed swipe-to-edit background
-  return SizedBox.shrink();
+    // Removed swipe-to-edit background
+    return SizedBox.shrink();
   }
 
   Widget buildDismissibleSecondaryBackground() {
