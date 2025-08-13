@@ -147,7 +147,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      product.title ?? '',
+                      (product.title ?? '').split('/').first,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -194,7 +194,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                 ),
               Spacer(),
               Container(
-                margin: EdgeInsets.only(right: 18),
+                margin: EdgeInsets.only(left: 12),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(32),
@@ -206,6 +206,10 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                     ),
                   ],
                 ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ), // Increased height
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -235,7 +239,11 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
           SizedBox(height: 12),
           Text(
             product.description ?? '',
-            style: TextStyle(fontSize: 16, color: Color(0xFF626262), fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: 16,
+              color: Color(0xFF626262),
+              fontWeight: FontWeight.w600,
+            ),
           ),
           SizedBox(height: 20),
           Row(
@@ -247,7 +255,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                     color: Color(0xFFF7F8FA),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 18),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -290,7 +298,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                     color: Color(0xFFF7F8FA),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 18),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [

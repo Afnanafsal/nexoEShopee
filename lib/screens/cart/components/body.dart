@@ -1,4 +1,16 @@
+import 'package:fishkart/components/async_progress_dialog.dart';
+import 'package:fishkart/models/CartItem.dart';
+import 'package:fishkart/models/OrderedProduct.dart';
+import 'package:fishkart/models/Product.dart';
+import 'package:fishkart/providers/user_providers.dart';
+import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/cache/hive_service.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,36 +75,43 @@ class _BodyState extends ConsumerState<Body> {
   // Payment method tile widget for UPI and Add Card
   Widget paymentMethodTile(IconData icon, String title, String? subtitle) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 4),
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: EdgeInsets.symmetric(vertical: 4.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10.r),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 1)),
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4.r,
+            offset: Offset(0, 1.h),
+          ),
         ],
       ),
       child: Row(
         children: [
-          Icon(icon, color: kPrimaryColor, size: 28),
-          SizedBox(width: 12),
+          Icon(icon, color: kPrimaryColor, size: 28.sp),
+          SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15.sp,
+                  ),
                 ),
                 if (subtitle != null)
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                    style: TextStyle(fontSize: 13.sp, color: Colors.grey[700]),
                   ),
               ],
             ),
           ),
-          Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
+          Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18.sp),
         ],
       ),
     );
@@ -679,17 +698,40 @@ class _BodyState extends ConsumerState<Body> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: getProportionateScreenWidth(screenPadding),
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
         child: Column(
           children: [
-            SizedBox(height: getProportionateScreenHeight(10)),
+            SizedBox(height: 16.h),
             Align(
-              alignment: Alignment.center,
-              child: Text("Your Cart", style: headingStyle),
+              alignment: Alignment.centerLeft,
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.black,
+                  size: 22.sp,
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints(),
+              ),
             ),
-            SizedBox(height: getProportionateScreenHeight(20)),
+            SizedBox(height: 18.h),
+
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: EdgeInsets.only(left: 8.w),
+                child: Text(
+                  "Your Cart",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18.sp,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 18.h),
             // Address selector
             if (_addresses.length > 1)
               Container(
@@ -845,9 +887,13 @@ class _BodyState extends ConsumerState<Body> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: (product.images != null && product.images!.isNotEmpty)
-                      ? Base64ImageService().base64ToImage(
-                          product.images!.first,
+                      ? Image.memory(
+                          Base64ImageService().base64ToBytes(
+                            product.images!.first,
+                          ),
                           fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
                         )
                       : Icon(
                           Icons.image_not_supported,
@@ -861,33 +907,51 @@ class _BodyState extends ConsumerState<Body> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        product.title ?? "Product",
+                        (product.title != null && product.title!.contains('/'))
+                            ? product.title!.split('/').first.trim()
+                            : (product.title ?? "Product"),
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16.sp,
+                          color: Colors.black,
                         ),
                       ),
-                      if (product.description != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
-                          child: Text(
-                            product.description!,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.black54,
-                            ),
+                      Padding(
+                        padding: EdgeInsets.only(top: 4.h),
+                        child: Text(
+                          'Net weight: ${product.variant ?? "-"}',
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: Colors.black54,
                           ),
                         ),
-                      SizedBox(height: 8),
-                      Text(
-                        '₹${product.discountPrice?.toStringAsFixed(2) ?? product.originalPrice?.toStringAsFixed(2) ?? ''}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: kPrimaryColor,
-                        ),
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 8.h),
+                      Row(
+                        children: [
+                          Text(
+                            '₹${product.discountPrice?.toStringAsFixed(2) ?? product.originalPrice?.toStringAsFixed(2) ?? ''}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15.sp,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(width: 8.w),
+                          if (product.originalPrice != null &&
+                              product.discountPrice != null)
+                            Text(
+                              '₹${product.originalPrice?.toStringAsFixed(2) ?? ''}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontSize: 13.sp,
+                                color: Colors.grey,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
                       Text('Qty: 1'),
                     ],
                   ),
@@ -1044,9 +1108,9 @@ class _BodyState extends ConsumerState<Body> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
-                            width: 90,
-                            height: 90,
-                            margin: EdgeInsets.all(12),
+                            width: 120,
+                            height: 150,
+                            margin: EdgeInsets.only(right: 12),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               image:
@@ -1072,6 +1136,7 @@ class _BodyState extends ConsumerState<Body> {
                                   )
                                 : null,
                           ),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Padding(
                               padding: EdgeInsets.symmetric(
@@ -1082,25 +1147,28 @@ class _BodyState extends ConsumerState<Body> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    product.title ?? "Product",
+                                    (product.title != null &&
+                                            product.title!.contains('/'))
+                                        ? product.title!.split('/').first.trim()
+                                        : (product.title ?? "Product"),
                                     style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16,
+                                      color: Colors.black,
                                     ),
                                   ),
-                                  if (product.description != null)
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 2),
-                                      child: Text(
-                                        product.description!,
+                                  SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Net weight: ${product.variant ?? ''}',
                                         style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
+                                          fontSize: 13,
+                                          color: Colors.grey,
                                         ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
+                                    ],
+                                  ),
                                   SizedBox(height: 8),
                                   Row(
                                     children: [
@@ -1109,6 +1177,7 @@ class _BodyState extends ConsumerState<Body> {
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 15,
+                                          color: Colors.black,
                                         ),
                                       ),
                                       SizedBox(width: 8),

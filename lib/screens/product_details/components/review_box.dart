@@ -19,6 +19,8 @@ class ReviewBox extends StatefulWidget {
   State<ReviewBox> createState() => _ReviewBoxState();
 }
 
+bool _showReplies = false;
+
 class _ReviewBoxState extends State<ReviewBox> {
   late Review review;
 
@@ -77,18 +79,70 @@ class _ReviewBoxState extends State<ReviewBox> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reply to Review'),
-        content: TextField(
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Type your reply...'),
-          onChanged: (val) => replyText = val,
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Row(
+          children: [
+            const Icon(Icons.reply, color: Colors.black87),
+            const SizedBox(width: 8),
+            const Text(
+              'Reply to Review',
+              style: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
         ),
+        content: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextField(
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'Type your reply...',
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            style: const TextStyle(fontSize: 15, color: Colors.black87),
+            onChanged: (val) => replyText = val,
+            maxLines: 3,
+          ),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         actions: [
           TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.black87,
+              backgroundColor: Colors.grey[200],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black87,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: Colors.black12),
+              ),
+            ),
             onPressed: () async {
               if (replyText.trim().isNotEmpty) {
                 final db = FirebaseFirestore.instance;
@@ -140,7 +194,10 @@ class _ReviewBoxState extends State<ReviewBox> {
     if (!likedBy.contains(currentUserId)) {
       likedBy.add(currentUserId);
       setState(() {
-        review = review.copyWith(likes: likedBy.length, likedBy: likedBy.map((e) => e.toString()).toList());
+        review = review.copyWith(
+          likes: likedBy.length,
+          likedBy: likedBy.map((e) => e.toString()).toList(),
+        );
       });
       await reviewRef.update({'likes': likedBy.length, 'likedBy': likedBy});
     }
@@ -180,11 +237,11 @@ class _ReviewBoxState extends State<ReviewBox> {
         final replies = snapshot.data ?? [];
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           margin: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(18),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,20 +259,88 @@ class _ReviewBoxState extends State<ReviewBox> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Show only first name
                         Text(
-                          review.userName ?? 'User',
+                          (review.userName ?? 'User').split(' ')[0],
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: 15,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        // Time & Reply row directly below name
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                getTimeAgo(review.createdAt),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              GestureDetector(
+                                onTap: showReplyDialog,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFF7F8FA),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'Reply',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Review text
                         Text(
                           review.review ?? '',
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        // View Replies Button directly under review text
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _showReplies = !_showReplies;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Color(0xFFF7F8FA),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                _showReplies
+                                    ? 'Hide Replies (${review.replyCount}) \u25B2'
+                                    : 'View Replies (${review.replyCount}) \u25BC',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -255,28 +380,8 @@ class _ReviewBoxState extends State<ReviewBox> {
 
               const SizedBox(height: 8),
 
-              /// Time & Reply Button
-              Row(
-                children: [
-                  Text(
-                    getTimeAgo(review.createdAt),
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: showReplyDialog,
-                    child: const Text(
-                      'Reply',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              /// Replies
-              if (replies.isNotEmpty)
+              /// Replies (only show if toggled)
+              if (_showReplies && replies.isNotEmpty)
                 ...replies.map(
                   (reply) => Padding(
                     padding: const EdgeInsets.only(left: 32, bottom: 6),
@@ -333,19 +438,6 @@ class _ReviewBoxState extends State<ReviewBox> {
                     ),
                   ),
                 ),
-
-              /// View Replies Count
-              GestureDetector(
-                onTap: () {},
-                child: Text(
-                  'View Replies (${review.replyCount}) \u25BC',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
             ],
           ),
         );
