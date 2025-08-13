@@ -58,6 +58,7 @@ dependencies:
   razorpay_flutter: ^1.4.0
   android_intent_plus: ^5.3.0
   flutter_screenutil: ^5.9.3
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

@@ -76,7 +76,7 @@ class _BodyState extends State<Body> with RouteAware {
       child: RefreshIndicator(
         onRefresh: refreshPage,
         child: Container(
-          color: Colors.transparent,
+          color: Color(0XFFEFF1F5),
           child: SingleChildScrollView(
             physics: AlwaysScrollableScrollPhysics(),
             child: Padding(
@@ -101,7 +101,7 @@ class _BodyState extends State<Body> with RouteAware {
                           ],
                         ),
                         child: IconButton(
-                          icon: Icon(Icons.arrow_back, size: 28),
+                          icon: Icon(Icons.arrow_back_ios, size: 28),
                           onPressed: () => Navigator.of(context).pop(),
                         ),
                       ),

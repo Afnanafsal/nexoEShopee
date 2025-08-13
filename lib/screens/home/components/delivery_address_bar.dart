@@ -1,13 +1,10 @@
 import 'package:fishkart/screens/manage_addresses/manage_addresses_screen.dart';
 import 'package:flutter/material.dart';
-// ...existing code...
 import 'package:fishkart/providers/user_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fishkart/constants.dart';
-// import 'package:fishkart/screens/manage_addresses/manage_addresses_screen.dart';
 import 'package:fishkart/providers/product_providers.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
-// import 'package:fishkart/size_config.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 final _addressesListProvider = FutureProvider<List<String>>((ref) async {
@@ -30,6 +27,7 @@ class DeliveryAddressBar extends ConsumerStatefulWidget {
 class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
     with RouteAware {
   bool _dialogShown = false;
+
   @override
   void initState() {
     super.initState();
@@ -68,7 +66,6 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
 
   @override
   void didPopNext() {
-    // Called when coming back to this screen
     ref.invalidate(selectedAddressFutureProvider);
     ref.invalidate(_addressesListProvider);
   }
@@ -233,9 +230,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
   }
 
   void _navigateToSearch() {
-    // Navigate to search screen - replace with your actual search screen
     Navigator.pushNamed(context, '/search');
-    // or Navigator.push(context, MaterialPageRoute(builder: (context) => SearchScreen()));
   }
 
   @override
@@ -244,7 +239,6 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
     final addressAsync = ref.watch(selectedAddressFutureProvider);
     final addressesListAsync = ref.watch(_addressesListProvider);
 
-    // If only one address exists, select it automatically
     addressesListAsync.when(
       data: (addresses) {
         if (addresses.length == 1 && selectedAddressId != addresses[0]) {
@@ -257,6 +251,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
       loading: () {},
       error: (err, stack) {},
     );
+
     return addressesListAsync.when(
       data: (addresses) {
         if (addresses.isEmpty) {
@@ -326,70 +321,56 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
             children: [
               Expanded(
                 child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ManageAddressesScreen(),
-                      ),
-                    );
-                  },
+                  onTap:
+                      _showAddressSelectionDialog, // 🔹 Now opens popup everywhere
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title with dropdown arrow inline
-                      InkWell(
-                        onTap: addresses.length > 1
-                            ? _showAddressSelectionDialog
-                            : null,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            addressAsync.when(
-                              data: (address) {
-                                String title = "Address";
-                                if (address != null &&
-                                    address.title != null &&
-                                    address.title!.isNotEmpty) {
-                                  title = address.title!;
-                                }
-                                return Text(
-                                  "${title[0].toUpperCase()}${title.substring(1)}",
-                                  style: TextStyle(
-                                    fontSize: 18.sp,
-                                    color: kPrimaryColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                );
-                              },
-                              loading: () => Text(
-                                "Loading...",
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          addressAsync.when(
+                            data: (address) {
+                              String title = "Address";
+                              if (address != null &&
+                                  address.title != null &&
+                                  address.title!.isNotEmpty) {
+                                title = address.title!;
+                              }
+                              return Text(
+                                "${title[0].toUpperCase()}${title.substring(1)}",
                                 style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: Colors.grey[400],
-                                  fontWeight: FontWeight.w400,
+                                  fontSize: 18.sp,
+                                  color: kPrimaryColor,
+                                  fontWeight: FontWeight.w700,
                                 ),
-                              ),
-                              error: (err, stack) => Text(
-                                "Error loading address",
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.w400,
-                                ),
+                              );
+                            },
+                            loading: () => Text(
+                              "Loading...",
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.grey[400],
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
-                            // Dropdown arrow directly next to title - show only if multiple addresses
-                            if (addresses.length > 1)
-                              Icon(
-                                Icons.keyboard_arrow_down,
-                                color: kPrimaryColor,
-                                size: 20.sp,
+                            error: (err, stack) => Text(
+                              "Error loading address",
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.red,
+                                fontWeight: FontWeight.w400,
                               ),
-                          ],
-                        ),
+                            ),
+                          ),
+                          if (addresses.length > 1)
+                            Icon(
+                              Icons.keyboard_arrow_down,
+                              color: kPrimaryColor,
+                              size: 20.sp,
+                            ),
+                        ],
                       ),
-                      // Address details
                       if (selectedAddressId == null)
                         Text(
                           "Add delivery address",
@@ -415,7 +396,6 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                                       .where((e) => e.isNotEmpty)
                                       .join(', ');
                             }
-                            // Truncate address to 30 chars with ellipsis
                             String displayAddress = formattedAddress;
                             const int maxLen = 30;
                             if (displayAddress.length > maxLen) {
@@ -455,8 +435,9 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                   ),
                 ),
               ),
-              SizedBox(width: 18.w),
-              // Search icon
+              SizedBox(
+                width: 25.w,
+              ), // 🔹 Added more space between address and search icon
               IconButton(
                 onPressed: _navigateToSearch,
                 icon: Icon(Icons.search, color: kPrimaryColor, size: 32.sp),

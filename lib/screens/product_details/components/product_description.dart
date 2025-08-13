@@ -235,7 +235,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
           SizedBox(height: 12),
           Text(
             product.description ?? '',
-            style: TextStyle(fontSize: 16, color: Color(0xFF626262)),
+            style: TextStyle(fontSize: 16, color: Color(0xFF626262), fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 20),
           Row(

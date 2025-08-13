@@ -20,7 +20,6 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  // Helper to truncate product name at '/' or '('
   String _truncateProductName(String name) {
     final slashIdx = name.indexOf('/');
     final parenIdx = name.indexOf('(');
@@ -57,14 +56,13 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       isLoading = true;
     });
-    // Fetch ordered product documents from Firestore
     final uid = UserDatabaseHelper().firestore
         .collection(UserDatabaseHelper.USERS_COLLECTION_NAME)
         .doc(AuthentificationService().currentUser.uid);
     final snapshot = await uid
         .collection(UserDatabaseHelper.ORDERED_PRODUCTS_COLLECTION_NAME)
         .get();
-    // Extract product_uid from each order
+
     final List<String> productUids = [];
     for (final doc in snapshot.docs) {
       final data = doc.data();
@@ -76,11 +74,9 @@ class _SearchScreenState extends State<SearchScreen> {
     for (final id in productUids) {
       countMap[id] = (countMap[id] ?? 0) + 1;
     }
-    // Sort by count descending
     final sortedIds = countMap.keys.toList()
       ..sort((a, b) => countMap[b]!.compareTo(countMap[a]!));
 
-    // Batch fetch cached products first
     List<Product> products = [];
     List<String> missingIds = [];
     for (final id in sortedIds) {
@@ -91,7 +87,6 @@ class _SearchScreenState extends State<SearchScreen> {
         missingIds.add(id);
       }
     }
-    // Batch fetch missing products from DB and cache them
     if (missingIds.isNotEmpty) {
       final fetchedProducts = await Future.wait(
         missingIds.map((id) => ProductDatabaseHelper().getProductWithID(id)),
@@ -115,7 +110,7 @@ class _SearchScreenState extends State<SearchScreen> {
       isSearching = true;
       isLoading = true;
     });
-    // Try cache first
+
     final cachedIds = HiveService.instance.getCachedSearchResults(query);
     List<Product> products = [];
     List<String> missingIds = [];
@@ -129,7 +124,6 @@ class _SearchScreenState extends State<SearchScreen> {
         }
       }
     } else {
-      // No cache, search backend
       final ids = await ProductDatabaseHelper().searchInProducts(query);
       for (final id in ids) {
         final cached = HiveService.instance.getCachedProduct(id);
@@ -139,10 +133,9 @@ class _SearchScreenState extends State<SearchScreen> {
           missingIds.add(id);
         }
       }
-      // Cache search result ids for next time
       await HiveService.instance.cacheSearchResults(query, ids);
     }
-    // Batch fetch missing products and cache them
+
     if (missingIds.isNotEmpty) {
       final fetchedProducts = await Future.wait(
         missingIds.map((id) => ProductDatabaseHelper().getProductWithID(id)),
@@ -171,7 +164,9 @@ class _SearchScreenState extends State<SearchScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Please select a delivery address before adding to cart."),
+            content: Text(
+              "Please select a delivery address before adding to cart.",
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -206,10 +201,13 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildCustomSearchBar() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: 16.w,
+        vertical: 4.h,
+      ), // reduced height
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(25.r),
+        borderRadius: BorderRadius.circular(35.r), // increased radius
         border: Border.all(color: Colors.black),
       ),
       child: Row(
@@ -221,28 +219,23 @@ class _SearchScreenState extends State<SearchScreen> {
               child: const Icon(
                 Icons.arrow_back_ios,
                 color: Colors.black,
-                size: 32,
+                size: 28, // slightly smaller
               ),
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           Expanded(
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Type your fish...',
-                hintStyle: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.normal,
-                ),
+                hintStyle: TextStyle(color: Colors.grey, fontSize: 14.sp),
                 border: InputBorder.none,
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 8.h),
+                contentPadding: EdgeInsets.symmetric(vertical: 4.h),
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
               ),
-              style: TextStyle(fontSize: 16.sp, color: Colors.black),
               onSubmitted: (value) {
                 if (value.trim().isNotEmpty) {
                   onSearch(value.trim());
@@ -258,7 +251,7 @@ class _SearchScreenState extends State<SearchScreen> {
             },
             child: Container(
               padding: const EdgeInsets.all(4),
-              child: const Icon(Icons.search, color: Colors.black, size: 32),
+              child: const Icon(Icons.search, color: Colors.black, size: 28),
             ),
           ),
         ],
@@ -270,19 +263,16 @@ class _SearchScreenState extends State<SearchScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(
-          12.r,
-        ), // Slightly smaller border radius
+        borderRadius: BorderRadius.all(Radius.circular(15.r)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04), // Reduced shadow opacity
-            blurRadius: 4, // Reduced blur radius
-            offset: const Offset(0, 1), // Smaller shadow offset
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12.r),
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -297,13 +287,13 @@ class _SearchScreenState extends State<SearchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(15.r),
               child: Container(
-                height: 100.h, // Reduced image height significantly
+                height: 110.h, // reduced height
                 width: double.infinity,
                 color: Colors.white,
                 child: Padding(
-                  padding: EdgeInsets.all(8.w), // Reduced padding
+                  padding: EdgeInsets.all(8.w),
                   child: Builder(
                     builder: (context) {
                       final img =
@@ -313,7 +303,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       if (img == null || img.isEmpty) {
                         return Icon(
                           Icons.image,
-                          size: 24.sp, // Smaller icon
+                          size: 24.sp,
                           color: Colors.grey,
                         );
                       } else if (img.startsWith('http')) {
@@ -377,37 +367,28 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                8.w,
-                6.h,
-                8.w,
-                8.h,
-              ), // Reduced padding
+              padding: EdgeInsets.fromLTRB(10.w, 4.h, 10.w, 8.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     _truncateProductName(product.title ?? 'Product Name'),
                     style: TextStyle(
-                      fontSize: 12.sp, // Smaller font size
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
                       color: Colors.black,
                     ),
-                    maxLines: 1, // Reduced to 1 line
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 2.h), // Smaller spacing
+                  SizedBox(height: 2.h),
                   Text(
                     product.variant != null && product.variant!.isNotEmpty
                         ? product.variant!
                         : '500 gms',
-                    style: TextStyle(
-                      fontSize: 10.sp, // Smaller variant text
-                      color: Color(0xFF8E8E93),
-                      fontWeight: FontWeight.normal,
-                    ),
+                    style: TextStyle(fontSize: 10.sp, color: Color(0xFF8E8E93)),
                   ),
-                  SizedBox(height: 4.h), // Small spacing before price row
+                  SizedBox(height: 4.h),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -421,7 +402,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               Text(
                                 '₹${product.discountPrice?.toStringAsFixed(2) ?? product.originalPrice?.toStringAsFixed(2) ?? '0.00'}',
                                 style: TextStyle(
-                                  fontSize: 12.sp, // Smaller price text
+                                  fontSize: 12.sp,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.black,
                                 ),
@@ -432,19 +413,16 @@ class _SearchScreenState extends State<SearchScreen> {
                       GestureDetector(
                         onTap: () => addToCart(context, product.id),
                         child: Container(
-                          width: 20.w, // Smaller add button
+                          width: 20.w,
                           height: 20.w,
                           decoration: BoxDecoration(
                             color: Colors.black,
-                            shape: BoxShape.rectangle,
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(4.r), // Smaller border radius
-                            ),
+                            borderRadius: BorderRadius.circular(4.r),
                           ),
                           child: Icon(
                             Icons.add,
                             color: Colors.white,
-                            size: 12.sp, // Smaller icon
+                            size: 12.sp,
                           ),
                         ),
                       ),
@@ -479,7 +457,7 @@ class _SearchScreenState extends State<SearchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 2, // Adjusted flex ratio for smaller image area
+              flex: 2,
               child: Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
@@ -489,9 +467,9 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
             Expanded(
-              flex: 2, // Adjusted flex ratio
+              flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(8), // Reduced padding
+                padding: const EdgeInsets.all(6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -499,16 +477,12 @@ class _SearchScreenState extends State<SearchScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 80,
-                          height: 12,
-                          color: Colors.grey,
-                        ), // Smaller shimmer blocks
+                        Container(width: 70, height: 10, color: Colors.grey),
                         const SizedBox(height: 3),
-                        Container(width: 50, height: 10, color: Colors.grey),
+                        Container(width: 50, height: 9, color: Colors.grey),
                       ],
                     ),
-                    Container(width: 40, height: 12, color: Colors.grey),
+                    Container(width: 40, height: 10, color: Colors.grey),
                   ],
                 ),
               ),
@@ -525,20 +499,20 @@ class _SearchScreenState extends State<SearchScreen> {
       backgroundColor: const Color(0xFFEFF1F5),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(24.0), // Increased full padding
+          padding: EdgeInsets.all(30.0), // slightly reduced
           child: Column(
             children: [
               _buildCustomSearchBar(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 30),
               Expanded(
                 child: isLoading
                     ? GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: 0.9,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.85, // reduced height
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 24,
                             ),
                         itemCount: 8,
                         itemBuilder: (context, index) => _buildShimmerCard(),
@@ -547,9 +521,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: 0.9,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.85, // reduced height
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 24,
                             ),
                         itemCount: isSearching
                             ? searchResults.length
