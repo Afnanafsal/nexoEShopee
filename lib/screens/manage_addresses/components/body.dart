@@ -374,27 +374,49 @@ class _BodyState extends State<Body> with RouteAware {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Dismissible(
         key: Key(addressId),
-        direction: DismissDirection.horizontal,
+        direction: DismissDirection.startToEnd, // Only allow swipe right to delete
         background: buildDismissibleSecondaryBackground(),
-        secondaryBackground: buildDismissiblePrimaryBackground(),
         dismissThresholds: {
-          DismissDirection.endToStart: 0.65,
           DismissDirection.startToEnd: 0.65,
         },
-        child: AddressShortDetailsCard(
-          key: Key(addressId),
-          addressId: addressId,
-          onTap: () async {
-            await addressItemTapCallback(addressId);
-          },
-          // trailing removed, swipe to edit only
+        child: Stack(
+          children: [
+            AddressShortDetailsCard(
+              key: Key(addressId),
+              addressId: addressId,
+              onTap: () async {
+                await addressItemTapCallback(addressId);
+              },
+            ),
+            Positioned(
+              right: 16,
+              top: 16,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(
+                  foregroundColor: Color(0xFF616161),
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size(0, 0),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                icon: Icon(Icons.edit, size: 18, color: Color(0xFF616161)),
+                label: Text(
+                  "Edit",
+                  style: TextStyle(
+                    color: Color(0xFF616161),
+                    fontWeight: FontWeight.normal,
+                    fontSize: 15,
+                  ),
+                ),
+                onPressed: () async {
+                  await editButtonCallback(context, addressId);
+                },
+              ),
+            ),
+          ],
         ),
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.startToEnd) {
             final status = await deleteButtonCallback(context, addressId);
-            return status;
-          } else if (direction == DismissDirection.endToStart) {
-            final status = await editButtonCallback(context, addressId);
             return status;
           }
           return false;
@@ -407,29 +429,8 @@ class _BodyState extends State<Body> with RouteAware {
   }
 
   Widget buildDismissiblePrimaryBackground() {
-    return Container(
-      padding: EdgeInsets.only(right: 20),
-      decoration: BoxDecoration(
-        color: Colors.green,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Icon(Icons.edit, color: Colors.white),
-          SizedBox(width: 4),
-          Text(
-            "Edit",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
-          ),
-        ],
-      ),
-    );
+  // Removed swipe-to-edit background
+  return SizedBox.shrink();
   }
 
   Widget buildDismissibleSecondaryBackground() {
