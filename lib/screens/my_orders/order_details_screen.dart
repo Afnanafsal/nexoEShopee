@@ -216,175 +216,168 @@ class OrderDetailsScreen extends StatelessWidget {
                       ? (price * order.quantity)
                       : 0.0;
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 28),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0,
-                          vertical: 20.0,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  child: IconButton(
-                                    icon: Icon(
-                                      Icons.arrow_back_ios,
-                                      color: Color(0xFF000000),
-                                    ),
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 36),
-                            Text(
-                              'Your order received!',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
-                            ),
-                            SizedBox(height: 14),
-                            Row(
-                              children: [
-                                Text(
-                                  'Order ID',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                ),
-                                SizedBox(width: 6),
-                                Text(
-                                  '#${order.id}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              _formatOrderDate(order.orderDate),
-                              style: TextStyle(
-                                color: Color(0xFF646161),
-                                fontSize: 16,
-                                fontWeight: FontWeight.normal,
-                              ),
-                            ),
-                            SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '${order.quantity} Items',
-                                  style: TextStyle(
-                                    color: Colors.grey[700],
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                ),
-                                Text(
-                                  '₹${totalPrice.toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(height: 10),
-
-                      // Products List
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (int i = 0; i < order.quantity; i++)
-                              Container(
-                                margin: EdgeInsets.only(bottom: 12),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: SizedBox(
-                                        height: 44,
-                                        width: 44,
-                                        child:
-                                            product != null &&
-                                                product.images != null &&
-                                                product.images!.isNotEmpty
-                                            ? _buildProductImage(
-                                                product.images!.first,
-                                              )
-                                            : Container(
-                                                color: Colors.grey[200],
-                                                child: Icon(
-                                                  Icons.image,
-                                                  size: 20,
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 28),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0,
+                            vertical: 20.0,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.arrow_back_ios,
+                                        color: Color(0xFF000000),
                                       ),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                      padding: EdgeInsets.zero,
+                                      constraints: BoxConstraints(),
                                     ),
-                                    SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  (product?.title ?? '-')
-                                                      .split('/')[0]
-                                                      .trim(),
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w500,
-                                                    fontSize: 16,
-                                                    color: Colors.black,
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 36),
+                              Text(
+                                'Your order received!',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Order ID',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    '#${order.id}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                _formatOrderDate(order.orderDate),
+                                style: TextStyle(
+                                  color: Color(0xFF646161),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${order.quantity} Items',
+                                    style: TextStyle(
+                                      color: Colors.grey[700],
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                  Text(
+                                    '₹${totalPrice.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: 10),
+
+                        // Products List
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (int i = 0; i < order.quantity; i++)
+                                Container(
+                                  margin: EdgeInsets.only(bottom: 12),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: SizedBox(
+                                          height: 44,
+                                          width: 44,
+                                          child:
+                                              product != null &&
+                                                  product.images != null &&
+                                                  product.images!.isNotEmpty
+                                              ? _buildProductImage(
+                                                  product.images!.first,
+                                                )
+                                              : Container(
+                                                  color: Colors.grey[200],
+                                                  child: Icon(
+                                                    Icons.image,
+                                                    size: 20,
+                                                    color: Colors.grey,
                                                   ),
                                                 ),
-                                              ),
-                                              Expanded(
-                                                child: Center(
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
                                                   child: Text(
-                                                    '₹${price.toStringAsFixed(2)}',
+                                                    (product?.title ?? '-')
+                                                        .split('/')[0]
+                                                        .trim(),
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.w500,
@@ -393,186 +386,202 @@ class OrderDetailsScreen extends StatelessWidget {
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                              Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 2,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey[200],
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: Text(
-                                                  (i + 1).toString().padLeft(
-                                                    2,
-                                                    '0',
-                                                  ),
-                                                  style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w500,
+                                                Expanded(
+                                                  child: Center(
+                                                    child: Text(
+                                                      '₹${price.toStringAsFixed(2)}',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontSize: 16,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-
-                                          SizedBox(height: 4),
-                                          Text(
-                                            'Net weight: ${product?.variant ?? '-'}',
-                                            style: TextStyle(
-                                              color: Color(0xFF646161),
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.normal,
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 2,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey[200],
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    (i + 1).toString().padLeft(
+                                                      2,
+                                                      '0',
+                                                    ),
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ),
-                                        ],
+
+                                            SizedBox(height: 4),
+                                            Text(
+                                              'Net weight: ${product?.variant ?? '-'}',
+                                              style: TextStyle(
+                                                color: Color(0xFF646161),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.normal,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                              SizedBox(height: 18),
+
+                              Text(
+                                'Order Status',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'We expect to deliver \nthe order in 3 Hrs',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Color(0xFF646161),
+                                        fontWeight: FontWeight.normal,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: statusBgColor,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: statusTextColor,
+                                          width: 1.2,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        normalizedStatus,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: statusTextColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              SizedBox(height: 18),
+
+                              // Help Section
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.phone_outlined,
+                                      size: 22,
+                                      color: Color(0xFF374151),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text(
+                                      'Need help?',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-
-                            SizedBox(height: 18),
-
-                            Text(
-                              'Order Status',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'We expect to deliver \nthe order in 3 Hrs',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Color(0xFF646161),
-                                      fontWeight: FontWeight.normal,
-                                      height: 1.4,
-                                    ),
-                                  ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
                                 ),
-                                SizedBox(width: 8),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 6,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.chat_bubble_outline,
+                                      size: 20,
+                                      color: Color(0xFF374151),
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: statusBgColor,
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: statusTextColor,
-                                        width: 1.2,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      normalizedStatus,
+                                    SizedBox(width: 12),
+                                    Text(
+                                      'Have a question?',
                                       style: TextStyle(
                                         fontSize: 16,
+                                        color: Colors.black,
                                         fontWeight: FontWeight.w600,
-                                        color: statusTextColor,
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ),
-
-                            SizedBox(height: 18),
-
-                            // Help Section
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8.0,
                               ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.phone_outlined,
-                                    size: 22,
-                                    color: Color(0xFF374151),
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text(
-                                    'Need help?',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8.0,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble_outline,
-                                    size: 20,
-                                    color: Color(0xFF374151),
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text(
-                                    'Have a question?',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
 
-                      Spacer(),
+                        Spacer(),
 
-                      // 100% Fresh Guarantee Section at Bottom
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 24.0,
-                          right: 24.0,
-                          bottom: 18.0,
-                          top: 8.0,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '100% Fresh Guarantee',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                                fontSize: 16,
+                        // 100% Fresh Guarantee Section at Bottom
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 24.0,
+                            right: 24.0,
+                            bottom: 18.0,
+                            top: 8.0,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '100% Fresh Guarantee',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                  fontSize: 16,
+                                ),
                               ),
-                            ),
-                            Text(
-                              'Sourced daily from trusted vendors. Hygiene checked & quality certified.',
-                              style: TextStyle(
-                                color: Color(0xFF646161),
-                                fontWeight: FontWeight.normal,
-                                fontSize: 16,
+                              Text(
+                                'Sourced daily from trusted vendors. Hygiene checked & quality certified.',
+                                style: TextStyle(
+                                  color: Color(0xFF646161),
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 16,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   );
                 },
               );
