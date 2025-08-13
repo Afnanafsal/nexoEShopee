@@ -211,8 +211,8 @@ class _BodyState extends ConsumerState<Body> {
                       SizedBox(height: 12.h),
                       Image.asset(
                         'assets/images/banner.png',
-                        width: double.infinity,
-                        height: 190.h,
+                        width: 390.w,
+                        height: 195.h,
                         fit: BoxFit.cover,
                       ),
                       SizedBox(height: 18.h),
@@ -301,7 +301,7 @@ class _BodyState extends ConsumerState<Body> {
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      SizedBox(height: 8.h),
+                                      SizedBox(height: 10.h),
                                       Container(
                                         width: 70.w,
                                         height: 70.h, // Increased image height
@@ -328,9 +328,7 @@ class _BodyState extends ConsumerState<Body> {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(
-                                        height: 20.h,
-                                      ), // Increased gap between image and title
+                                      SizedBox(height: 20.h),
                                       SizedBox(
                                         width: 85.w,
                                         child: Text(
@@ -339,7 +337,7 @@ class _BodyState extends ConsumerState<Body> {
                                             color: selected
                                                 ? const Color(0xFF2C2C2C)
                                                 : Colors.black,
-                                            fontWeight: FontWeight.w700,
+                                            fontWeight: FontWeight.w600,
                                             fontSize: 12.sp,
                                             fontFamily: 'Poppins',
                                           ),
@@ -797,7 +795,7 @@ class _BodyState extends ConsumerState<Body> {
                         Text(
                           productTitle,
                           style: TextStyle(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                             fontSize: 16.sp,
                             color: isAvailable
                                 ? Colors.black
@@ -837,7 +835,7 @@ class _BodyState extends ConsumerState<Body> {
                               Text(
                                 '₹${discountPrice.toStringAsFixed(2)}',
                                 style: TextStyle(
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                   fontSize: 14.sp,
                                   color: isAvailable
                                       ? Colors.black
@@ -853,11 +851,14 @@ class _BodyState extends ConsumerState<Body> {
                                   style: TextStyle(
                                     fontSize: 10.sp,
                                     color: isAvailable
-                                        ? const Color(0xFFB0B0B0)
+                                        ? const Color(0x61000000) // 38% opacity black
                                         : Colors.grey.shade500,
                                     decoration: TextDecoration.lineThrough,
+                                    decorationColor: isAvailable
+                                        ? const Color(0x61000000) // 38% opacity black
+                                        : Colors.grey.shade500,
                                     fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w400,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                             ],

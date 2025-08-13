@@ -406,7 +406,7 @@ class _DeliveryAddressBarState extends ConsumerState<DeliveryAddressBar>
                             return Text(
                               displayAddress,
                               style: TextStyle(
-                                fontSize: 14.sp,
+                                fontSize: 16.sp,
                                 fontWeight: FontWeight.w400,
                                 color: Color(0xFF646161),
                               ),
