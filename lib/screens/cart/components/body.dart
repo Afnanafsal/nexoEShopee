@@ -89,13 +89,12 @@ class _BodyState extends ConsumerState<Body> {
   Future<void> _fetchAddresses() async {
     try {
       final addresses = await UserDatabaseHelper().addressesList;
-      if (mounted) {
-        setState(() {
-          _addresses = addresses;
-        });
-        if (_addresses.isNotEmpty && _selectedAddressId == null) {
-          _selectedAddressId = _addresses.first;
-        }
+      if (!mounted) return;
+      setState(() {
+        _addresses = addresses;
+      });
+      if (_addresses.isNotEmpty && _selectedAddressId == null) {
+        _selectedAddressId = _addresses.first;
       }
     } catch (e) {
       Logger().e('Error fetching addresses: $e');
@@ -116,6 +115,7 @@ class _BodyState extends ConsumerState<Body> {
         data['id'] = doc.id;
         return data;
       }).toList();
+      if (!mounted) return;
       setState(() {
         savedCards = cards;
         if (savedCards.isNotEmpty) selectedCardIndex ??= 0;
@@ -185,6 +185,7 @@ class _BodyState extends ConsumerState<Body> {
       ref.invalidate(cartItemsStreamProvider);
     } catch (e) {
       Logger().e('Error updating cart item quantity: $e');
+      if (!mounted) return;
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -1025,12 +1026,16 @@ class _BodyState extends ConsumerState<Body> {
           (() async {
             double amount = await getCartTotal();
             if (amount == 0) {
-              Navigator.of(context, rootNavigator: true).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Cart is empty or failed to calculate total.'),
-                ),
-              );
+              if (mounted) {
+                Navigator.of(context, rootNavigator: true).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Cart is empty or failed to calculate total.',
+                    ),
+                  ),
+                );
+              }
               return;
             }
 
@@ -1041,6 +1046,29 @@ class _BodyState extends ConsumerState<Body> {
                 .collection(UserDatabaseHelper.CART_COLLECTION_NAME)
                 .where('address_id', isEqualTo: _selectedAddressId)
                 .get();
+
+            // Stock check before proceeding
+            for (final doc in cartSnapshot.docs) {
+              final data = doc.data();
+              final productId = data[CartItem.PRODUCT_ID_KEY];
+              final quantity = data[CartItem.ITEM_COUNT_KEY] ?? 1;
+              final product = await ProductDatabaseHelper().getProductWithID(
+                productId,
+              );
+              if (product == null || product.stock < quantity) {
+                if (mounted) {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Insufficient stock for product: ${product?.title ?? productId}. Requested: $quantity, Available: ${product?.stock ?? 0}',
+                      ),
+                    ),
+                  );
+                }
+                return;
+              }
+            }
 
             final dateTime = DateTime.now();
             final isoDateTime = dateTime.toIso8601String();
@@ -1098,31 +1126,34 @@ class _BodyState extends ConsumerState<Body> {
               } else {
                 throw "Could not order products due to unknown issue";
               }
-            } on FirebaseException catch (e) {
-              Logger().e(e.toString());
-              snackbarmMessage = e.toString();
-            } catch (e) {
-              Logger().e(e.toString());
-              snackbarmMessage = e.toString();
+            } on FirebaseException catch (e, stack) {
+              Logger().e('FirebaseException: ${e.toString()}');
+              Logger().e('StackTrace: $stack');
+              snackbarmMessage = 'FirebaseException: ${e.toString()}';
+            } catch (e, stack) {
+              Logger().e('Exception: $e');
+              Logger().e('StackTrace: $stack');
+              snackbarmMessage = 'Exception: $e';
             }
-            Navigator.of(context, rootNavigator: true).pop();
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(snackbarmMessage)));
+            if (mounted) {
+              Navigator.of(context, rootNavigator: true).pop();
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(snackbarmMessage)));
+            }
             await refreshPage();
           })(),
           message: Text("Uploading order and processing payment..."),
         );
       },
     );
-    if (orderSuccess && orderedProductToShow != null) {
+    if (orderSuccess) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) =>
-                OrderDetailsScreen(order: orderedProductToShow!),
-          ),
-        );
+        if (mounted) {
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/home', (route) => false);
+        }
       });
     }
   }
@@ -1277,11 +1308,13 @@ class _BodyState extends ConsumerState<Body> {
                           r'^(0[1-9]|1[0-2])\/\d{2}$',
                         ).hasMatch(expiry);
                         if (!valid) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Expiry must be in MM/YY format'),
-                            ),
-                          );
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Expiry must be in MM/YY format'),
+                              ),
+                            );
+                          }
                           return;
                         }
                         final cardData = {
@@ -1294,7 +1327,9 @@ class _BodyState extends ConsumerState<Body> {
                           cardData,
                           editIndex: editIndex,
                         );
-                        Navigator.pop(context);
+                        if (mounted) {
+                          Navigator.pop(context);
+                        }
                       },
                     ),
                   ],

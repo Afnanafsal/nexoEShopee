@@ -235,6 +235,7 @@ class Product extends Model {
   int stock;
   String? areaLocation;
   int? purchaseCount;
+  int ordered = 0;
 
   factory Product.fromMap(Map<String, dynamic> map, {required String id}) {
     print('Raw Firestore stock value for product id $id: ${map[STOCK_KEY]}');
@@ -248,35 +249,39 @@ class Product extends Model {
         parsedStock = (map[STOCK_KEY] as double).toInt();
       }
     }
-    return Product(
-        id,
-        images: (map[IMAGES_KEY] as List<dynamic>?)?.cast<String>() ?? [],
-        title: map[TITLE_KEY],
-        variant: map[VARIANT_KEY],
-        discountPrice: map[DISCOUNT_PRICE_KEY],
-        originalPrice: map[ORIGINAL_PRICE_KEY],
-        rating: map[RATING_KEY] ?? 0.0,
-        highlights: map[HIGHLIGHTS_KEY],
-        description: map[DESCRIPTION_KEY],
-        seller: map[SELLER_KEY],
-        owner: map[OWNER_KEY],
-        vendorId: map['vendorId'],
-        userId: map['userId'],
-        productType: map[PRODUCT_TYPE_KEY] != null
-            ? EnumToString.fromString(ProductType.values, map[PRODUCT_TYPE_KEY])
-            : null,
-        searchTags:
-            (map[SEARCH_TAGS_KEY] as List<dynamic>?)?.cast<String>() ?? [],
-        dateAdded: map[DATE_ADDED_KEY] != null
-            ? DateTime.tryParse(map[DATE_ADDED_KEY])
-            : null,
-        stock: parsedStock,
-        areaLocation: map['areaLocation'],
-        isAvailable: map['isAvailable'] is bool ? map['isAvailable'] : true,
-      )
-      ..purchaseCount = map['purchaseCount'] is int
-          ? map['purchaseCount']
-          : int.tryParse(map['purchaseCount']?.toString() ?? '');
+    final product = Product(
+      id,
+      images: (map[IMAGES_KEY] as List<dynamic>?)?.cast<String>() ?? [],
+      title: map[TITLE_KEY],
+      variant: map[VARIANT_KEY],
+      discountPrice: map[DISCOUNT_PRICE_KEY],
+      originalPrice: map[ORIGINAL_PRICE_KEY],
+      rating: map[RATING_KEY] ?? 0.0,
+      highlights: map[HIGHLIGHTS_KEY],
+      description: map[DESCRIPTION_KEY],
+      seller: map[SELLER_KEY],
+      owner: map[OWNER_KEY],
+      vendorId: map['vendorId'],
+      userId: map['userId'],
+      productType: map[PRODUCT_TYPE_KEY] != null
+          ? EnumToString.fromString(ProductType.values, map[PRODUCT_TYPE_KEY])
+          : null,
+      searchTags:
+          (map[SEARCH_TAGS_KEY] as List<dynamic>?)?.cast<String>() ?? [],
+      dateAdded: map[DATE_ADDED_KEY] != null
+          ? DateTime.tryParse(map[DATE_ADDED_KEY])
+          : null,
+      stock: parsedStock,
+      areaLocation: map['areaLocation'],
+      isAvailable: map['isAvailable'] is bool ? map['isAvailable'] : true,
+    );
+    product.purchaseCount = map['purchaseCount'] is int
+        ? map['purchaseCount']
+        : int.tryParse(map['purchaseCount']?.toString() ?? '');
+    product.ordered = map['ordered'] is int
+        ? map['ordered']
+        : int.tryParse(map['ordered']?.toString() ?? '') ?? 0;
+    return product;
   }
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
@@ -301,6 +306,7 @@ class Product extends Model {
       'vendorId': vendorId,
       'userId': userId,
       'purchaseCount': purchaseCount,
+      'ordered': ordered,
     };
     return map;
   }

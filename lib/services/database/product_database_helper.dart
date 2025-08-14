@@ -1,10 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fishkart/models/Product.dart';
 import 'package:fishkart/models/Review.dart';
+import 'package:flutter/foundation.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
 import 'package:fishkart/services/cache/hive_service.dart';
 
 class ProductDatabaseHelper {
+  Future<Product?> getMostOrderedProduct() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection(PRODUCTS_COLLECTION_NAME)
+        .get();
+    Product? mostPopular;
+    int maxOrdered = -1;
+    for (final doc in querySnapshot.docs) {
+      final product = Product.fromMap(
+        doc.data() as Map<String, dynamic>,
+        id: doc.id,
+      );
+      if ((product.ordered) > maxOrdered) {
+        maxOrdered = product.ordered;
+        mostPopular = product;
+      }
+    }
+    if (mostPopular != null) {
+      debugPrint('Most popular product: ${mostPopular.title}');
+    } else {
+      debugPrint('No popular product found');
+    }
+    return mostPopular;
+  }
+
   // Real-time stream of all products
   Stream<List<Product>> getProductsStream() {
     return FirebaseFirestore.instance

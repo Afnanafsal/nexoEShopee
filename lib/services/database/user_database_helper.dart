@@ -370,20 +370,25 @@ class UserDatabaseHelper {
         .collection(USERS_COLLECTION_NAME)
         .doc(uid)
         .collection(ORDERED_PRODUCTS_COLLECTION_NAME);
-    for (final order in orders) {
-      await ref.add(order.toMap());
-      // Move reserved to ordered for each product
-      final productId = order.productUid;
-      final qty = order.quantity;
-      if (productId != null && qty > 0) {
-        final productRef = firestore.collection('products').doc(productId);
-        await productRef.update({
-          'reserved': FieldValue.increment(-qty),
-          'ordered': FieldValue.increment(qty),
-        });
+    try {
+      for (final order in orders) {
+        await ref.add(order.toMap());
+        // Move reserved to ordered for each product
+        final productId = order.productUid;
+        final qty = order.quantity;
+        if (productId != null && qty > 0) {
+          final productRef = firestore.collection('products').doc(productId);
+          await productRef.update({
+            'reserved': FieldValue.increment(-qty),
+            'ordered': FieldValue.increment(qty),
+          });
+        }
       }
+      return true;
+    } catch (e) {
+      print('[addToMyOrders] Error: $e');
+      return false;
     }
-    return true;
   }
 
   Future<OrderedProduct> getOrderedProductFromId(String id) async {

@@ -2,10 +2,12 @@ import 'package:fishkart/models/Product.dart';
 import 'package:fishkart/models/Address.dart';
 import 'package:fishkart/components/async_progress_dialog.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
+import 'package:fishkart/services/database/product_database_helper.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fishkart/providers/user_providers.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:logger/logger.dart';
 import '../../../utils.dart';
@@ -22,6 +24,14 @@ class ProductDescription extends ConsumerStatefulWidget {
 }
 
 class _ProductDescriptionState extends ConsumerState<ProductDescription> {
+  Future<Product?>? _mostPopularFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _mostPopularFuture = ProductDatabaseHelper().getMostOrderedProduct();
+  }
+
   int cartCount = 0;
 
   void _incrementCounter() {
@@ -139,38 +149,71 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 32), // More space between image and text
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      (product.title ?? '').split('/').first,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+          SizedBox(height: 32),
+          FutureBuilder<Product?>(
+            future: _mostPopularFuture,
+            builder: (context, snapshot) {
+              final isMostPopular =
+                  snapshot.hasData && snapshot.data?.id == product.id;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (isMostPopular)
+                    Container(
+                      margin: EdgeInsets.only(bottom: 8),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                    ),
-                    if (product.variant != null && product.variant!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: Text(
-                          'Net Weight: ${product.variant!}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.normal,
-                            color: Color(0xFF646161),
-                          ),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Most Popular',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ],
+                    ),
+                    SizedBox(height: 8.h,),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              (product.title ?? '').split('/').first,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            if (product.variant != null &&
+                                product.variant!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Text(
+                                  'Net Weight: ${product.variant!}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.normal,
+                                    color: Color(0xFF646161),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
           SizedBox(height: 8),
           Row(
@@ -238,6 +281,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
             ],
           ),
           SizedBox(height: 12),
+          // ...existing code for description, etc...
           Text(
             product.description ?? '',
             style: TextStyle(
