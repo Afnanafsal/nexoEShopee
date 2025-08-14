@@ -679,37 +679,47 @@ class _BodyState extends ConsumerState<Body> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF5F5F5),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 24),
-            Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
-                  onPressed: () => Navigator.of(context).pop(),
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 24),
+              Row(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(right: 20), // Use zero padding
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Padding(
+                padding: EdgeInsets.only(
+                  left: 4,
+                ), // Slight indent for 'Your Cart'
+                child: Text(
+                  'Your Cart',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Your Cart',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
               ),
-            ),
-            SizedBox(height: 16),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: refreshPage,
-                child: buildCartItemsList(),
+              SizedBox(height: 16),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: refreshPage,
+                  child: buildCartItemsList(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
