@@ -171,12 +171,13 @@ class _BodyState extends ConsumerState<Body> {
   Future<void> updateCartItemQuantity(
     String cartItemId,
     int newQuantity,
+    int currentQuantity,
   ) async {
     try {
       if (newQuantity > 0) {
-        if (newQuantity > 1) {
+        if (newQuantity > currentQuantity) {
           await UserDatabaseHelper().increaseCartItemCount(cartItemId);
-        } else {
+        } else if (newQuantity < currentQuantity) {
           await UserDatabaseHelper().decreaseCartItemCount(cartItemId);
         }
       } else {
@@ -211,22 +212,24 @@ class _BodyState extends ConsumerState<Body> {
           child: Row(
             children: [
               Container(
-                width: 120,
-                height: 100,
+                width: 120.w,
+                height: 140.h,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(20.r),
                   color: Colors.grey[100],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(8.r),
                   child: (product.images != null && product.images!.isNotEmpty)
-                      ? Base64ImageService().base64ToImage(
-                          product.images!.first,
-                          fit: BoxFit.cover,
+                      ? SizedBox.expand(
+                          child: Base64ImageService().base64ToImage(
+                            product.images!.first,
+                            fit: BoxFit.cover,
+                          ),
                         )
                       : Icon(
                           Icons.image_not_supported,
-                          size: 30,
+                          size: 40.sp,
                           color: Colors.grey,
                         ),
                 ),
@@ -269,11 +272,24 @@ class _BodyState extends ConsumerState<Body> {
               Column(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.add, color: Color(0xFF646161)),
+                    icon: Icon(Icons.remove, color: Color(0xFF646161)),
                     onPressed: () async {
-                      final newQuantity = currentQuantity + 1;
-                      await updateCartItemQuantity(cartItemId, newQuantity);
-                      setState(() => currentQuantity = newQuantity);
+                      final newQuantity = currentQuantity - 1;
+                      if (newQuantity > 0) {
+                        await updateCartItemQuantity(
+                          cartItemId,
+                          newQuantity,
+                          currentQuantity,
+                        );
+                        setState(() => currentQuantity = newQuantity);
+                      } else {
+                        await updateCartItemQuantity(
+                          cartItemId,
+                          0,
+                          currentQuantity,
+                        );
+                        setState(() => currentQuantity = 0);
+                      }
                     },
                   ),
                   Text(
@@ -285,16 +301,15 @@ class _BodyState extends ConsumerState<Body> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.remove, color: Color(0xFF646161)),
+                    icon: Icon(Icons.add, color: Color(0xFF646161)),
                     onPressed: () async {
-                      final newQuantity = currentQuantity - 1;
-                      if (newQuantity > 0) {
-                        await updateCartItemQuantity(cartItemId, newQuantity);
-                        setState(() => currentQuantity = newQuantity);
-                      } else {
-                        await updateCartItemQuantity(cartItemId, 0);
-                        setState(() => currentQuantity = 0);
-                      }
+                      final newQuantity = currentQuantity + 1;
+                      await updateCartItemQuantity(
+                        cartItemId,
+                        newQuantity,
+                        currentQuantity,
+                      );
+                      setState(() => currentQuantity = newQuantity);
                     },
                   ),
                 ],
@@ -1444,18 +1459,13 @@ class _BodyState extends ConsumerState<Body> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 24.h),
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).pushNamedAndRemoveUntil('/home', (route) => false),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
-                  ),
-                  SizedBox(width: 8.w),
-                ],
+              IconButton(
+                icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                onPressed: () => Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/home', (route) => false),
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints(),
               ),
               SizedBox(height: 8.h),
               Padding(

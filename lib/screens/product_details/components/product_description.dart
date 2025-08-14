@@ -251,15 +251,16 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                     ),
                   ],
                 ),
-                padding: EdgeInsets.symmetric(
-                  horizontal: 14.w,
-                  vertical: 2.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 2.h),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.remove, color: Colors.black, size: 22.sp),
+                      icon: Icon(
+                        Icons.remove,
+                        color: Colors.black,
+                        size: 22.sp,
+                      ),
                       onPressed: isOutOfStock ? null : _decrementCounter,
                     ),
                     Padding(
@@ -300,7 +301,10 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                     color: Color(0xFFF7F8FA),
                     borderRadius: BorderRadius.circular(18.r),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 18.w),
+                  padding: EdgeInsets.symmetric(
+                    vertical: 8.h,
+                    horizontal: 18.w,
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -344,7 +348,10 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                     color: Color(0xFFF7F8FA),
                     borderRadius: BorderRadius.circular(18.r),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 18.w),
+                  padding: EdgeInsets.symmetric(
+                    vertical: 8.h,
+                    horizontal: 18.w,
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [

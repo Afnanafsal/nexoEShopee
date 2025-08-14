@@ -289,7 +289,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(15.r),
               child: Container(
-                height: 110.h, // reduced height
+                height: 106.h, // reduced height
                 width: double.infinity,
                 color: Colors.white,
                 child: Padding(

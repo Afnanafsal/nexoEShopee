@@ -22,21 +22,18 @@ class Body extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 20.h),
-                // Back icon row
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.arrow_back_ios_new,
-                        color: Colors.black,
-                        size: 22.sp,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
+                // Back icon directly above heading
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios_new,
+                    color: Colors.black,
+                    size: 22.sp,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(),
                 ),
-                SizedBox(height: 8.h),
-                // Heading on next line
+                SizedBox(height: 16.h),
                 Text(
                   "Fill Address Details",
                   style: headingStyle.copyWith(
