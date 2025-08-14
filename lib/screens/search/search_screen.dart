@@ -293,7 +293,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 width: double.infinity,
                 color: Colors.white,
                 child: Padding(
-                  padding: EdgeInsets.all(8.w),
+                  padding: EdgeInsets.all(10.w),
                   child: Builder(
                     builder: (context) {
                       final img =

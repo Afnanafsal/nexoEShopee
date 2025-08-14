@@ -9,6 +9,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:fishkart/components/async_progress_dialog.dart';
 
 import 'package:fishkart/components/nothingtoshow_container.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fishkart/constants.dart';
 import 'package:fishkart/models/CartItem.dart';
 import 'package:fishkart/models/OrderedProduct.dart';
@@ -62,36 +63,36 @@ class _BodyState extends ConsumerState<Body> {
   // Payment method tile widget for UPI and Add Card
   Widget paymentMethodTile(IconData icon, String title, String? subtitle) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 4),
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: EdgeInsets.symmetric(vertical: 4.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10.r),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 1)),
+          BoxShadow(color: Colors.black12, blurRadius: 4.r, offset: Offset(0, 1)),
         ],
       ),
       child: Row(
         children: [
-          Icon(icon, color: kPrimaryColor, size: 28),
-          SizedBox(width: 12),
+          Icon(icon, color: kPrimaryColor, size: 28.sp),
+          SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.sp),
                 ),
                 if (subtitle != null)
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                    style: TextStyle(fontSize: 13.sp, color: Colors.grey[700]),
                   ),
               ],
             ),
           ),
-          Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
+          Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18.sp),
         ],
       ),
     );
@@ -244,12 +245,12 @@ class _BodyState extends ConsumerState<Body> {
       builder: (context) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20.r),
           ),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(20.r),
               color: Colors.white,
             ),
             child: Column(
@@ -259,18 +260,18 @@ class _BodyState extends ConsumerState<Body> {
                   editIndex == null ? 'Add Card' : 'Edit Card',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 22,
+                    fontSize: 22.sp,
                     color: kPrimaryColor,
                   ),
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: 24.h),
                 TextField(
                   controller: cardNumberController,
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.credit_card, color: kPrimaryColor),
                     labelText: 'Card Number',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                     filled: true,
                     fillColor: Colors.grey[100],
@@ -278,7 +279,7 @@ class _BodyState extends ConsumerState<Body> {
                   keyboardType: TextInputType.number,
                   maxLength: 16,
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 Row(
                   children: [
                     Expanded(
@@ -291,7 +292,7 @@ class _BodyState extends ConsumerState<Body> {
                           ),
                           labelText: 'Expiry (MM/YY)',
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                           ),
                           filled: true,
                           fillColor: Colors.grey[100],
@@ -304,7 +305,7 @@ class _BodyState extends ConsumerState<Body> {
                         ],
                       ),
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: 12.w),
                     Expanded(
                       child: TextField(
                         controller: cvvController,
@@ -312,7 +313,7 @@ class _BodyState extends ConsumerState<Body> {
                           prefixIcon: Icon(Icons.lock, color: kPrimaryColor),
                           labelText: 'CVV',
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                           ),
                           filled: true,
                           fillColor: Colors.grey[100],
@@ -324,20 +325,20 @@ class _BodyState extends ConsumerState<Body> {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 TextField(
                   controller: nameController,
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.person, color: kPrimaryColor),
                     labelText: 'Name on Card',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                     filled: true,
                     fillColor: Colors.grey[100],
                   ),
                 ),
-                SizedBox(height: 28),
+                SizedBox(height: 28.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -349,22 +350,22 @@ class _BodyState extends ConsumerState<Body> {
                       onPressed: () => Navigator.pop(context),
                     ),
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kPrimaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPrimaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 32.w,
+                            vertical: 14.h,
+                          ),
                         ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 14,
-                        ),
-                      ),
                       child: Text(
                         editIndex == null ? 'Save' : 'Update',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: 16.sp,
                         ),
                       ),
                       onPressed: () async {
@@ -500,25 +501,26 @@ class _BodyState extends ConsumerState<Body> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 180,
-                    height: 180,
+                    width: 180.w,
+                    height: 180.h,
                     color: Colors.grey[200],
                     child: Center(
-                      child: QrImageView(data: upiUrl, size: 160.0),
+                      child: QrImageView(data: upiUrl, size: 160.w),
                     ),
                   ),
-                  SizedBox(height: 16),
-                  Text('Scan this QR code with your UPI app to pay.'),
-                  SizedBox(height: 8),
+                  SizedBox(height: 16.h),
+                  Text('Scan this QR code with your UPI app to pay.', style: TextStyle(fontSize: 15.sp)),
+                  SizedBox(height: 8.h),
                   Text(
                     'Expires in: ${Duration(seconds: secondsLeft).inMinutes}:${(secondsLeft % 60).toString().padLeft(2, '0')}',
+                    style: TextStyle(fontSize: 14.sp),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   Text(
                     'Pay to: afnnafsal@oksbi',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.sp),
                   ),
-                  Text('Amount: ₹${totalAmount.toStringAsFixed(2)}'),
+                  Text('Amount: ₹${totalAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 15.sp)),
                 ],
               ),
               actions: [
@@ -718,15 +720,15 @@ class _BodyState extends ConsumerState<Body> {
       backgroundColor: Color(0xFFF5F5F5),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 24),
+              SizedBox(height: 24.h),
               Row(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(right: 20), // Use zero padding
+                    padding: EdgeInsets.only(right: 20.w), // Use zero padding
                     child: IconButton(
                       icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
                       onPressed: () => Navigator.of(context).pop(),
@@ -734,21 +736,21 @@ class _BodyState extends ConsumerState<Body> {
                   ),
                 ],
               ),
-              SizedBox(height: 8),
+              SizedBox(height: 8.h),
               Padding(
                 padding: EdgeInsets.only(
-                  left: 4,
+                  left: 4.w,
                 ), // Slight indent for 'Your Cart'
                 child: Text(
                   'Your Cart',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 18,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 16.h),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: refreshPage,
@@ -1451,14 +1453,72 @@ class _BodyState extends ConsumerState<Body> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              onPressed: () {
-                                // Handle change address
-                              },
+                                onPressed: () async {
+                                // Show a bottom sheet to select address
+                                await showModalBottomSheet(
+                                  context: context,
+                                  builder: (context) {
+                                  return Container(
+                                    padding: EdgeInsets.all(20),
+                                    child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                      "Select Delivery Address",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      ),
+                                      SizedBox(height: 16),
+                                      ..._addresses.map((addressId) => FutureBuilder<Address?>(
+                                      future: UserDatabaseHelper().getAddressFromId(addressId),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData) return SizedBox.shrink();
+                                        final addr = snapshot.data!;
+                                        return ListTile(
+                                        title: Text(
+                                          "${addr.title ?? "Home"}",
+                                          style: TextStyle(fontWeight: FontWeight.w500),
+                                        ),
+                                        subtitle: Text(
+                                          "${addr.addressLine1 ?? ""}, ${addr.city ?? ""}, ${addr.state ?? ""}, ${addr.pincode ?? ""}",
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        trailing: _selectedAddressId == addressId
+                                          ? Icon(Icons.check, color: kPrimaryColor)
+                                          : null,
+                                        onTap: () {
+                                          _selectedAddressId = addressId;
+                                          Navigator.pop(context);
+                                          setState(() {});
+                                        },
+                                        );
+                                      },
+                                      )),
+                                      SizedBox(height: 12),
+                                      ElevatedButton(
+                                      onPressed: () {
+                                        // Navigate to add address screen (implement as needed)
+                                        Navigator.pop(context);
+                                        Navigator.of(context).pushNamed('/add_address');
+                                      },
+                                      child: Text("Add New Address"),
+                                      ),
+                                    ],
+                                    ),
+                                  );
+                                  },
+                                );
+                                }
+                            ,
                               child: Text(
                                 "Change/Add Address",
                                 style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 15,
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 14,
                                 ),
                               ),
                             ),
