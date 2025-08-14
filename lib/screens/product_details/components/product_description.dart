@@ -145,11 +145,11 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
     final isOutOfStock = product.stock == 0;
     final selectedAddressId = ref.watch(selectedAddressIdProvider);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 32),
+          SizedBox(height: 32.h),
           FutureBuilder<Product?>(
             future: _mostPopularFuture,
             builder: (context, snapshot) {
@@ -160,24 +160,25 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                 children: [
                   if (isMostPopular)
                     Container(
-                      margin: EdgeInsets.only(bottom: 8),
+                      margin: EdgeInsets.only(bottom: 8.h),
                       padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: 12.w,
+                        vertical: 6.h,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.green,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Text(
                         'Most Popular',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14.sp,
                         ),
                       ),
                     ),
-                    SizedBox(height: 8.h,),
+                  SizedBox(height: 8.h),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -188,7 +189,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                             Text(
                               (product.title ?? '').split('/').first,
                               style: TextStyle(
-                                fontSize: 24,
+                                fontSize: 24.sp,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
                               ),
@@ -196,11 +197,11 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                             if (product.variant != null &&
                                 product.variant!.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.only(top: 4.0),
+                                padding: EdgeInsets.only(top: 4.h),
                                 child: Text(
                                   'Net Weight: ${product.variant!}',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 12.sp,
                                     fontWeight: FontWeight.normal,
                                     color: Color(0xFF646161),
                                   ),
@@ -215,64 +216,64 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
               );
             },
           ),
-          SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Row(
             children: [
               Text(
                 '\₹${product.discountPrice ?? product.originalPrice}',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
                 ),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: 8.w),
               if (product.discountPrice != null)
                 Text(
                   '\₹${product.originalPrice}',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     color: Colors.grey,
                     decoration: TextDecoration.lineThrough,
                   ),
                 ),
               Spacer(),
               Container(
-                margin: EdgeInsets.only(left: 12),
+                margin: EdgeInsets.only(left: 12.w),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(32),
+                  borderRadius: BorderRadius.circular(32.r),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black12,
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 2.h),
                     ),
                   ],
                 ),
                 padding: EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 2,
-                ), // Increased height
+                  horizontal: 14.w,
+                  vertical: 2.h,
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.remove, color: Colors.black),
+                      icon: Icon(Icons.remove, color: Colors.black, size: 22.sp),
                       onPressed: isOutOfStock ? null : _decrementCounter,
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                      padding: EdgeInsets.symmetric(horizontal: 6.w),
                       child: Text(
                         isOutOfStock ? '0' : '$cartCount',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 20.sp,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.add, color: Colors.black),
+                      icon: Icon(Icons.add, color: Colors.black, size: 22.sp),
                       onPressed: isOutOfStock ? null : _incrementCounter,
                     ),
                   ],
@@ -280,40 +281,36 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
               ),
             ],
           ),
-          SizedBox(height: 12),
-          // ...existing code for description, etc...
+          SizedBox(height: 12.h),
           Text(
             product.description ?? '',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 16.sp,
               color: Color(0xFF626262),
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 20.h),
           Row(
             children: [
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.only(right: 8),
+                  margin: EdgeInsets.only(right: 8.w),
                   decoration: BoxDecoration(
                     color: Color(0xFFF7F8FA),
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(18.r),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 18),
+                  padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 18.w),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Use SvgPicture for SVG asset
-                      // Make sure to add flutter_svg to pubspec.yaml
-                      // and leaf.svg exists in assets/images/
                       SvgPicture.asset(
                         'assets/images/leaf.svg',
-                        width: 38,
-                        height: 38,
+                        width: 38.w,
+                        height: 38.w,
                         color: Color(0xFF7A8C9E),
                       ),
-                      SizedBox(width: 14),
+                      SizedBox(width: 14.w),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -321,15 +318,15 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                             '100%',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 22,
+                              fontSize: 22.sp,
                               color: Colors.black,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          SizedBox(height: 2.h),
                           Text(
                             'Fresh',
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 15.sp,
                               color: Color(0xFFB0B6BE),
                               fontWeight: FontWeight.w500,
                             ),
@@ -342,17 +339,17 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
               ),
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.only(left: 8),
+                  margin: EdgeInsets.only(left: 8.w),
                   decoration: BoxDecoration(
                     color: Color(0xFFF7F8FA),
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(18.r),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 18),
+                  padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 18.w),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(Icons.star, color: Color(0xFF7A8C9E), size: 38),
-                      SizedBox(width: 14),
+                      Icon(Icons.star, color: Color(0xFF7A8C9E), size: 38.w),
+                      SizedBox(width: 14.w),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -360,15 +357,15 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                             '${product.rating}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 22,
+                              fontSize: 22.sp,
                               color: Colors.black,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          SizedBox(height: 2.h),
                           Text(
                             'Rated',
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 15.sp,
                               color: Color(0xFFB0B6BE),
                               fontWeight: FontWeight.w500,
                             ),
@@ -381,8 +378,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
               ),
             ],
           ),
-
-          SizedBox(height: 24),
+          SizedBox(height: 24.h),
           SizedBox(
             width: double.infinity,
             child: FutureBuilder<Address?>(
@@ -407,9 +403,9 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                           ? Colors.grey
                           : Colors.black,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(14.r),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 24),
+                      padding: EdgeInsets.symmetric(vertical: 24.h),
                       elevation: 0,
                     ),
                     onPressed: isOutOfStock || !isAreaAvailable
@@ -422,7 +418,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                           ? 'Product not available in your area'
                           : 'Proceed To Checkout',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         letterSpacing: 0.2,
@@ -433,7 +429,7 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
               },
             ),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 16.h),
         ],
       ),
     );
