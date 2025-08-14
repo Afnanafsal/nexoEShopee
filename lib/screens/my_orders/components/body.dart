@@ -78,7 +78,7 @@ class _BodyState extends State<Body> {
       body: Column(
         children: [
           Container(
-            color: Color(0xFFEFF1F5),
+            color: const Color(0xFFEFF1F5),
             padding: const EdgeInsets.only(
               top: 32,
               left: 0,
@@ -103,12 +103,12 @@ class _BodyState extends State<Body> {
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20, bottom: 0),
+                const SizedBox(height: 8),
+                const Padding(
+                  padding: EdgeInsets.only(left: 20, bottom: 0),
                   child: Text(
                     'Your Orders',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.black,
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
@@ -116,9 +116,9 @@ class _BodyState extends State<Body> {
                     ),
                   ),
                 ),
-                SizedBox(height: 18),
+                const SizedBox(height: 18),
                 Container(
-                  color: Color(0XFFEFF1F5),
+                  color: const Color(0xFFEFF1F5),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: _orderTabs.asMap().entries.map((entry) {
@@ -145,7 +145,7 @@ class _BodyState extends State<Body> {
                                     fontSize: 16,
                                   ),
                                 ),
-                                SizedBox(height: 6),
+                                const SizedBox(height: 6),
                                 if (isSelected)
                                   Container(
                                     height: 2,
@@ -163,7 +163,7 @@ class _BodyState extends State<Body> {
                     }).toList(),
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
               ],
             ),
           ),
@@ -281,7 +281,7 @@ class _BodyState extends State<Body> {
           });
 
           if (orderedProductsDocs.isEmpty) {
-            return Center(
+            return const Center(
               child: NothingToShowContainer(
                 iconPath: "assets/icons/empty_bag.svg",
                 secondaryMessage: "No orders found",
@@ -337,17 +337,17 @@ class _BodyState extends State<Body> {
                     padding: const EdgeInsets.only(left: 4, bottom: 12),
                     child: Row(
                       children: [
-                        Text(
+                        const Text(
                           'Ordered on: ',
                           style: TextStyle(
-                            color: Color(0XFF646161),
+                            color: Color(0xFF646161),
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                           ),
                         ),
                         Text(
                           formatOrderDate(entry.key),
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.black,
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
@@ -357,8 +357,9 @@ class _BodyState extends State<Body> {
                     ),
                   ),
                   ...orderGroups.entries.map((orderEntry) {
-                    if (orderEntry.value.isEmpty)
+                    if (orderEntry.value.isEmpty) {
                       return const SizedBox.shrink();
+                    }
                     return Container(
                       margin: EdgeInsets.zero,
                       decoration: BoxDecoration(
@@ -410,7 +411,7 @@ class _BodyState extends State<Body> {
         } else if (snapshot.hasError) {
           final error = snapshot.error;
           Logger().w('Firestore error: ${error.toString()}');
-          return Center(
+          return const Center(
             child: NothingToShowContainer(
               iconPath: "assets/icons/network_error.svg",
               primaryMessage: "Something went wrong",
@@ -418,7 +419,7 @@ class _BodyState extends State<Body> {
             ),
           );
         }
-        return Center(
+        return const Center(
           child: NothingToShowContainer(
             iconPath: "assets/icons/network_error.svg",
             primaryMessage: "Something went wrong",
@@ -457,22 +458,20 @@ class _BodyState extends State<Body> {
           },
           child: Container(
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Product Image
-                Container(
-                  width: 120,
-                  height: 120,
-                  alignment: Alignment.topLeft,
-                  margin: EdgeInsets.zero,
-                  padding: EdgeInsets.zero,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(17),
-                    color: Colors.white,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(17),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Product Image - Fill card, no margin
+                  Container(
+                    width: 120,
+                    height: 120,
+                    margin: EdgeInsets.zero,
+                    padding: EdgeInsets.zero,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    clipBehavior: Clip.antiAlias,
                     child: FutureBuilder<Widget>(
                       future: _buildProductImage(product),
                       builder: (context, imageSnapshot) {
@@ -482,154 +481,148 @@ class _BodyState extends State<Body> {
                             baseColor: Colors.grey[300]!,
                             highlightColor: Colors.grey[100]!,
                             child: Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(16),
-                              ),
+                              width: double.infinity,
+                              height: double.infinity,
                             ),
                           );
                         }
-                        return imageSnapshot.data ??
-                            Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Icon(
-                                Icons.image_not_supported,
-                                color: Colors.grey[400],
-                                size: 32,
-                              ),
-                            );
+                        return imageSnapshot.data ?? Container();
                       },
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                // Product Details
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                product.title!.split('/').first.trim() ??
-                                    'Product',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Text(
-                              '₹${product.discountPrice?.toStringAsFixed(2) ?? '0.00'}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'Net weight: ${product.variant ?? 'N/A'}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0XFF646161),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        FutureBuilder<Address?>(
-                          future: UserDatabaseHelper().getAddressFromId(
-                            order.addressId ?? '',
-                          ),
-                          builder: (context, snapshot) {
-                            final addressTitle =
-                                snapshot.hasData && snapshot.data != null
-                                ? (snapshot.data!.title ??
-                                      snapshot.data!.addressLine1 ??
-                                      '')
-                                : '';
-                            return Row(
-                              children: [
-                                const SizedBox(height: 3),
-
-                                Icon(
-                                  Icons.location_on,
-                                  size: 16,
-                                  color: Color(0XFF646161),
-                                ),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    addressTitle,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0XFF646161),
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: InkWell(
-                            onTap: () => _showReviewDialog(product),
-                            borderRadius: BorderRadius.circular(6),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                  SizedBox(width: 14),
+                  // Product Details - Flexible content
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.only(
+                        right: 16,
+                        top: 12,
+                        bottom: 12,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Top section with title and price
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Add Product Review',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: kPrimaryColor,
-                                      fontWeight: FontWeight.w500,
+                                  Expanded(
+                                    child: Text(
+                                      product.title?.split('/').first.trim() ??
+                                          'Product',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  const SizedBox(width: 2),
-                                  Icon(
-                                    Icons.add,
-                                    size: 14,
-                                    color: kPrimaryColor,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '₹${product.discountPrice?.toStringAsFixed(2) ?? '0.00'}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black,
+                                    ),
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Net weight: ${product.variant ?? 'N/A'}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: Color(0xFF646161),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              FutureBuilder<Address?>(
+                                future: UserDatabaseHelper().getAddressFromId(
+                                  order.addressId ?? '',
+                                ),
+                                builder: (context, snapshot) {
+                                  final addressTitle =
+                                      snapshot.hasData && snapshot.data != null
+                                      ? (snapshot.data!.title ??
+                                            snapshot.data!.addressLine1 ??
+                                            '')
+                                      : '';
+                                  return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.location_on,
+                                        size: 16,
+                                        color: Color(0xFF646161),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text(
+                                          addressTitle,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF646161),
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          // Bottom section with review button
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: InkWell(
+                              onTap: () => _showReviewDialog(product),
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Add Product Review',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: kPrimaryColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.add,
+                                      size: 14,
+                                      color: kPrimaryColor,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -663,14 +656,14 @@ class _BodyState extends State<Body> {
         child: Row(
           children: [
             Container(
-              width: 60,
-              height: 60,
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
                 color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(17),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -816,28 +809,21 @@ class _BodyState extends State<Body> {
         Logger().i(
           'Trying to decode base64 from product.images: ${base64String.substring(0, 30)}...',
         );
-        // If you want to support another field, add it here (e.g., product.imageBase64 if you add it to Product model)
       }
 
       if (base64String != null && base64String.isNotEmpty) {
         try {
           final bytes = base64Decode(base64String);
-          return Image.memory(
-            bytes,
-            fit: BoxFit.fill,
-            width: 120,
-            height: 120,
-            errorBuilder: (context, error, stackTrace) {
-              Logger().e('Error rendering image from base64: $error');
-              return Container(
-                color: Colors.grey[100],
-                child: Icon(
-                  Icons.image_not_supported,
-                  color: Colors.grey[400],
-                  size: 24,
-                ),
-              );
-            },
+          return Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(17),
+              image: DecorationImage(
+                image: MemoryImage(bytes),
+                fit: BoxFit.cover,
+              ),
+            ),
           );
         } catch (e) {
           Logger().e('Base64 decode/render error: $e');
@@ -848,8 +834,13 @@ class _BodyState extends State<Body> {
     }
     // Fallback to placeholder
     return Container(
-      color: Colors.grey[100],
-      child: Icon(Icons.image_not_supported, color: Colors.grey[400], size: 24),
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(17),
+      ),
+      child: Icon(Icons.image_not_supported, color: Colors.grey[400], size: 32),
     );
   }
 }
