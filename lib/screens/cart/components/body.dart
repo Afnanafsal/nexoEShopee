@@ -736,24 +736,24 @@ class _BodyState extends ConsumerState<Body> {
       backgroundColor: Color(0xFFEFF1F5),
       body: SafeArea(
         child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: Column(
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 24.h),
               Row(
-              children: [
-                IconButton(
-                icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
-                onPressed: () => Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/home', (route) => false),
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(),
-                ),
-                SizedBox(width: 8.w),
-                // You can add a title or leave empty for spacing
-              ],
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil('/home', (route) => false),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                  ),
+                  SizedBox(width: 8.w),
+                  // You can add a title or leave empty for spacing
+                ],
               ),
               SizedBox(height: 8.h),
               Padding(
@@ -996,117 +996,141 @@ class _BodyState extends ConsumerState<Body> {
   }
 
   Widget buildCartItemCard(Product product, int quantity, String cartItemId) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          // Product Image
-          Container(
-            width: 120,
-            height: 100,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.grey[100],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: (product.images != null && product.images!.isNotEmpty)
-                  ? Base64ImageService().base64ToImage(
-                      product.images!.first,
-                      fit: BoxFit.cover,
-                    )
-                  : Icon(
-                      Icons.image_not_supported,
-                      size: 30,
-                      color: Colors.grey,
-                    ),
-            ),
+    return StatefulBuilder(
+      builder: (context, setState) {
+        int currentQuantity = quantity;
+        return Container(
+          margin: EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
           ),
-          SizedBox(width: 12),
-          // Product Details
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            children: [
+              // Product Image
+              Container(
+                width: 120,
+                height: 100,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.grey[100],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: (product.images != null && product.images!.isNotEmpty)
+                      ? Base64ImageService().base64ToImage(
+                          product.images!.first,
+                          fit: BoxFit.cover,
+                        )
+                      : Icon(
+                          Icons.image_not_supported,
+                          size: 30,
+                          color: Colors.grey,
+                        ),
+                ),
+              ),
+              SizedBox(width: 12),
+              // Product Details
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.title ?? "Product",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        "Net weight 500 gms", // Static text as shown in image
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "₹${(product.discountPrice ?? product.originalPrice ?? 0).toStringAsFixed(2)}",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Quantity Controls
+              Column(
                 children: [
-                  Text(
-                    product.title ?? "Product",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(Icons.add, color: Color(0xFF646161), size: 24),
+                      onPressed: () async {
+                        await arrowUpCallback(cartItemId, _selectedAddressId);
+                        setState(() {
+                          currentQuantity++;
+                        });
+                        ref.invalidate(cartItemsStreamProvider);
+                      },
+                    ),
                   ),
-                  SizedBox(height: 2),
+                  SizedBox(height: 8),
                   Text(
-                    "Net weight 500 gms", // Static text as shown in image
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    "₹${(product.discountPrice ?? product.originalPrice ?? 0).toStringAsFixed(2)}",
+                    currentQuantity.toString(),
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.black,
                     ),
                   ),
+                  SizedBox(height: 8),
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        Icons.remove,
+                        color: Color(0xFF646161),
+                        size: 24,
+                      ),
+                      onPressed: () async {
+                        if (currentQuantity > 1) {
+                          await arrowDownCallback(
+                            cartItemId,
+                            _selectedAddressId,
+                          );
+                          setState(() {
+                            currentQuantity--;
+                          });
+                          ref.invalidate(cartItemsStreamProvider);
+                        }
+                      },
+                    ),
+                  ),
                 ],
-              ),
-            ),
-          ),
-          // Quantity Controls
-          Column(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  icon: Icon(Icons.add, color: Color(0xFF646161), size: 24),
-                  onPressed: () =>
-                      arrowUpCallback(cartItemId, _selectedAddressId),
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                quantity.toString(),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 8),
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  icon: Icon(Icons.remove, color: Color(0xFF646161), size: 24),
-                  onPressed: () =>
-                      arrowDownCallback(cartItemId, _selectedAddressId),
-                ),
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
