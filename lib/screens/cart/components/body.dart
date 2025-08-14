@@ -688,19 +688,19 @@ class _BodyState extends ConsumerState<Body> {
             Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.black),
+                  icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
-                SizedBox(width: 8),
-                Text(
-                  'Your Cart',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Your Cart',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             SizedBox(height: 16),
             Expanded(
@@ -900,8 +900,8 @@ class _BodyState extends ConsumerState<Body> {
         child: Row(
           children: [
             Container(
-              width: 60,
-              height: 60,
+              width: 120,
+              height: 100,
               decoration: BoxDecoration(
                 color: Colors.grey[300],
                 borderRadius: BorderRadius.circular(8),
@@ -930,19 +930,18 @@ class _BodyState extends ConsumerState<Body> {
   Widget buildCartItemCard(Product product, int quantity, String cartItemId) {
     return Container(
       margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [
           // Product Image
           Container(
-            width: 60,
-            height: 60,
+            width: 120,
+            height: 100,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(20),
               color: Colors.grey[100],
             ),
             child: ClipRRect(
@@ -962,34 +961,37 @@ class _BodyState extends ConsumerState<Body> {
           SizedBox(width: 12),
           // Product Details
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.title ?? "Product",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
+            child: Padding(
+              padding: EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.title ?? "Product",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 2),
-                Text(
-                  "Net weight 500 gms", // Static text as shown in image
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "₹${(product.discountPrice ?? product.originalPrice ?? 0).toStringAsFixed(2)}",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                  SizedBox(height: 2),
+                  Text(
+                    "Net weight 500 gms", // Static text as shown in image
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
-                ),
-              ],
+                  SizedBox(height: 4),
+                  Text(
+                    "₹${(product.discountPrice ?? product.originalPrice ?? 0).toStringAsFixed(2)}",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           // Quantity Controls
