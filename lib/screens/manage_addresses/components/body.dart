@@ -89,17 +89,7 @@ class _BodyState extends State<Body> with RouteAware {
                   Row(
                     children: [
                       Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
+                        
                         child: IconButton(
                           icon: Icon(Icons.arrow_back_ios, size: 28),
                           onPressed: () => Navigator.of(context).pop(),
@@ -119,7 +109,7 @@ class _BodyState extends State<Body> with RouteAware {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    "Swipe LEFT to edit, swipe Right to delete",
+                    "Swipe Right to delete",
                     style: TextStyle(fontSize: 13, color: Colors.black54),
                   ),
                   const SizedBox(height: 24),
@@ -165,7 +155,7 @@ class _BodyState extends State<Body> with RouteAware {
                                     "Add New Address",
                                     style: TextStyle(
                                       fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w500,
                                       color: Colors.white,
                                     ),
                                   ),
@@ -212,7 +202,7 @@ class _BodyState extends State<Body> with RouteAware {
                                   "Add New Address",
                                   style: TextStyle(
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w500,
                                     color: Colors.white,
                                   ),
                                 ),
@@ -400,7 +390,7 @@ class _BodyState extends State<Body> with RouteAware {
                         child: Text(
                           getAddressTitle(addressId),
                           style: TextStyle(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                             fontSize: 16,
                             color: Colors.black,
                           ),
@@ -409,21 +399,21 @@ class _BodyState extends State<Body> with RouteAware {
                       ),
                       TextButton.icon(
                         style: TextButton.styleFrom(
-                          foregroundColor: Color(0xFF616161),
                           padding: EdgeInsets.zero,
                           minimumSize: Size(0, 0),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        icon: Icon(
-                          Icons.edit,
-                          size: 18,
-                          color: Color(0xFF616161),
+                        icon: Image.asset(
+                          'assets/icons/edit.png',
+                          width: 18,
+                          height: 18,
+                          color: Color(0xFF5E5E5E),
                         ),
                         label: Text(
                           "Edit",
                           style: TextStyle(
-                            color: Color(0xFF616161),
-                            fontWeight: FontWeight.normal,
+                            color: Color(0xFF5E5E5E),
+                            fontWeight: FontWeight.w400,
                             fontSize: 15,
                           ),
                         ),
@@ -436,7 +426,11 @@ class _BodyState extends State<Body> with RouteAware {
                   SizedBox(height: 4),
                   Text(
                     getAddressDetails(addressId),
-                    style: TextStyle(color: Colors.black87, fontSize: 14),
+                    style: TextStyle(
+                      color: Color(0XFF646161),
+                      fontWeight: FontWeight.w400,
+                      fontSize: 14,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -482,7 +476,7 @@ class _BodyState extends State<Body> with RouteAware {
     return Container(
       padding: EdgeInsets.only(left: 20),
       decoration: BoxDecoration(
-        color: Colors.red,
+        color: Colors.black,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
