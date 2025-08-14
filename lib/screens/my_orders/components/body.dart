@@ -236,12 +236,7 @@ class _BodyState extends State<Body> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           var orderedProductsDocs = snapshot.data!.docs;
-          if (_selectedAddressId != null) {
-            orderedProductsDocs = orderedProductsDocs.where((doc) {
-              final addressId = doc.data()['address_id'] as String?;
-              return addressId == _selectedAddressId;
-            }).toList();
-          }
+          // Show all orders regardless of address
 
           String normalizeStatus(String? status) {
             if (status == null || status.trim().isEmpty) return 'Pending';
@@ -330,23 +325,40 @@ class _BodyState extends State<Body> {
                 orderGroups.putIfAbsent(orderId, () => []).add(doc);
               }
 
+              // Only show date if there are products for that date
+              final hasProducts = orderGroups.entries.any(
+                (orderEntry) => orderEntry.value.isNotEmpty,
+              );
+              if (!hasProducts) return const SizedBox.shrink();
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Date header
                   Padding(
                     padding: const EdgeInsets.only(left: 4, bottom: 12),
-                    child: Text(
-                      'Ordered on: ${formatOrderDate(entry.key)}',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Ordered on: ',
+                          style: TextStyle(
+                            color: Color(0XFF646161),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        Text(
+                          formatOrderDate(entry.key),
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  // Products for this date
                   ...orderGroups.entries.map((orderEntry) {
+                    if (orderEntry.value.isEmpty)
+                      return const SizedBox.shrink();
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
@@ -444,20 +456,24 @@ class _BodyState extends State<Body> {
             });
           },
           child: Container(
-            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F8FA),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Product Image
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: 70,
+                  height: 70,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(14),
+                    color: Colors.white,
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(14),
                     child: FutureBuilder<Widget>(
                       future: _buildProductImage(product),
                       builder: (context, imageSnapshot) {
@@ -482,95 +498,115 @@ class _BodyState extends State<Body> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 // Product Details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        product.title ?? 'Unknown Product',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Net weight: ${product.variant ?? 'N/A'}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                      const SizedBox(height: 8),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Expanded(
+                            child: Text(
+                              product.title!.split('/').first.trim() ??
+                                  'Product',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                           Text(
                             '₹${product.discountPrice?.toStringAsFixed(2) ?? '0.00'}',
                             style: const TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                               color: Colors.black,
                             ),
                           ),
-                          if (product.originalPrice != null &&
-                              product.originalPrice! >
-                                  (product.discountPrice ?? 0))
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: Text(
-                                '₹${product.originalPrice!.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[500],
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-                            ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                // Review Button
-                Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: kPrimaryColor.withOpacity(0.3),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Net weight: ${product.variant ?? 'N/A'}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0XFF646161),
                         ),
-                        borderRadius: BorderRadius.circular(6),
                       ),
-                      child: InkWell(
-                        onTap: () => _showReviewDialog(product),
-                        borderRadius: BorderRadius.circular(6),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                      const SizedBox(height: 2),
+                      FutureBuilder<Address?>(
+                        future: UserDatabaseHelper().getAddressFromId(
+                          order.addressId ?? '',
+                        ),
+                        builder: (context, snapshot) {
+                          final addressTitle =
+                              snapshot.hasData && snapshot.data != null
+                              ? (snapshot.data!.title ??
+                                    snapshot.data!.addressLine1 ??
+                                    '')
+                              : '';
+                          return Row(
                             children: [
-                              Icon(Icons.add, size: 14, color: kPrimaryColor),
+                              const SizedBox(height: 3),
+
+                              Icon(
+                                Icons.location_on,
+                                size: 16,
+                                color: Color(0XFF646161),
+                              ),
                               const SizedBox(width: 4),
-                              Text(
-                                'Add Product Review',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: kPrimaryColor,
-                                  fontWeight: FontWeight.w600,
+                              Flexible(
+                                child: Text(
+                                  addressTitle,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0XFF646161),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: InkWell(
+                          onTap: () => _showReviewDialog(product),
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Add Product Review',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                Icon(Icons.add, size: 14, color: kPrimaryColor),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
