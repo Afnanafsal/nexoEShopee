@@ -19,7 +19,7 @@ const double screenPadding = 10;
 
 final headingStyle = TextStyle(
   fontSize: getProportionateScreenWidth(28),
-  fontWeight: FontWeight.bold,
+  fontWeight: FontWeight.w600,
   color: Colors.black,
   height: 1.5,
 );

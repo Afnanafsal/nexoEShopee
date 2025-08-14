@@ -47,7 +47,7 @@ class Body extends StatelessWidget {
                   TextSpan(
                     text: "$searchQuery",
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       fontStyle: FontStyle.italic,
                     ),
                     children: [

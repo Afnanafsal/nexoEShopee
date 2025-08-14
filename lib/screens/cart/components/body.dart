@@ -67,7 +67,7 @@ class _BodyState extends ConsumerState<Body> {
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black12,
@@ -733,24 +733,27 @@ class _BodyState extends ConsumerState<Body> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5F5F5),
+      backgroundColor: Color(0xFFEFF1F5),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: Column(
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 24.h),
               Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(right: 20.w), // Use zero padding
-                    child: IconButton(
-                      icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                ],
+              children: [
+                IconButton(
+                icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                onPressed: () => Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/home', (route) => false),
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints(),
+                ),
+                SizedBox(width: 8.w),
+                // You can add a title or leave empty for spacing
+              ],
               ),
               SizedBox(height: 8.h),
               Padding(
@@ -1071,7 +1074,7 @@ class _BodyState extends ConsumerState<Body> {
                 ),
                 child: IconButton(
                   padding: EdgeInsets.zero,
-                  icon: Icon(Icons.add, color: Colors.black, size: 16),
+                  icon: Icon(Icons.add, color: Color(0xFF646161), size: 24),
                   onPressed: () =>
                       arrowUpCallback(cartItemId, _selectedAddressId),
                 ),
@@ -1080,7 +1083,7 @@ class _BodyState extends ConsumerState<Body> {
               Text(
                 quantity.toString(),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
                 ),
@@ -1095,7 +1098,7 @@ class _BodyState extends ConsumerState<Body> {
                 ),
                 child: IconButton(
                   padding: EdgeInsets.zero,
-                  icon: Icon(Icons.remove, color: Colors.black, size: 16),
+                  icon: Icon(Icons.remove, color: Color(0xFF646161), size: 24),
                   onPressed: () =>
                       arrowDownCallback(cartItemId, _selectedAddressId),
                 ),
@@ -1532,15 +1535,38 @@ class _BodyState extends ConsumerState<Body> {
                                             ),
                                           ),
                                           SizedBox(height: 12),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              // Navigate to add address screen (implement as needed)
-                                              Navigator.pop(context);
-                                              Navigator.of(
-                                                context,
-                                              ).pushNamed('/add_address');
-                                            },
-                                            child: Text("Add New Address"),
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.black,
+                                                foregroundColor: Colors.white,
+                                                padding: EdgeInsets.symmetric(
+                                                  vertical: 16,
+                                                ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                elevation: 0,
+                                              ),
+                                              onPressed: () {
+                                                // Navigate to add address screen (implement as needed)
+                                                Navigator.pop(context);
+                                                Navigator.of(
+                                                  context,
+                                                ).pushNamed('/add_address');
+                                              },
+                                              child: Text(
+                                                "Add New Address",
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: Colors.white,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),

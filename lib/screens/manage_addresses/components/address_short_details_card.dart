@@ -56,7 +56,7 @@ class AddressShortDetailsCard extends StatelessWidget {
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 17,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 4),

@@ -45,7 +45,7 @@ class ProductReviewDialog extends StatelessWidget {
                         Text(
                           "Review",
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             fontSize: 18,
                             color: Color(0xFF232323),
                           ),

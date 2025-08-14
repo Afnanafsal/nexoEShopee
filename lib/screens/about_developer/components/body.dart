@@ -109,7 +109,7 @@ class Body extends StatelessWidget {
                     Text(
                       "Liked the app?",
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         fontSize: 18,
                       ),
                     ),

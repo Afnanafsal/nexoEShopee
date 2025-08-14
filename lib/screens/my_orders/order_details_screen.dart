@@ -6,6 +6,7 @@ import 'package:fishkart/models/Address.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:fishkart/models/Product.dart';
 import 'package:fishkart/services/database/product_database_helper.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
@@ -217,52 +218,49 @@ class OrderDetailsScreen extends StatelessWidget {
                       : 0.0;
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 28),
+                        SizedBox(height: 40.h),
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0,
-                            vertical: 20.0,
+                          padding: EdgeInsets.only(left: 8.w),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.arrow_back_ios,
+                              color: Color(0xFF000000),
+                            ),
+                            onPressed: () => Navigator.of(context).pop(),
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(
+                            left: 18.w,
+                            right: 24.w,
+                            top: 5.h,
+                            bottom: 20.h,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.arrow_back_ios,
-                                        color: Color(0xFF000000),
-                                      ),
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      padding: EdgeInsets.zero,
-                                      constraints: BoxConstraints(),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 36),
                               Text(
                                 'Your order received!',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 16,
+                                  fontSize: 16.sp,
                                   color: Colors.black,
                                 ),
                               ),
-                              SizedBox(height: 14),
+                              SizedBox(height: 14.h),
                               Row(
                                 children: [
                                   Text(
                                     'Order ID',
                                     style: TextStyle(
                                       color: Colors.black,
-                                      fontSize: 16,
+                                      fontSize: 16.sp,
                                       fontWeight: FontWeight.normal,
                                     ),
                                   ),
@@ -270,8 +268,8 @@ class OrderDetailsScreen extends StatelessWidget {
                                   Text(
                                     '#${order.id}',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16.sp,
                                       color: Colors.black,
                                     ),
                                   ),
@@ -282,11 +280,11 @@ class OrderDetailsScreen extends StatelessWidget {
                                 _formatOrderDate(order.orderDate),
                                 style: TextStyle(
                                   color: Color(0xFF646161),
-                                  fontSize: 16,
+                                  fontSize: 16.sp,
                                   fontWeight: FontWeight.normal,
                                 ),
                               ),
-                              SizedBox(height: 16),
+                              SizedBox(height: 16.h),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -295,15 +293,15 @@ class OrderDetailsScreen extends StatelessWidget {
                                     '${order.quantity} Items',
                                     style: TextStyle(
                                       color: Colors.grey[700],
-                                      fontSize: 16,
+                                      fontSize: 16.sp,
                                       fontWeight: FontWeight.normal,
                                     ),
                                   ),
                                   Text(
                                     '₹${totalPrice.toStringAsFixed(2)}',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16.sp,
                                       color: Colors.black,
                                     ),
                                   ),
@@ -495,25 +493,23 @@ class OrderDetailsScreen extends StatelessWidget {
                                 ],
                               ),
 
-                              SizedBox(height: 18),
+                              SizedBox(height: 28.h),
 
                               // Help Section
                               Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0,
-                                ),
+                                padding: EdgeInsets.symmetric(vertical: 28.h),
                                 child: Row(
                                   children: [
                                     Icon(
                                       Icons.phone_outlined,
-                                      size: 22,
+                                      size: 22.sp,
                                       color: Color(0xFF374151),
                                     ),
-                                    SizedBox(width: 12),
+                                    SizedBox(width: 12.w),
                                     Text(
                                       'Need help?',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 16.sp,
                                         color: Colors.black,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -522,21 +518,19 @@ class OrderDetailsScreen extends StatelessWidget {
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0,
-                                ),
+                                padding: EdgeInsets.symmetric(vertical: 8.h),
                                 child: Row(
                                   children: [
                                     Icon(
                                       Icons.chat_bubble_outline,
-                                      size: 20,
+                                      size: 20.sp,
                                       color: Color(0xFF374151),
                                     ),
-                                    SizedBox(width: 12),
+                                    SizedBox(width: 12.w),
                                     Text(
                                       'Have a question?',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 16.sp,
                                         color: Colors.black,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -552,11 +546,11 @@ class OrderDetailsScreen extends StatelessWidget {
 
                         // 100% Fresh Guarantee Section at Bottom
                         Padding(
-                          padding: const EdgeInsets.only(
-                            left: 24.0,
-                            right: 24.0,
-                            bottom: 18.0,
-                            top: 8.0,
+                          padding: EdgeInsets.only(
+                            left: 24.w,
+                            right: 24.w,
+                            bottom: 18.h,
+                            top: 8.h,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -566,7 +560,7 @@ class OrderDetailsScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: Colors.black,
-                                  fontSize: 16,
+                                  fontSize: 16.sp,
                                 ),
                               ),
                               Text(
@@ -574,7 +568,7 @@ class OrderDetailsScreen extends StatelessWidget {
                                 style: TextStyle(
                                   color: Color(0xFF646161),
                                   fontWeight: FontWeight.normal,
-                                  fontSize: 16,
+                                  fontSize: 16.sp,
                                 ),
                               ),
                             ],

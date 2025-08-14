@@ -11,6 +11,7 @@ import 'package:fishkart/size_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
 import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ManageProductsScreen extends StatelessWidget {
   static String routeName = "/manage_products";
@@ -22,12 +23,15 @@ class ManageProductsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, size: 24.sp),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: Text("Manage Products"),
+        title: Text(
+          "Manage Products",
+          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600),
+        ),
         centerTitle: true,
         elevation: 2,
       ),
@@ -38,8 +42,8 @@ class ManageProductsScreen extends StatelessWidget {
             MaterialPageRoute(builder: (context) => AddProductScreen()),
           );
         },
-        label: Text("Add Product"),
-        icon: Icon(Icons.add),
+        label: Text("Add Product", style: TextStyle(fontSize: 16.sp)),
+        icon: Icon(Icons.add, size: 22.sp),
       ),
       body: ProductsList(),
     );
@@ -70,29 +74,37 @@ class ProductsList extends StatelessWidget {
                 itemCount: 4,
                 itemBuilder: (context, index) => Card(
                   elevation: 2,
-                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                  margin: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
                   child: ListTile(
-                    contentPadding: EdgeInsets.all(16),
+                    contentPadding: EdgeInsets.all(16.w),
                     leading: Container(
-                      width: 60,
-                      height: 60,
+                      width: 60.w,
+                      height: 60.h,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8.r),
                       ),
                     ),
                     title: Container(
-                      width: 120,
-                      height: 16,
+                      width: 120.w,
+                      height: 16.h,
                       color: Colors.white,
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 8),
-                        Container(width: 80, height: 12, color: Colors.white),
-                        SizedBox(height: 8),
-                        Container(width: 100, height: 12, color: Colors.white),
+                        SizedBox(height: 8.h),
+                        Container(
+                          width: 80.w,
+                          height: 12.h,
+                          color: Colors.white,
+                        ),
+                        SizedBox(height: 8.h),
+                        Container(
+                          width: 100.w,
+                          height: 12.h,
+                          color: Colors.white,
+                        ),
                       ],
                     ),
                   ),
@@ -113,16 +125,22 @@ class ProductsList extends StatelessWidget {
               children: [
                 Icon(
                   Icons.shopping_bag_outlined,
-                  size: 100,
+                  size: 100.sp,
                   color: kPrimaryColor,
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 20.h),
                 Text(
                   'No products yet',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                SizedBox(height: 10),
-                Text('Start by adding your first product'),
+                SizedBox(height: 10.h),
+                Text(
+                  'Start by adding your first product',
+                  style: TextStyle(fontSize: 14.sp),
+                ),
               ],
             ),
           );
@@ -148,42 +166,49 @@ class ProductsList extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 100, color: Colors.red),
-                SizedBox(height: 20),
+                Icon(Icons.error_outline, size: 100.sp, color: Colors.red),
+                SizedBox(height: 20.h),
                 Text(
                   'Error loading products',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                SizedBox(height: 10),
-                Text('There was an error loading your products'),
+                SizedBox(height: 10.h),
+                Text(
+                  'There was an error loading your products',
+                  style: TextStyle(fontSize: 14.sp),
+                ),
               ],
             ),
           );
         }
 
         return ListView.builder(
-          padding: EdgeInsets.all(getProportionateScreenWidth(10)),
+          padding: EdgeInsets.all(10.w),
           itemCount: products.length,
           itemBuilder: (context, index) {
             final product = products[index];
             return Card(
               elevation: 2,
-              margin: EdgeInsets.symmetric(vertical: 8),
+              margin: EdgeInsets.symmetric(vertical: 8.h),
               child: ListTile(
-                contentPadding: EdgeInsets.all(16),
+                contentPadding: EdgeInsets.all(16.w),
                 leading: Builder(
                   builder: (context) {
                     if (product.images == null || product.images!.isEmpty) {
                       return Container(
-                        width: 60,
-                        height: 60,
+                        width: 60.w,
+                        height: 60.h,
                         decoration: BoxDecoration(
                           color: kPrimaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Icon(
                           Icons.image_not_supported,
                           color: kPrimaryColor,
+                          size: 28.sp,
                         ),
                       );
                     }
@@ -196,24 +221,25 @@ class ProductsList extends StatelessWidget {
                           : base64Image;
 
                       return ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8.r),
                         child: Image.memory(
                           base64Decode(imageData),
-                          width: 60,
-                          height: 60,
+                          width: 60.w,
+                          height: 60.h,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             print('Error loading image: $error');
                             return Container(
-                              width: 60,
-                              height: 60,
+                              width: 60.w,
+                              height: 60.h,
                               decoration: BoxDecoration(
                                 color: kPrimaryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(8.r),
                               ),
                               child: Icon(
                                 Icons.broken_image,
                                 color: kPrimaryColor,
+                                size: 28.sp,
                               ),
                             );
                           },
@@ -222,32 +248,39 @@ class ProductsList extends StatelessWidget {
                     } catch (e) {
                       print('Error loading image: $e');
                       return Container(
-                        width: 60,
-                        height: 60,
+                        width: 60.w,
+                        height: 60.h,
                         decoration: BoxDecoration(
                           color: kPrimaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
-                        child: Icon(Icons.error, color: kPrimaryColor),
+                        child: Icon(
+                          Icons.error,
+                          color: kPrimaryColor,
+                          size: 28.sp,
+                        ),
                       );
                     }
                   },
                 ),
                 title: Text(
                   product.title ?? 'Untitled Product',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16.sp,
+                  ),
                 ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text(
-                      'Price: \$${product.discountPrice ?? product.originalPrice ?? 0}',
-                      style: TextStyle(color: kPrimaryColor),
+                      'Price: \${product.discountPrice ?? product.originalPrice ?? 0}',
+                      style: TextStyle(color: kPrimaryColor, fontSize: 14.sp),
                     ),
                     Text(
                       'Category: ${product.productType?.toString().split('.').last ?? 'Uncategorized'}',
-                      style: TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: 12.sp),
                     ),
                   ],
                 ),
@@ -256,18 +289,22 @@ class ProductsList extends StatelessWidget {
                     PopupMenuItem(
                       value: 'edit',
                       child: ListTile(
-                        leading: Icon(Icons.edit),
-                        title: Text('Edit'),
+                        leading: Icon(Icons.edit, size: 20.sp),
+                        title: Text('Edit', style: TextStyle(fontSize: 14.sp)),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     PopupMenuItem(
                       value: 'delete',
                       child: ListTile(
-                        leading: Icon(Icons.delete, color: Colors.red),
+                        leading: Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                          size: 20.sp,
+                        ),
                         title: Text(
                           'Delete',
-                          style: TextStyle(color: Colors.red),
+                          style: TextStyle(color: Colors.red, fontSize: 14.sp),
                         ),
                         contentPadding: EdgeInsets.zero,
                       ),

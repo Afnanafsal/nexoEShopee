@@ -1,3 +1,4 @@
+import 'package:fishkart/screens/home/home_screen.dart';
 import 'package:fishkart/screens/search/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fishkart/screens/forgot_password/components/body.dart';
@@ -33,6 +34,7 @@ class App extends StatelessWidget {
             '/forgot': (context) => ForgotPasswordScreen(),
             '/add_address': (context) => EditAddressScreen(),
             '/search': (context) => SearchScreen(),
+            '/home': (context) => HomeScreen(),
           },
         );
       },

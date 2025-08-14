@@ -40,7 +40,7 @@ class NothingToShowContainer extends StatelessWidget {
             style: TextStyle(
               color: kTextColor,
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
