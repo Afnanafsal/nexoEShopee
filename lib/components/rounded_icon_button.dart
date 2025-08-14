@@ -23,7 +23,7 @@ class RoundedIconButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(50),
           ),
           padding: EdgeInsets.zero,
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.transparent,
         ),
         onPressed: press,
         child: Icon(iconData, color: kTextColor),

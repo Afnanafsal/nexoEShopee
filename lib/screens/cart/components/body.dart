@@ -69,7 +69,11 @@ class _BodyState extends ConsumerState<Body> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(10.r),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 4.r, offset: Offset(0, 1)),
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4.r,
+            offset: Offset(0, 1),
+          ),
         ],
       ),
       child: Row(
@@ -82,7 +86,10 @@ class _BodyState extends ConsumerState<Body> {
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.sp),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15.sp,
+                  ),
                 ),
                 if (subtitle != null)
                   Text(
@@ -350,16 +357,16 @@ class _BodyState extends ConsumerState<Body> {
                       onPressed: () => Navigator.pop(context),
                     ),
                     ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kPrimaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 32.w,
-                            vertical: 14.h,
-                          ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: kPrimaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
                         ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 32.w,
+                          vertical: 14.h,
+                        ),
+                      ),
                       child: Text(
                         editIndex == null ? 'Save' : 'Update',
                         style: TextStyle(
@@ -509,7 +516,10 @@ class _BodyState extends ConsumerState<Body> {
                     ),
                   ),
                   SizedBox(height: 16.h),
-                  Text('Scan this QR code with your UPI app to pay.', style: TextStyle(fontSize: 15.sp)),
+                  Text(
+                    'Scan this QR code with your UPI app to pay.',
+                    style: TextStyle(fontSize: 15.sp),
+                  ),
                   SizedBox(height: 8.h),
                   Text(
                     'Expires in: ${Duration(seconds: secondsLeft).inMinutes}:${(secondsLeft % 60).toString().padLeft(2, '0')}',
@@ -518,9 +528,15 @@ class _BodyState extends ConsumerState<Body> {
                   SizedBox(height: 8.h),
                   Text(
                     'Pay to: afnnafsal@oksbi',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.sp),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15.sp,
+                    ),
                   ),
-                  Text('Amount: ₹${totalAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 15.sp)),
+                  Text(
+                    'Amount: ₹${totalAmount.toStringAsFixed(2)}',
+                    style: TextStyle(fontSize: 15.sp),
+                  ),
                 ],
               ),
               actions: [
@@ -1453,67 +1469,85 @@ class _BodyState extends ConsumerState<Body> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                                onPressed: () async {
+                              onPressed: () async {
                                 // Show a bottom sheet to select address
                                 await showModalBottomSheet(
                                   context: context,
                                   builder: (context) {
-                                  return Container(
-                                    padding: EdgeInsets.all(20),
-                                    child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                      "Select Delivery Address",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
+                                    return Container(
+                                      padding: EdgeInsets.all(20),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Select Delivery Address",
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          SizedBox(height: 16),
+                                          ..._addresses.map(
+                                            (
+                                              addressId,
+                                            ) => FutureBuilder<Address?>(
+                                              future: UserDatabaseHelper()
+                                                  .getAddressFromId(addressId),
+                                              builder: (context, snapshot) {
+                                                if (!snapshot.hasData)
+                                                  return SizedBox.shrink();
+                                                final addr = snapshot.data!;
+                                                return ListTile(
+                                                  title: Text(
+                                                    "${addr.title ?? "Home"}",
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                  subtitle: Text(
+                                                    "${addr.addressLine1 ?? ""}, ${addr.city ?? ""}, ${addr.state ?? ""}, ${addr.pincode ?? ""}",
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  trailing:
+                                                      _selectedAddressId ==
+                                                          addressId
+                                                      ? Icon(
+                                                          Icons.check,
+                                                          color: kPrimaryColor,
+                                                        )
+                                                      : null,
+                                                  onTap: () {
+                                                    _selectedAddressId =
+                                                        addressId;
+                                                    Navigator.pop(context);
+                                                    setState(() {});
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          SizedBox(height: 12),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              // Navigate to add address screen (implement as needed)
+                                              Navigator.pop(context);
+                                              Navigator.of(
+                                                context,
+                                              ).pushNamed('/add_address');
+                                            },
+                                            child: Text("Add New Address"),
+                                          ),
+                                        ],
                                       ),
-                                      ),
-                                      SizedBox(height: 16),
-                                      ..._addresses.map((addressId) => FutureBuilder<Address?>(
-                                      future: UserDatabaseHelper().getAddressFromId(addressId),
-                                      builder: (context, snapshot) {
-                                        if (!snapshot.hasData) return SizedBox.shrink();
-                                        final addr = snapshot.data!;
-                                        return ListTile(
-                                        title: Text(
-                                          "${addr.title ?? "Home"}",
-                                          style: TextStyle(fontWeight: FontWeight.w500),
-                                        ),
-                                        subtitle: Text(
-                                          "${addr.addressLine1 ?? ""}, ${addr.city ?? ""}, ${addr.state ?? ""}, ${addr.pincode ?? ""}",
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        trailing: _selectedAddressId == addressId
-                                          ? Icon(Icons.check, color: kPrimaryColor)
-                                          : null,
-                                        onTap: () {
-                                          _selectedAddressId = addressId;
-                                          Navigator.pop(context);
-                                          setState(() {});
-                                        },
-                                        );
-                                      },
-                                      )),
-                                      SizedBox(height: 12),
-                                      ElevatedButton(
-                                      onPressed: () {
-                                        // Navigate to add address screen (implement as needed)
-                                        Navigator.pop(context);
-                                        Navigator.of(context).pushNamed('/add_address');
-                                      },
-                                      child: Text("Add New Address"),
-                                      ),
-                                    ],
-                                    ),
-                                  );
+                                    );
                                   },
                                 );
-                                }
-                            ,
+                              },
                               child: Text(
                                 "Change/Add Address",
                                 style: TextStyle(

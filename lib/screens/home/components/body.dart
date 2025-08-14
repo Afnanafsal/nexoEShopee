@@ -251,6 +251,15 @@ class _BodyState extends ConsumerState<Body> {
                                 setState(() {
                                   selectedIndex = index;
                                 });
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        CategoryProductsScreen(
+                                          key: UniqueKey(),
+                                          productType: cat[PRODUCT_TYPE_KEY],
+                                        ),
+                                  ),
+                                );
                               },
                               child: Container(
                                 width: 105.w,
@@ -851,11 +860,15 @@ class _BodyState extends ConsumerState<Body> {
                                   style: TextStyle(
                                     fontSize: 10.sp,
                                     color: isAvailable
-                                        ? const Color(0x61000000) // 38% opacity black
+                                        ? const Color(
+                                            0x61000000,
+                                          ) // 38% opacity black
                                         : Colors.grey.shade500,
                                     decoration: TextDecoration.lineThrough,
                                     decorationColor: isAvailable
-                                        ? const Color(0x61000000) // 38% opacity black
+                                        ? const Color(
+                                            0x61000000,
+                                          ) // 38% opacity black
                                         : Colors.grey.shade500,
                                     fontFamily: 'Poppins',
                                     fontWeight: FontWeight.w600,
@@ -865,83 +878,82 @@ class _BodyState extends ConsumerState<Body> {
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.only(right: 4.w,bottom: 4.h),
+                          padding: EdgeInsets.only(right: 4.w, bottom: 4.h),
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
-                              
                               borderRadius: BorderRadius.circular(24.r),
                               onTap: () async {
-                              final selectedAddressId = ref.read(
-                                selectedAddressIdProvider,
-                              );
-                              if (selectedAddressId == null) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        "Please select a delivery address before adding to cart.",
+                                final selectedAddressId = ref.read(
+                                  selectedAddressIdProvider,
+                                );
+                                if (selectedAddressId == null) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "Please select a delivery address before adding to cart.",
+                                        ),
+                                        backgroundColor: Colors.red,
                                       ),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                                return;
-                              }
-                              try {
-                                final success = await UserDatabaseHelper()
-                                    .addProductToCart(
-                                      product.id,
-                                      addressId: selectedAddressId,
                                     );
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        success
-                                            ? '$productTitle added to cart!'
-                                            : 'Failed to add to cart.',
-                                      ),
-                                    ),
-                                  );
+                                  }
+                                  return;
                                 }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Failed to add to cart: $e',
+                                try {
+                                  final success = await UserDatabaseHelper()
+                                      .addProductToCart(
+                                        product.id,
+                                        addressId: selectedAddressId,
+                                      );
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          success
+                                              ? '$productTitle added to cart!'
+                                              : 'Failed to add to cart.',
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Failed to add to cart: $e',
+                                        ),
+                                      ),
+                                    );
+                                  }
                                 }
-                              }
-                            },
-                            child: Container(
-                              clipBehavior: Clip.antiAlias,
-                              width: 28.w,
-                              height: 28.w,
-                              decoration: BoxDecoration(
-                                color: isAvailable
-                                    ? const Color.fromARGB(255, 0, 0, 0)
-                                    : const Color(0xFFB0B0B0),
-                                borderRadius: BorderRadius.circular(8.r),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 6.r,
-                                    offset: Offset(0, 2.h),
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.add,
-                                size: 22.sp,
-                                color: Colors.white,
+                              },
+                              child: Container(
+                                clipBehavior: Clip.antiAlias,
+                                width: 28.w,
+                                height: 28.w,
+                                decoration: BoxDecoration(
+                                  color: isAvailable
+                                      ? const Color.fromARGB(255, 0, 0, 0)
+                                      : const Color(0xFFB0B0B0),
+                                  borderRadius: BorderRadius.circular(8.r),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 6.r,
+                                      offset: Offset(0, 2.h),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.add,
+                                  size: 22.sp,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
-                        ),
                         ),
                       ],
                     ),

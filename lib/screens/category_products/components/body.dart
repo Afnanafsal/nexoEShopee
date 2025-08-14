@@ -8,6 +8,7 @@ import 'package:fishkart/screens/product_details/product_details_screen.dart';
 import 'package:fishkart/screens/search_result/search_result_screen.dart';
 import 'package:fishkart/providers/providers.dart';
 import 'package:fishkart/size_config.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,21 +33,16 @@ class Body extends ConsumerWidget {
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: getProportionateScreenWidth(screenPadding),
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Column(
               children: [
-                SizedBox(height: getProportionateScreenHeight(20)),
+                SizedBox(height: 20.h),
                 buildHeadBar(context, ref),
-                SizedBox(height: getProportionateScreenHeight(20)),
-                SizedBox(
-                  height: SizeConfig.screenHeight * 0.13,
-                  child: buildCategoryBanner(),
-                ),
-                SizedBox(height: getProportionateScreenHeight(20)),
+                SizedBox(height: 20.h),
+                SizedBox(height: 120.h, child: buildCategoryBanner()),
+                SizedBox(height: 20.h),
                 _buildProductsSection(categoryProductsAsync),
-                SizedBox(height: getProportionateScreenHeight(20)),
+                SizedBox(height: 20.h),
               ],
             ),
           ),
@@ -62,7 +58,7 @@ class Body extends ConsumerWidget {
 
         if (productIds.isEmpty) {
           return SizedBox(
-            height: 200,
+            height: 200.h,
             child: NothingToShowContainer(
               secondaryMessage:
                   "No products in ${EnumToString.convertToString(productType)}",
@@ -72,16 +68,16 @@ class Body extends ConsumerWidget {
 
         return buildProductsGrid(productIds);
       },
-      loading: () => const Center(
+      loading: () => Center(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
-          child: CircularProgressIndicator(),
+          padding: EdgeInsets.all(20.w),
+          child: const CircularProgressIndicator(),
         ),
       ),
       error: (error, stack) {
         Logger().e('Error loading products: $error');
         return SizedBox(
-          height: 200,
+          height: 200.h,
           child: NothingToShowContainer(
             iconPath: "assets/icons/network_error.svg",
             primaryMessage: "Something went wrong",
@@ -100,7 +96,7 @@ class Body extends ConsumerWidget {
           iconData: Icons.arrow_back_ios,
           press: () => Navigator.pop(context),
         ),
-        const SizedBox(width: 5),
+        SizedBox(width: 5.w),
         Expanded(
           child: SearchField(
             onSubmit: (value) async {
@@ -154,19 +150,19 @@ class Body extends ConsumerWidget {
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(kPrimaryColor, BlendMode.hue),
             ),
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(30.r),
           ),
         ),
         Align(
           alignment: Alignment.centerLeft,
           child: Padding(
-            padding: const EdgeInsets.only(left: 16),
+            padding: EdgeInsets.only(left: 16.w),
             child: Text(
               EnumToString.convertToString(productType),
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w900,
-                fontSize: 24,
+                fontSize: 24.sp,
               ),
             ),
           ),
@@ -184,13 +180,13 @@ class Body extends ConsumerWidget {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 12.h),
       itemCount: filteredIds.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.75,
-        crossAxisSpacing: 2,
-        mainAxisSpacing: 8,
+        crossAxisSpacing: 8.w,
+        mainAxisSpacing: 16.h,
       ),
       itemBuilder: (context, index) {
         return Consumer(
