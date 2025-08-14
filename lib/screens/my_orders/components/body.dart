@@ -311,8 +311,8 @@ class _BodyState extends State<Body> {
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemCount: grouped.entries.length,
             itemBuilder: (context, groupIndex) {
               final entry = grouped.entries.elementAt(groupIndex);
@@ -360,10 +360,10 @@ class _BodyState extends State<Body> {
                     if (orderEntry.value.isEmpty)
                       return const SizedBox.shrink();
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
+                      margin: EdgeInsets.zero,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        color: const Color(0xFFFFFFFF),
+                        borderRadius: BorderRadius.circular(17),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.05),
@@ -456,24 +456,23 @@ class _BodyState extends State<Body> {
             });
           },
           child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7F8FA),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Product Image
                 Container(
-                  width: 70,
-                  height: 70,
+                  width: 120,
+                  height: 120,
+                  alignment: Alignment.topLeft,
+                  margin: EdgeInsets.zero,
+                  padding: EdgeInsets.zero,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(17),
                     color: Colors.white,
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(17),
                     child: FutureBuilder<Widget>(
                       future: _buildProductImage(product),
                       builder: (context, imageSnapshot) {
@@ -482,16 +481,28 @@ class _BodyState extends State<Body> {
                           return Shimmer.fromColors(
                             baseColor: Colors.grey[300]!,
                             highlightColor: Colors.grey[100]!,
-                            child: Container(color: Colors.grey[300]),
+                            child: Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
                           );
                         }
                         return imageSnapshot.data ??
                             Container(
-                              color: Colors.grey[100],
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               child: Icon(
                                 Icons.image_not_supported,
                                 color: Colors.grey[400],
-                                size: 24,
+                                size: 32,
                               ),
                             );
                       },
@@ -501,111 +512,121 @@ class _BodyState extends State<Body> {
                 const SizedBox(width: 16),
                 // Product Details
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              product.title!.split('/').first.trim() ??
-                                  'Product',
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                product.title!.split('/').first.trim() ??
+                                    'Product',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              '₹${product.discountPrice?.toStringAsFixed(2) ?? '0.00'}',
                               style: const TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.black,
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          Text(
-                            '₹${product.discountPrice?.toStringAsFixed(2) ?? '0.00'}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'Net weight: ${product.variant ?? 'N/A'}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: Color(0XFF646161),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      FutureBuilder<Address?>(
-                        future: UserDatabaseHelper().getAddressFromId(
-                          order.addressId ?? '',
+                        const SizedBox(height: 3),
+                        Text(
+                          'Net weight: ${product.variant ?? 'N/A'}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0XFF646161),
+                          ),
                         ),
-                        builder: (context, snapshot) {
-                          final addressTitle =
-                              snapshot.hasData && snapshot.data != null
-                              ? (snapshot.data!.title ??
-                                    snapshot.data!.addressLine1 ??
-                                    '')
-                              : '';
-                          return Row(
-                            children: [
-                              const SizedBox(height: 3),
-
-                              Icon(
-                                Icons.location_on,
-                                size: 16,
-                                color: Color(0XFF646161),
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  addressTitle,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0XFF646161),
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: InkWell(
-                          onTap: () => _showReviewDialog(product),
-                          borderRadius: BorderRadius.circular(6),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                        const SizedBox(height: 2),
+                        FutureBuilder<Address?>(
+                          future: UserDatabaseHelper().getAddressFromId(
+                            order.addressId ?? '',
+                          ),
+                          builder: (context, snapshot) {
+                            final addressTitle =
+                                snapshot.hasData && snapshot.data != null
+                                ? (snapshot.data!.title ??
+                                      snapshot.data!.addressLine1 ??
+                                      '')
+                                : '';
+                            return Row(
                               children: [
-                                Text(
-                                  'Add Product Review',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: kPrimaryColor,
-                                    fontWeight: FontWeight.w500,
+                                const SizedBox(height: 3),
+
+                                Icon(
+                                  Icons.location_on,
+                                  size: 16,
+                                  color: Color(0XFF646161),
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    addressTitle,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0XFF646161),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                const SizedBox(width: 2),
-                                Icon(Icons.add, size: 14, color: kPrimaryColor),
                               ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: InkWell(
+                            onTap: () => _showReviewDialog(product),
+                            borderRadius: BorderRadius.circular(6),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Add Product Review',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: kPrimaryColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Icon(
+                                    Icons.add,
+                                    size: 14,
+                                    color: kPrimaryColor,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -620,7 +641,7 @@ class _BodyState extends State<Body> {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       separatorBuilder: (context, index) => const SizedBox(height: 16),
-      itemCount: 3,
+      itemCount: 6,
       itemBuilder: (context, index) {
         return Container(
           decoration: BoxDecoration(
@@ -788,12 +809,9 @@ class _BodyState extends State<Body> {
   }
 
   Future<Widget> _buildProductImage(Product product) async {
-    // Directly try to decode and show the base64 string from product.images or product.imageBase64
     try {
-      // Try to get base64 string from product.images or product.imageBase64
       String? base64String;
       if (product.images != null && product.images!.isNotEmpty) {
-        // If the first image is a base64 string, use it
         base64String = product.images!.first;
         Logger().i(
           'Trying to decode base64 from product.images: ${base64String.substring(0, 30)}...',
@@ -806,9 +824,9 @@ class _BodyState extends State<Body> {
           final bytes = base64Decode(base64String);
           return Image.memory(
             bytes,
-            fit: BoxFit.cover,
-            width: 60,
-            height: 60,
+            fit: BoxFit.fill,
+            width: 120,
+            height: 120,
             errorBuilder: (context, error, stackTrace) {
               Logger().e('Error rendering image from base64: $error');
               return Container(
