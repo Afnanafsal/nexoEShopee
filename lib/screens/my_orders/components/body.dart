@@ -493,8 +493,8 @@ class _BodyState extends State<Body> {
                         }
                         return imageSnapshot.data ??
                             Container(
-                              width: 100,
-                              height: 100,
+                              width: 120,
+                              height: 120,
                               decoration: BoxDecoration(
                                 color: Colors.grey[100],
                                 borderRadius: BorderRadius.circular(16),

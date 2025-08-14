@@ -9,7 +9,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:fishkart/components/async_progress_dialog.dart';
 
 import 'package:fishkart/components/nothingtoshow_container.dart';
-import 'package:fishkart/components/product_short_detail_card.dart';
 import 'package:fishkart/constants.dart';
 import 'package:fishkart/models/CartItem.dart';
 import 'package:fishkart/models/OrderedProduct.dart';
@@ -18,13 +17,13 @@ import 'package:fishkart/models/Product.dart';
 import 'package:fishkart/providers/user_providers.dart';
 import 'package:fishkart/screens/cart/components/checkout_card.dart';
 import 'package:fishkart/screens/product_details/product_details_screen.dart';
+import 'package:fishkart/screens/my_orders/order_details_screen.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
 import '../../../services/razorpay_service.dart';
 import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
 import 'package:fishkart/services/database/product_database_helper.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:fishkart/services/cache/hive_service.dart';
-import 'package:fishkart/size_config.dart';
 import '../../../utils.dart';
 
 // Formatter for MM/YY expiry
@@ -126,8 +125,23 @@ class _BodyState extends ConsumerState<Body> {
     );
     if (cartItem != null) {
       try {
-        await UserDatabaseHelper().decreaseCartItemCount(cartItem.id);
-        // Optionally, update stock here if needed
+        // If quantity > 1, decrease. If 1, remove from cart.
+        if (cartItem.itemCount > 1) {
+          await UserDatabaseHelper().decreaseCartItemCount(cartItem.id);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Decreased quantity.")));
+        } else {
+          // Remove item from cart
+          await UserDatabaseHelper().decreaseCartItemCount(
+            cartItem.id,
+          ); // Already deletes if count <= 1
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Item removed from cart.")));
+        }
+        // Refresh cart items provider to update UI
+        ref.invalidate(cartItemsStreamProvider);
       } catch (e) {
         Logger().e(e.toString());
         ScaffoldMessenger.of(
@@ -162,7 +176,22 @@ class _BodyState extends ConsumerState<Body> {
     );
     if (cartItem != null) {
       try {
-        await UserDatabaseHelper().increaseCartItemCount(cartItem.id);
+        // Get product stock
+        final product = await ProductDatabaseHelper().getProductWithID(
+          productIdOnly,
+        );
+        if (product != null && cartItem.itemCount < product.stock) {
+          await UserDatabaseHelper().increaseCartItemCount(cartItem.id);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Increased quantity.")));
+          // Refresh cart items provider to update UI
+          ref.invalidate(cartItemsStreamProvider);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Cannot add more. Stock limit reached.")),
+          );
+        }
       } catch (e) {
         Logger().e(e.toString());
         ScaffoldMessenger.of(
@@ -554,8 +583,7 @@ class _BodyState extends ConsumerState<Body> {
       for (int i = 0; i < cartItemsId.length; i++) {
         final cartItem = cartItems[i];
         final product = products[i];
-        if (cartItem != null &&
-            product != null &&
+        if (product != null &&
             (cartItem.addressId == _selectedAddressId ||
                 cartItem.addressId == null)) {
           final price = product.discountPrice ?? product.originalPrice ?? 0;
@@ -568,6 +596,9 @@ class _BodyState extends ConsumerState<Body> {
 
   Future<void> checkoutButtonCallback({bool useRazorpay = false}) async {
     shutBottomSheet();
+    OrderedProduct? orderedProductToShow;
+    bool orderSuccess = false;
+    String snackbarmMessage = "Something went wrong";
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -639,14 +670,15 @@ class _BodyState extends ConsumerState<Body> {
               await doc.reference.delete();
             }
 
-            String snackbarmMessage = "Something went wrong";
-            bool orderSuccess = false;
             try {
               final addedProductsToMyProducts = await UserDatabaseHelper()
                   .addToMyOrders(orderedProducts);
               if (addedProductsToMyProducts) {
                 snackbarmMessage = "Products ordered Successfully";
                 orderSuccess = true;
+                if (orderedProducts.isNotEmpty) {
+                  orderedProductToShow = orderedProducts.first;
+                }
               } else {
                 throw "Could not order products due to unknown issue";
               }
@@ -661,18 +693,23 @@ class _BodyState extends ConsumerState<Body> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(snackbarmMessage)));
-            if (orderSuccess) {
-              // Redirect to HomeScreen after successful order
-              Navigator.of(
-                context,
-              ).pushNamedAndRemoveUntil('/home', (route) => false);
-            }
             await refreshPage();
           })(),
           message: Text("Uploading order and processing payment..."),
         );
       },
     );
+    // After dialog is closed, schedule navigation if order was successful
+    if (orderSuccess && orderedProductToShow != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) =>
+                OrderDetailsScreen(order: orderedProductToShow!),
+          ),
+        );
+      });
+    }
   }
 
   @override
@@ -1264,7 +1301,24 @@ class _BodyState extends ConsumerState<Body> {
           ),
           SizedBox(width: 16),
           ElevatedButton(
-            onPressed: () => checkoutButtonCallback(),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return CheckoutCard(
+                    onCheckoutPressed: () async {
+                      Navigator.of(context).pop();
+                      await checkoutButtonCallback();
+                    },
+                    onRazorpayPressed: () async {
+                      Navigator.of(context).pop();
+                      await checkoutButtonCallback(useRazorpay: true);
+                    },
+                    totalPrice: totalPrice,
+                  );
+                },
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
               foregroundColor: Colors.white,

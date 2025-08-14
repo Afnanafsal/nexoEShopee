@@ -19,6 +19,7 @@ class ProductReviewDialog extends StatelessWidget {
     // Local state for feedback and rating
     String feedback = review.review ?? '';
     int rating = review.rating;
+    final feedbackController = TextEditingController(text: review.review ?? '');
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxWidth = constraints.maxWidth < 400
@@ -26,7 +27,7 @@ class ProductReviewDialog extends StatelessWidget {
             : 400.0;
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
           ),
           backgroundColor: Colors.white,
           child: ConstrainedBox(
@@ -41,22 +42,15 @@ class ProductReviewDialog extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.rate_review,
-                          color: Color(0xFF23395D),
-                          size: 24,
-                        ),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            "Product Review",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 19,
-                              color: Color(0xFF232323),
-                            ),
+                        Text(
+                          "Review",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Color(0xFF232323),
                           ),
                         ),
+                        Spacer(),
                         InkWell(
                           borderRadius: BorderRadius.circular(16),
                           onTap: () => Navigator.of(context).pop(),
@@ -84,6 +78,7 @@ class ProductReviewDialog extends StatelessWidget {
                         direction: Axis.horizontal,
                         allowHalfRating: false,
                         itemCount: 5,
+                        itemSize: 28,
                         itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
                         itemBuilder: (context, _) =>
                             Icon(Icons.star, color: Color(0xFF23395D)),
@@ -124,34 +119,58 @@ class ProductReviewDialog extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Color(0xFFE0E0E0)),
                                 ),
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 8,
                                 ),
-                                child: TextFormField(
-                                  initialValue: review.review,
-                                  decoration: InputDecoration(
-                                    hintText: "Write your feedback...",
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: Color(0xFF232323),
-                                  ),
-                                  onChanged: (value) {
-                                    feedback = value;
-                                  },
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Feedback cannot be empty';
-                                    }
-                                    return null;
-                                  },
-                                  maxLines: null,
-                                  maxLength: 150,
+                                child: Stack(
+                                  children: [
+                                    TextFormField(
+                                      controller: feedbackController,
+                                      decoration: InputDecoration(
+                                        hintText: "Write your feedback...",
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        counterText: "",
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Color(0xFF232323),
+                                      ),
+                                      onChanged: (value) {
+                                        feedback = value;
+                                      },
+                                      validator: (value) {
+                                        if (value == null ||
+                                            value.trim().isEmpty) {
+                                          return 'Feedback cannot be empty';
+                                        }
+                                        return null;
+                                      },
+                                      maxLines: null,
+                                      maxLength: 150,
+                                    ),
+                                    Positioned(
+                                      right: 5,
+                                      bottom: 10,
+                                      child:
+                                          ValueListenableBuilder<
+                                            TextEditingValue
+                                          >(
+                                            valueListenable: feedbackController,
+                                            builder: (context, value, _) {
+                                              return Text(
+                                                "${value.text.length}/150",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey[500],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -165,23 +184,9 @@ class ProductReviewDialog extends StatelessWidget {
                       builder: (context, loading, _) {
                         return SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton.icon(
-                            icon: loading
-                                ? SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : Icon(
-                                    Icons.send,
-                                    size: 18,
-                                    color: Colors.white,
-                                  ),
+                          child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF23395D),
+                              backgroundColor: Colors.black,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -259,7 +264,7 @@ class ProductReviewDialog extends StatelessWidget {
                                       ).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            'Error: ${e.toString()}',
+                                            'Error: ���${e.toString()}',
                                           ),
                                         ),
                                       );
@@ -267,7 +272,7 @@ class ProductReviewDialog extends StatelessWidget {
                                       isLoading.value = false;
                                     }
                                   },
-                            label: Text(
+                            child: Text(
                               loading ? "Submitting..." : "Submit",
                               style: TextStyle(
                                 color: Colors.white,

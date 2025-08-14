@@ -62,27 +62,27 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
       key: _formKey,
       child: Column(
         children: [
-          SizedBox(height: getProportionateScreenHeight(20)),
+          SizedBox(height: getProportionateScreenHeight(5)),
           buildTitleField(),
-          SizedBox(height: getProportionateScreenHeight(30)),
+          SizedBox(height: getProportionateScreenHeight(15)),
           buildReceiverField(),
-          SizedBox(height: getProportionateScreenHeight(30)),
+          SizedBox(height: getProportionateScreenHeight(15)),
           buildAddressLine1Field(),
-          SizedBox(height: getProportionateScreenHeight(30)),
+          SizedBox(height: getProportionateScreenHeight(15)),
           buildAddressLine2Field(),
-          SizedBox(height: getProportionateScreenHeight(30)),
+          SizedBox(height: getProportionateScreenHeight(15)),
           buildCityField(),
-          SizedBox(height: getProportionateScreenHeight(30)),
+          SizedBox(height: getProportionateScreenHeight(15)),
           buildDistrictField(),
-          SizedBox(height: getProportionateScreenHeight(30)),
+          SizedBox(height: getProportionateScreenHeight(15)),
           buildStateField(),
-          SizedBox(height: getProportionateScreenHeight(30)),
+          SizedBox(height: getProportionateScreenHeight(15)),
           buildLandmarkField(),
-          SizedBox(height: getProportionateScreenHeight(30)),
+          SizedBox(height: getProportionateScreenHeight(15)),
           buildPincodeField(),
-          SizedBox(height: getProportionateScreenHeight(30)),
+          SizedBox(height: getProportionateScreenHeight(15)),
           buildPhoneField(),
-          SizedBox(height: getProportionateScreenHeight(30)),
+          SizedBox(height: getProportionateScreenHeight(15)),
           DefaultButton(
             text: "Save Address",
             press: widget.addressToEdit == null
@@ -108,199 +108,214 @@ class _AddressDetailsFormState extends State<AddressDetailsForm> {
   }
 
   Widget buildTitleField() {
-    return TextFormField(
-      controller: titleFieldController,
-      keyboardType: TextInputType.name,
-      maxLength: 8,
-      decoration: InputDecoration(
-        hintText: "Enter a title for address",
-        labelText: "Title",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      validator: (value) {
-        if (titleFieldController.text.isEmpty) {
-          return FIELD_REQUIRED_MSG;
-        }
-        return null;
-      },
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("Title"),
+        SizedBox(height: 5),
+        _buildInput(
+          titleFieldController,
+          "Enter a title for address",
+          maxLength: 8,
+        ),
+      ],
     );
   }
 
   Widget buildReceiverField() {
-    return TextFormField(
-      controller: receiverFieldController,
-      keyboardType: TextInputType.name,
-      decoration: InputDecoration(
-        hintText: "Enter Full Name of Receiver",
-        labelText: "Receiver Name",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      validator: (value) {
-        if (receiverFieldController.text.isEmpty) {
-          return FIELD_REQUIRED_MSG;
-        }
-        return null;
-      },
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("Receiver Name"),
+        SizedBox(height: 5),
+        _buildInput(receiverFieldController, "Enter Full Name of Receiver"),
+      ],
     );
   }
 
   Widget buildAddressLine1Field() {
-    return TextFormField(
-      controller: addressLine1FieldController,
-      keyboardType: TextInputType.streetAddress,
-      decoration: InputDecoration(
-        hintText: "Enter Address Line No. 1",
-        labelText: "Address Line 1",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      validator: (value) {
-        if (addressLine1FieldController.text.isEmpty) {
-          return FIELD_REQUIRED_MSG;
-        }
-        return null;
-      },
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("Address Line 1"),
+        SizedBox(height: 5),
+        _buildInput(addressLine1FieldController, "Enter Address Line No. 1"),
+      ],
     );
   }
 
   Widget buildAddressLine2Field() {
-    return TextFormField(
-      controller: addressLine2FieldController,
-      keyboardType: TextInputType.streetAddress,
-      decoration: InputDecoration(
-        hintText: "Enter Address Line No. 2",
-        labelText: "Address Line 2",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      validator: (value) {
-        if (addressLine2FieldController.text.isEmpty) {
-          return FIELD_REQUIRED_MSG;
-        }
-        return null;
-      },
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("Address Line 2"),
+        SizedBox(height: 5),
+        _buildInput(addressLine2FieldController, "Enter Address Line No. 2"),
+      ],
     );
   }
 
   Widget buildCityField() {
-    return TextFormField(
-      controller: cityFieldController,
-      keyboardType: TextInputType.name,
-      decoration: InputDecoration(
-        hintText: "Enter City",
-        labelText: "City",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      validator: (value) {
-        if (cityFieldController.text.isEmpty) {
-          return FIELD_REQUIRED_MSG;
-        }
-        return null;
-      },
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("City"),
+        SizedBox(height: 5),
+        _buildInput(cityFieldController, "Enter City"),
+      ],
     );
   }
 
   Widget buildDistrictField() {
-    return TextFormField(
-      controller: districtFieldController,
-      keyboardType: TextInputType.name,
-      decoration: InputDecoration(
-        hintText: "Enter District",
-        labelText: "District",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      validator: (value) {
-        if (districtFieldController.text.isEmpty) {
-          return FIELD_REQUIRED_MSG;
-        }
-        return null;
-      },
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("District"),
+        SizedBox(height: 5),
+        _buildInput(districtFieldController, "Enter District"),
+      ],
     );
   }
 
   Widget buildStateField() {
-    return TextFormField(
-      controller: stateFieldController,
-      keyboardType: TextInputType.name,
-      decoration: InputDecoration(
-        hintText: "Enter State",
-        labelText: "State",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      validator: (value) {
-        if (stateFieldController.text.isEmpty) {
-          return FIELD_REQUIRED_MSG;
-        }
-        return null;
-      },
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("State"),
+        SizedBox(height: 5),
+        _buildInput(stateFieldController, "Enter State"),
+      ],
     );
   }
 
   Widget buildPincodeField() {
-    return TextFormField(
-      controller: pincodeFieldController,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        hintText: "Enter PINCODE",
-        labelText: "PINCODE",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      validator: (value) {
-        if (pincodeFieldController.text.isEmpty) {
-          return FIELD_REQUIRED_MSG;
-        } else if (!isNumeric(pincodeFieldController.text)) {
-          return "Only digits field";
-        } else if (pincodeFieldController.text.length != 6) {
-          return "PINCODE must be of 6 Digits only";
-        }
-        return null;
-      },
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("PINCODE"),
+        SizedBox(height: 5),
+        _buildInput(
+          pincodeFieldController,
+          "Enter PINCODE",
+          keyboardType: TextInputType.number,
+        ),
+      ],
     );
   }
 
   Widget buildLandmarkField() {
-    return TextFormField(
-      controller: landmarkFieldController,
-      keyboardType: TextInputType.name,
-      decoration: InputDecoration(
-        hintText: "Enter Landmark",
-        labelText: "Landmark",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      validator: (value) {
-        if (landmarkFieldController.text.isEmpty) {
-          return FIELD_REQUIRED_MSG;
-        }
-        return null;
-      },
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("Landmark"),
+        SizedBox(height: 5),
+        _buildInput(landmarkFieldController, "Enter Landmark"),
+      ],
     );
   }
 
   Widget buildPhoneField() {
-    return TextFormField(
-      controller: phoneFieldController,
-      keyboardType: TextInputType.phone,
-      decoration: InputDecoration(
-        hintText: "Enter Phone Number",
-        labelText: "Phone Number",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("Phone Number"),
+        SizedBox(height: 5),
+        _buildInput(
+          phoneFieldController,
+          "Enter Phone Number",
+          keyboardType: TextInputType.phone,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLabel(String label) {
+    return Text(
+      label,
+      style: TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+        color: Colors.black,
       ),
+    );
+  }
+
+  Widget _buildInput(
+    TextEditingController controller,
+    String hint, {
+    bool enabled = true,
+    int? maxLength,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextFormField(
+      controller: controller,
+      enabled: enabled,
+      maxLength: maxLength,
+      keyboardType: keyboardType,
+      style: TextStyle(fontSize: 14),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.black54, fontSize: 14),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.black),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.black),
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: (value) {
-        if (phoneFieldController.text.isEmpty) {
+        // Keep original validation logic
+        if (controller == titleFieldController && controller.text.isEmpty) {
           return FIELD_REQUIRED_MSG;
-        } else if (phoneFieldController.text.length != 10) {
-          return "Only 10 Digits";
+        }
+        if (controller == receiverFieldController && controller.text.isEmpty) {
+          return FIELD_REQUIRED_MSG;
+        }
+        if (controller == addressLine1FieldController &&
+            controller.text.isEmpty) {
+          return FIELD_REQUIRED_MSG;
+        }
+        if (controller == addressLine2FieldController &&
+            controller.text.isEmpty) {
+          return FIELD_REQUIRED_MSG;
+        }
+        if (controller == cityFieldController && controller.text.isEmpty) {
+          return FIELD_REQUIRED_MSG;
+        }
+        if (controller == districtFieldController && controller.text.isEmpty) {
+          return FIELD_REQUIRED_MSG;
+        }
+        if (controller == stateFieldController && controller.text.isEmpty) {
+          return FIELD_REQUIRED_MSG;
+        }
+        if (controller == landmarkFieldController && controller.text.isEmpty) {
+          return FIELD_REQUIRED_MSG;
+        }
+        if (controller == pincodeFieldController) {
+          if (controller.text.isEmpty) {
+            return FIELD_REQUIRED_MSG;
+          } else if (!isNumeric(controller.text)) {
+            return "Only digits field";
+          } else if (controller.text.length != 6) {
+            return "PINCODE must be of 6 Digits only";
+          }
+        }
+        if (controller == phoneFieldController) {
+          if (controller.text.isEmpty) {
+            return FIELD_REQUIRED_MSG;
+          } else if (controller.text.length != 10) {
+            return "Only 10 Digits";
+          }
         }
         return null;
       },
-      autovalidateMode: AutovalidateMode.onUserInteraction,
     );
   }
 

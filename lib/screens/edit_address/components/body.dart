@@ -1,7 +1,7 @@
 import 'package:fishkart/constants.dart';
 import 'package:fishkart/models/Address.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
-import 'package:fishkart/size_config.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
 
 import 'address_details_form.dart';
@@ -15,16 +15,36 @@ class Body extends StatelessWidget {
       child: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
         child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: getProportionateScreenWidth(screenPadding),
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: SizedBox(
             width: double.infinity,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: getProportionateScreenHeight(20)),
-                Text("Fill Address Details", style: headingStyle),
-                SizedBox(height: getProportionateScreenHeight(30)),
+                SizedBox(height: 20.h),
+                // Back icon row
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.black,
+                        size: 22.sp,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                // Heading on next line
+                Text(
+                  "Fill Address Details",
+                  style: headingStyle.copyWith(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 30.h),
                 addressIdToEdit == null
                     ? AddressDetailsForm(addressToEdit: null)
                     : FutureBuilder<Address>(
@@ -38,16 +58,12 @@ class Body extends StatelessWidget {
                             );
                           } else if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return AddressDetailsForm(
-                              addressToEdit: null,
-                            );
+                            return AddressDetailsForm(addressToEdit: null);
                           }
-                          return AddressDetailsForm(
-                            addressToEdit: null,
-                          );
+                          return AddressDetailsForm(addressToEdit: null);
                         },
                       ),
-                SizedBox(height: getProportionateScreenHeight(40)),
+                SizedBox(height: 40.h),
               ],
             ),
           ),
