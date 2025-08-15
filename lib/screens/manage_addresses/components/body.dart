@@ -363,81 +363,128 @@ class _BodyState extends State<Body> with RouteAware {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Dismissible(
         key: Key(addressId),
-        direction:
-            DismissDirection.startToEnd, // Only allow swipe right to delete
+        direction: DismissDirection.startToEnd,
         background: buildDismissibleSecondaryBackground(),
         dismissThresholds: {DismissDirection.startToEnd: 0.65},
-        child: Card(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          color: Colors.white,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () async {
-              await addressItemTapCallback(addressId);
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+        child: FutureBuilder(
+          future: UserDatabaseHelper().getAddressFromId(addressId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Card(
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          getAddressTitle(addressId),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                            color: Colors.black,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      TextButton.icon(
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size(0, 0),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        icon: SvgPicture.asset(
-                          'assets/icons/edit.svg',
-                          width: 18,
-                          height: 18,
-                          color: Color(0xFF5E5E5E),
-                        ),
-                        label: Text(
-                          "Edit",
-                          style: TextStyle(
-                            color: Color(0xFF5E5E5E),
-                            fontWeight: FontWeight.w400,
-                            fontSize: 15,
-                          ),
-                        ),
-                        onPressed: () async {
-                          await editButtonCallback(context, addressId);
-                        },
+                        child: Container(height: 18, color: Colors.grey[300]),
                       ),
                     ],
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    getAddressDetails(addressId),
-                    style: TextStyle(
-                      color: Color(0XFF646161),
-                      fontWeight: FontWeight.w400,
-                      fontSize: 14,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                ),
+              );
+            } else if (snapshot.hasError || !snapshot.hasData) {
+              return Card(
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
-                ],
+                  child: Text('Unable to load address'),
+                ),
+              );
+            }
+            final address = snapshot.data;
+            return Card(
+              elevation: 0,
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-            ),
-          ),
+              color: Colors.white,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  await addressItemTapCallback(addressId);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              address?.title ?? '',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size(0, 0),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            icon: SvgPicture.asset(
+                              'assets/icons/edit.svg',
+                              width: 18,
+                              height: 18,
+                              color: Color(0xFF5E5E5E),
+                            ),
+                            label: Text(
+                              "Edit",
+                              style: TextStyle(
+                                color: Color(0xFF5E5E5E),
+                                fontWeight: FontWeight.w400,
+                                fontSize: 15,
+                              ),
+                            ),
+                            onPressed: () async {
+                              await editButtonCallback(context, addressId);
+                            },
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        _getAddressLine(address),
+                        style: TextStyle(
+                          color: Color(0XFF646161),
+                          fontWeight: FontWeight.w400,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.startToEnd) {
@@ -453,18 +500,22 @@ class _BodyState extends State<Body> with RouteAware {
     );
   }
 
-  // Helper to get address title (replace with your actual logic)
-  String getAddressTitle(String addressId) {
-    // TODO: Replace with actual title fetch logic
-    // For now, return "Home" for demo
-    return "Home";
-  }
-
-  // Helper to get address details (replace with your actual logic)
-  String getAddressDetails(String addressId) {
-    // TODO: Replace with actual details fetch logic
-    // For now, return demo address
-    return "Gurupuram, opp believers, 330012.";
+  // Helper to get address line from Address model
+  String _getAddressLine(dynamic address) {
+    if (address == null) return '';
+    String line = '';
+    if (address.addressLine1 != null && address.addressLine1!.isNotEmpty) {
+      line += address.addressLine1!;
+    }
+    if (address.addressLine2 != null && address.addressLine2!.isNotEmpty) {
+      if (line.isNotEmpty) line += ', ';
+      line += address.addressLine2!;
+    }
+    if (address.pincode != null && address.pincode!.isNotEmpty) {
+      if (line.isNotEmpty) line += ', ';
+      line += address.pincode!;
+    }
+    return line;
   }
 
   Widget buildDismissiblePrimaryBackground() {
