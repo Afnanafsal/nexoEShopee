@@ -90,7 +90,6 @@ class _BodyState extends State<Body> with RouteAware {
                   Row(
                     children: [
                       Container(
-                        
                         child: IconButton(
                           icon: Icon(Icons.arrow_back_ios, size: 28),
                           onPressed: () => Navigator.of(context).pop(),
@@ -474,28 +473,34 @@ class _BodyState extends State<Body> with RouteAware {
   }
 
   Widget buildDismissibleSecondaryBackground() {
-    return Container(
-      padding: EdgeInsets.only(left: 20),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            "Delete",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            height: constraints.maxHeight,
+            width: constraints.maxWidth,
+            color: Color(0xFF5E5E5E),
+            padding: EdgeInsets.only(left: 20),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  "Delete",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                SizedBox(width: 4),
+                Icon(Icons.delete, color: Colors.white),
+              ],
             ),
           ),
-          SizedBox(width: 4),
-          Icon(Icons.delete, color: Colors.white),
-        ],
-      ),
+        );
+      },
     );
   }
 }
