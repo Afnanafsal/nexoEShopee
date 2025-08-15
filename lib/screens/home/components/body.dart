@@ -293,18 +293,7 @@ class _BodyState extends ConsumerState<Body> {
                                             color: Colors.transparent,
                                             width: 0,
                                           ),
-                                    boxShadow: selected
-                                        ? [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.14,
-                                              ),
-                                              blurRadius: 10.r,
-                                              offset: Offset(0, 6.h),
-                                              spreadRadius: 1.r,
-                                            ),
-                                          ]
-                                        : [
+                                    boxShadow:  [
                                             BoxShadow(
                                               color: Colors.black.withOpacity(
                                                 0.06,
@@ -317,42 +306,37 @@ class _BodyState extends ConsumerState<Body> {
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      SizedBox(height: 10.h),
-                                      Container(
-                                        width: 70.w,
-                                        height: 70.h, // Increased image height
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                          boxShadow: selected
-                                              ? [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.10),
-                                                    blurRadius: 8.r,
-                                                    offset: Offset(0, 2.h),
-                                                  ),
-                                                ]
-                                              : null,
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          top: 16.h,
+                                          left: 12.w,
+                                          right: 12.w,
                                         ),
-                                        child: ClipOval(
-                                          child: Image.asset(
-                                            cat[ICON_KEY],
-                                            width: 70.w,
-                                            height: 80.h,
-                                            fit: BoxFit.cover,
+                                        child: Container(
+                                          width: 70.w,
+                                          height: 70.h,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                            
+                                          ),
+                                          child: ClipOval(
+                                            child: Image.asset(
+                                              cat[ICON_KEY],
+                                              width: 70.w,
+                                              height: 80.h,
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                      SizedBox(height: 20.h),
+                                      SizedBox(height: 10.h),
                                       SizedBox(
                                         width: 85.w,
                                         child: Text(
                                           cat[TITLE_KEY],
                                           style: TextStyle(
-                                            color: selected
-                                                ? const Color(0xFF2C2C2C)
-                                                : Colors.black,
+                                            color: const Color(0xFF2C2C2C),
                                             fontWeight: FontWeight.w600,
                                             fontSize: 12.sp,
                                             fontFamily: 'Poppins',

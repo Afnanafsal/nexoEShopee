@@ -227,14 +227,18 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                   color: Colors.black,
                 ),
               ),
-              SizedBox(width: 8.w),
-              if (product.discountPrice != null)
-                Text(
+                SizedBox(width: 8.w),
+                if (product.discountPrice != null)
+                Padding(
+                  padding: EdgeInsets.only(bottom: 8.h),
+                  child: Text(
                   '\₹${product.originalPrice}',
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: Colors.grey,
+                    color: Colors.black.withOpacity(0.38),
                     decoration: TextDecoration.lineThrough,
+                    decorationColor: Colors.black.withOpacity(0.38),
+                  ),
                   ),
                 ),
               Spacer(),
@@ -308,11 +312,10 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SvgPicture.asset(
-                        'assets/images/leaf.svg',
+                      Image.asset(
+                        'assets/images/leaf.jpg',
                         width: 38.w,
                         height: 38.w,
-                        color: Color(0xFF7A8C9E),
                       ),
                       SizedBox(width: 14.w),
                       Column(
