@@ -1,3 +1,4 @@
+import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:fishkart/components/default_button.dart';
 import 'package:fishkart/components/nothingtoshow_container.dart';
@@ -403,8 +404,8 @@ class _BodyState extends State<Body> with RouteAware {
                           minimumSize: Size(0, 0),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        icon: Image.asset(
-                          'assets/icons/edit.png',
+                        icon: SvgPicture.asset(
+                          'assets/icons/edit.svg',
                           width: 18,
                           height: 18,
                           color: Color(0xFF5E5E5E),

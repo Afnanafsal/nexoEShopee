@@ -209,11 +209,18 @@ class _BodyState extends ConsumerState<Body> {
                         },
                       ),
                       SizedBox(height: 12.h),
-                      Image.asset(
-                        'assets/images/banner.png',
-                        width: 390.w,
-                        height: 195.h,
-                        fit: BoxFit.cover,
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final screenWidth = MediaQuery.of(context).size.width;
+                          // You can adjust the aspect ratio as needed (e.g., 2:1)
+                          final bannerHeight = screenWidth * 0.5;
+                          return SvgPicture.asset(
+                            'assets/images/banner.svg',
+                            width: screenWidth,
+                            height: bannerHeight,
+                            fit: BoxFit.fill,
+                          );
+                        },
                       ),
                       SizedBox(height: 18.h),
                       Align(

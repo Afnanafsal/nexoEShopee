@@ -166,14 +166,14 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                         vertical: 6.h,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green,
+                        color: Color(0xFF1AAE4C),
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Text(
                         'Most Popular',
                         style: TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w500,
                           fontSize: 14.sp,
                         ),
                       ),

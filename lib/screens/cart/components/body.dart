@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -350,7 +351,7 @@ class _BodyState extends ConsumerState<Body> {
             onEdit: () =>
                 showAddCardDialog(context, card: card, editIndex: idx),
             onDelete: () => deleteCardFromFirestore(idx),
-            imageAsset: 'assets/icons/visa.png',
+            imageAsset: 'assets/icons/visa.svg',
           );
         }),
         buildPaymentMethodItem(
@@ -358,11 +359,11 @@ class _BodyState extends ConsumerState<Body> {
           isSelected: false,
           onTap: () => showAddCardDialog(context),
           showAddIcon: true,
-          imageAsset: 'assets/icons/master.png',
+          imageAsset: 'assets/icons/master.svg',
         ),
         SizedBox(height: 8),
         buildPaymentMethodItem(
-          imageAsset: 'assets/icons/upi.png',
+          imageAsset: 'assets/icons/upi.svg',
           title: "UPI Pay",
           isSelected: selectedUpiApp != null,
           onTap: () {
@@ -372,48 +373,12 @@ class _BodyState extends ConsumerState<Body> {
             });
           },
         ),
-        GestureDetector(
+        SizedBox(height: 8),
+        buildPaymentMethodItem(
+          imageAsset: 'assets/icons/qr.svg',
+          title: "Scan & pay",
+          isSelected: selectedUpiApp != null,
           onTap: () => showQrPaymentDialog(context),
-          child: Container(
-            margin: EdgeInsets.only(bottom: 8),
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!, width: 1),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: Image.asset(
-                    'assets/icons/qr.png',
-                    width: 24,
-                    height: 24,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    "Scan & Pay",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-                Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
-              ],
-            ),
-          ),
         ),
       ],
     );
@@ -436,10 +401,9 @@ class _BodyState extends ConsumerState<Body> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? kPrimaryColor : Colors.grey[300]!,
-            width: isSelected ? 2 : 1,
-          ),
+          border: (title.toLowerCase().contains('scan & pay'))
+              ? Border.all(color: Colors.grey[300]!, width: 1)
+              : null,
         ),
         child: Row(
           children: [
@@ -448,9 +412,11 @@ class _BodyState extends ConsumerState<Body> {
               height: 24,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: Colors.grey[300]!),
+                border: (title.toLowerCase().contains('scan & pay'))
+                    ? Border.all(color: Colors.grey[300]!)
+                    : null,
               ),
-              child: Image.asset(
+              child: SvgPicture.asset(
                 imageAsset,
                 fit: BoxFit.contain,
                 width: 32,
@@ -684,6 +650,7 @@ class _BodyState extends ConsumerState<Body> {
                                   context: context,
                                   builder: (context) {
                                     return Container(
+                                      color: Color(0XffEFF1F5),
                                       padding: EdgeInsets.all(20),
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
@@ -1399,6 +1366,7 @@ class _BodyState extends ConsumerState<Body> {
             String upiUrl =
                 'upi://pay?pa=afnnafsal@oksbi&pn=Afnan Afsal&am=${totalAmount.toStringAsFixed(2)}&cu=INR';
             return AlertDialog(
+              backgroundColor: Color(0XFFEFF1F5),
               title: Text('Scan & Pay'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1406,7 +1374,7 @@ class _BodyState extends ConsumerState<Body> {
                   Container(
                     width: 180.w,
                     height: 180.h,
-                    color: Colors.grey[200],
+                    color: Color(0XFFEFF1F5),
                     child: Center(
                       child: QrImageView(data: upiUrl, size: 160.w),
                     ),
