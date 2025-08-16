@@ -106,7 +106,7 @@ class _BodyState extends ConsumerState<Body> {
               child: SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
                   child: Column(
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -243,7 +243,7 @@ class _BodyState extends ConsumerState<Body> {
                         ),
                       ),
                       SizedBox(
-                        height: 180.h,
+                        height: 160.h,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           padding: EdgeInsets.only(left: 0),
@@ -270,7 +270,7 @@ class _BodyState extends ConsumerState<Body> {
                               },
                               child: Container(
                                 width: 105.w,
-                                height: 160.h,
+                                height: 150.h,
                                 alignment: Alignment.center,
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
@@ -293,38 +293,35 @@ class _BodyState extends ConsumerState<Body> {
                                             color: Colors.transparent,
                                             width: 0,
                                           ),
-                                    boxShadow:  [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.06,
-                                              ),
-                                              blurRadius: 8.r,
-                                              offset: Offset(0, 2.h),
-                                            ),
-                                          ],
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.06),
+                                        blurRadius: 8.r,
+                                        offset: Offset(0, 2.h),
+                                      ),
+                                    ],
                                   ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       Padding(
                                         padding: EdgeInsets.only(
-                                          top: 16.h,
-                                          left: 12.w,
-                                          right: 12.w,
+                                          top: 9.h,
+                                          left: 9.w,
+                                          right: 9.w,
                                         ),
                                         child: Container(
-                                          width: 70.w,
+                                          width: 110.w,
                                           height: 70.h,
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             shape: BoxShape.circle,
-                                            
                                           ),
                                           child: ClipOval(
                                             child: Image.asset(
                                               cat[ICON_KEY],
-                                              width: 70.w,
-                                              height: 80.h,
+                                              width: 90.w,
+                                              height: 90.h,
                                               fit: BoxFit.cover,
                                             ),
                                           ),

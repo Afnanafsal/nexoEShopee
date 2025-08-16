@@ -265,7 +265,7 @@ class _ReviewBoxState extends State<ReviewBox> {
                           (review.userName ?? 'User').split(' ')[0],
                           style: TextStyle(
                           fontWeight: FontWeight.w500,
-                          fontSize: 15.sp,
+                          fontSize: 12.sp,
                           ),
                         ),
                         // Review text

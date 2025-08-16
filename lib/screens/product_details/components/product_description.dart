@@ -272,8 +272,9 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                       child: Text(
                         isOutOfStock ? '0' : '$cartCount',
                         style: TextStyle(
-                          fontSize: 20.sp,
+                          fontSize: 18.sp,
                           fontWeight: FontWeight.w600,
+                          color: Colors.black,
                         ),
                       ),
                     ),
