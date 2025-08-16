@@ -671,8 +671,8 @@ class _BodyState extends ConsumerState<Body> {
                                 foregroundColor: Colors.black,
                                 elevation: 0,
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 40.w,
-                                  vertical: 14.h,
+                                  horizontal: 16.w,
+                                  vertical: 10.h,
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12.r),
@@ -748,7 +748,7 @@ class _BodyState extends ConsumerState<Body> {
                                                 backgroundColor: Colors.black,
                                                 foregroundColor: Colors.white,
                                                 padding: EdgeInsets.symmetric(
-                                                  vertical: 16.h,
+                                                  vertical: 12.h,
                                                 ),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
@@ -786,7 +786,9 @@ class _BodyState extends ConsumerState<Body> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.w400,
                                   fontSize: 10.sp,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
+                                maxLines: 1,
                               ),
                             ),
                           ),
@@ -1470,14 +1472,14 @@ class _BodyState extends ConsumerState<Body> {
                 padding: EdgeInsets.zero,
                 constraints: BoxConstraints(),
               ),
-              SizedBox(height: 8.h),
+              SizedBox(height: 18.h),
               Padding(
                 padding: EdgeInsets.only(left: 4.w),
                 child: Text(
                   'Your Cart',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 16.sp,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
