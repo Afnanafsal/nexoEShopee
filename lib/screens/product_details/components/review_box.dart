@@ -259,100 +259,116 @@ class _ReviewBoxState extends State<ReviewBox> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                      children: [
                         // Show only first name
                         Text(
                           (review.userName ?? 'User').split(' ')[0],
                           style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12.sp,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 12.sp,
                           ),
                         ),
                         // Review text
                         Text(
                           review.review ?? '',
                           style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         Padding(
                           padding: EdgeInsets.only(top: 4.h, bottom: 4.h),
                           child: Row(
-                          children: [
-                            Text(
-                            getTimeAgo(review.createdAt),
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: Color(0XFF646161),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            ),
-                            SizedBox(width: 12.w),
-                            GestureDetector(
-                            onTap: showReplyDialog,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                              horizontal: 8.w,
-                              vertical: 2.h,
+                            children: [
+                              Text(
+                                getTimeAgo(review.createdAt),
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Color(0XFF646161),
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
-                              decoration: BoxDecoration(
-                              color: Color(0xFFF7F8FA),
-                              borderRadius: BorderRadius.circular(8.r),
+                              SizedBox(width: 12.w),
+                              GestureDetector(
+                                onTap: showReplyDialog,
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.w,
+                                    vertical: 2.h,
+                                  ),
+                                  
+                                  child: Text(
+                                    'Reply',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: Color(0XFF646161),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              child: Text(
-                              'Reply',
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                                color: Color(0XFF646161),
-                                fontWeight: FontWeight.w400,
-                              ),
-                              ),
-                            ),
-                            ),
-                          ],
+                            ],
                           ),
                         ),
 
-                        // View Replies Button directly under review text
                         Padding(
                           padding: EdgeInsets.only(top: 8.h, bottom: 4.h),
                           child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                            _showReplies = !_showReplies;
-                            });
-                            if (_showReplies) {
-                            // Scroll the whole screen to this widget
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              final box = context.findRenderObject() as RenderBox?;
-                              if (box != null) {
-                              final offset = box.localToGlobal(Offset.zero);
-                              Scrollable.ensureVisible(
-                                context,
-                                alignment: 0.0,
-                                duration: const Duration(milliseconds: 400),
-                                curve: Curves.easeInOut,
-                              );
+                            onTap: () {
+                              setState(() {
+                                _showReplies = !_showReplies;
+                              });
+                              if (_showReplies) {
+                                // Scroll the whole screen to this widget
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  final box =
+                                      context.findRenderObject() as RenderBox?;
+                                  if (box != null) {
+                                    final offset = box.localToGlobal(
+                                      Offset.zero,
+                                    );
+                                    Scrollable.ensureVisible(
+                                      context,
+                                      alignment: 0.0,
+                                      duration: const Duration(
+                                        milliseconds: 400,
+                                      ),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  }
+                                });
                               }
-                            });
-                            }
-                          },
-                          child: Text(
-                            _showReplies
-                              ? 'Hide Replies (${review.replyCount}) \u25B2'
-                              : 'View Replies (${review.replyCount}) \u25BC',
-                            style: TextStyle(
-                            fontSize: 14.sp,
-                            color: Color(0XFF646161),
-                            fontWeight: FontWeight.w400,
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _showReplies
+                                      ? 'Hide Replies (${review.replyCount})'
+                                      : 'View Replies (${review.replyCount})',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: Color(0XFF646161),
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                SizedBox(width: 4.w),
+
+                                Icon(
+                                  _showReplies
+                                      ? Icons.expand_less
+                                      : Icons.expand_more,
+                                  size: 20.sp,
+                                  color: Color(0XFF646161),
+                                ),
+                              ],
                             ),
                           ),
-                          ),
                         ),
-                        ],
-                      
+                      ],
                     ),
                   ),
                   Column(
@@ -371,7 +387,7 @@ class _ReviewBoxState extends State<ReviewBox> {
                                   ) ==
                                   true
                               ? Colors.red
-                              : Colors.grey,
+                              : Colors.black,
                           size: 22.sp,
                         ),
                         onPressed: likeReview,

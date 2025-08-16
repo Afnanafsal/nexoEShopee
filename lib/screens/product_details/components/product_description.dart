@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fishkart/providers/user_providers.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:logger/logger.dart';
 import '../../../utils.dart';
 import 'package:flutter/material.dart';
@@ -227,18 +226,18 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
                   color: Colors.black,
                 ),
               ),
-                SizedBox(width: 8.w),
-                if (product.discountPrice != null)
+              SizedBox(width: 8.w),
+              if (product.discountPrice != null)
                 Padding(
                   padding: EdgeInsets.only(bottom: 8.h),
                   child: Text(
-                  '\₹${product.originalPrice}',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: Colors.black.withOpacity(0.38),
-                    decoration: TextDecoration.lineThrough,
-                    decorationColor: Colors.black.withOpacity(0.38),
-                  ),
+                    '\₹${product.originalPrice}',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.black.withOpacity(0.38),
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: Colors.black.withOpacity(0.38),
+                    ),
                   ),
                 ),
               Spacer(),
@@ -301,41 +300,41 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
             children: [
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.only(right: 8.w),
+                  margin: EdgeInsets.only(right: 7.w),
                   decoration: BoxDecoration(
                     color: Color(0xFFF7F8FA),
-                    borderRadius: BorderRadius.circular(18.r),
+                    borderRadius: BorderRadius.circular(16.r),
                   ),
                   padding: EdgeInsets.symmetric(
-                    vertical: 8.h,
-                    horizontal: 18.w,
+                    vertical: 12.h,
+                    horizontal: 14.w,
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Image.asset(
                         'assets/images/leaf.jpg',
-                        width: 38.w,
-                        height: 38.w,
+                        width: 32.w,
+                        height: 32.w,
                       ),
-                      SizedBox(width: 14.w),
+                      SizedBox(width: 10.w),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             '100%',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22.sp,
-                              color: Colors.black,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 18.sp,
+                              color: Color(0xFF222B45),
                             ),
                           ),
-                          SizedBox(height: 2.h),
+                          SizedBox(height: 1.h),
                           Text(
                             'Fresh',
                             style: TextStyle(
-                              fontSize: 15.sp,
-                              color: Color(0xFFB0B6BE),
+                              fontSize: 13.sp,
+                              color: Color(0xFF7A8C9E),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -347,37 +346,37 @@ class _ProductDescriptionState extends ConsumerState<ProductDescription> {
               ),
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.only(left: 8.w),
+                  margin: EdgeInsets.only(left: 7.w),
                   decoration: BoxDecoration(
                     color: Color(0xFFF7F8FA),
-                    borderRadius: BorderRadius.circular(18.r),
+                    borderRadius: BorderRadius.circular(16.r),
                   ),
                   padding: EdgeInsets.symmetric(
-                    vertical: 8.h,
-                    horizontal: 18.w,
+                    vertical: 12.h,
+                    horizontal: 14.w,
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(Icons.star, color: Color(0xFF7A8C9E), size: 38.w),
-                      SizedBox(width: 14.w),
+                      Icon(Icons.star, color: Color(0xFF7A8C9E), size: 32.w),
+                      SizedBox(width: 10.w),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             '${product.rating}',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22.sp,
-                              color: Colors.black,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 18.sp,
+                              color: Color(0xFF222B45),
                             ),
                           ),
-                          SizedBox(height: 2.h),
+                          SizedBox(height: 1.h),
                           Text(
                             'Rated',
                             style: TextStyle(
-                              fontSize: 15.sp,
-                              color: Color(0xFFB0B6BE),
+                              fontSize: 13.sp,
+                              color: Color(0xFF7A8C9E),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
