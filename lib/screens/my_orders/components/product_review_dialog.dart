@@ -16,24 +16,33 @@ class ProductReviewDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
     ValueNotifier<bool> isLoading = ValueNotifier(false);
-    // Local state for feedback and rating
     String feedback = review.review ?? '';
     int rating = review.rating;
     final feedbackController = TextEditingController(text: review.review ?? '');
+    // Fetch user info for avatar
+    Future<Map<String, dynamic>?> fetchUserInfo() async {
+      String? uid = review.reviewerUid;
+      if (uid == null || uid.isEmpty) {
+        try {
+          uid = AuthentificationService().currentUser.uid;
+        } catch (e) {}
+      }
+      if (uid != null) {
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        return userDoc.data();
+      }
+      return null;
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
-        final maxWidth = constraints.maxWidth < 400
-            ? constraints.maxWidth * 0.98
-            : 400.0;
+        final maxWidth = constraints.maxWidth < 400 ? constraints.maxWidth * 0.98 : 400.0;
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           backgroundColor: Color(0xFFEFF1F5),
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              padding: const EdgeInsets.all(16),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -101,73 +110,78 @@ class ProductReviewDialog extends StatelessWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        padding: EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 14,
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CircleAvatar(
-                              radius: 18,
-                              backgroundImage:
-                                  (review.userAvatar != null &&
-                                      review.userAvatar!.isNotEmpty)
-                                  ? NetworkImage(review.userAvatar!)
-                                  : null,
-                              child:
-                                  (review.userAvatar == null ||
-                                      review.userAvatar!.isEmpty)
-                                  ? Icon(Icons.person, size: 22)
-                                  : null,
-                            ),
-                            SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Feedback",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w400,
-                                      color: Color(0xFF646161),
-                                      fontSize: 12,
-                                    ),
+                        padding: EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                        child: FutureBuilder<Map<String, dynamic>?>(
+                          future: fetchUserInfo(),
+                          builder: (context, snapshot) {
+                            final userData = snapshot.data;
+                            final avatarBase64 = userData != null && userData['display_picture'] != null && userData['display_picture'].toString().isNotEmpty
+                                ? userData['display_picture']
+                                : null;
+                            final displayName = userData != null && userData['display_name'] != null
+                                ? userData['display_name']
+                                : 'User';
+                            ImageProvider? avatarImage;
+                            if (avatarBase64 != null) {
+                              try {
+                                avatarImage = MemoryImage(
+                                  UriData.parse('data:image/png;base64,$avatarBase64').contentAsBytes(),
+                                );
+                              } catch (e) {
+                                avatarImage = null;
+                              }
+                            }
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CircleAvatar(
+                                  radius: 18,
+                                  backgroundImage: avatarImage,
+                                  child: avatarImage == null ? Icon(Icons.person, size: 22) : null,
+                                ),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Feedback",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w400,
+                                          color: Color(0xFF646161),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      TextFormField(
+                                        controller: feedbackController,
+                                        decoration: InputDecoration(
+                                          hintText: "Write your feedback...",
+                                          border: InputBorder.none,
+                                          enabledBorder: InputBorder.none,
+                                          focusedBorder: InputBorder.none,
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                        ),
+                                        style: TextStyle(fontSize: 15, color: Color(0xFF232323)),
+                                        onChanged: (value) { feedback = value; },
+                                        validator: (value) {
+                                          if (value == null || value.trim().isEmpty) {
+                                            return 'Feedback cannot be empty';
+                                          }
+                                          return null;
+                                        },
+                                        maxLines: null,
+                                        autofocus: true,
+                                        cursorColor: Colors.black,
+                                        textAlign: TextAlign.start,
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(height: 4),
-                                  TextFormField(
-                                    controller: feedbackController,
-                                    decoration: InputDecoration(
-                                      hintText: "Write your feedback...",
-                                      border: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                      isDense: true,
-                                    ),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: Color(0xFF232323),
-                                    ),
-                                    onChanged: (value) {
-                                      feedback = value;
-                                    },
-                                    validator: (value) {
-                                      if (value == null ||
-                                          value.trim().isEmpty) {
-                                        return 'Feedback cannot be empty';
-                                      }
-                                      return null;
-                                    },
-                                    maxLines: null,
-                                    autofocus: true,
-                                    maxLength: 150,
-                                    cursorColor: Colors.black,
-                                    textAlign: TextAlign.start,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ),
