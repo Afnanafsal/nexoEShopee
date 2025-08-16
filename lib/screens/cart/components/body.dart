@@ -211,7 +211,7 @@ class _BodyState extends ConsumerState<Body> {
             children: [
               Container(
                 width: 120.w,
-                height: 140.h,
+                height: 100.h,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20.r),
                   color: Colors.grey[100],
@@ -240,7 +240,7 @@ class _BodyState extends ConsumerState<Body> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        product.title ?? "Product",
+                        (product.title ?? '').split('/').first,
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w500,
@@ -258,7 +258,7 @@ class _BodyState extends ConsumerState<Body> {
                           fontWeight: FontWeight.w400,
                         ),
                       ),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: 12.h),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -1479,7 +1479,7 @@ class _BodyState extends ConsumerState<Body> {
                   'Your Cart',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 14.sp,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
