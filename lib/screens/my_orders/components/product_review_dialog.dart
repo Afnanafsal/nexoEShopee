@@ -29,261 +29,259 @@ class ProductReviewDialog extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Color(0xFFEFF1F5),
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          "Review",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                            color: Color(0xFF232323),
-                          ),
-                        ),
-                        Spacer(),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Icon(
-                              Icons.close,
-                              size: 22,
-                              color: Colors.grey[500],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Review",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                              color: Color(0xFF232323),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 14),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Color(0xFFF7F8FA),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: RatingBar.builder(
-                        initialRating: review.rating.toDouble(),
-                        minRating: 1,
-                        direction: Axis.horizontal,
-                        allowHalfRating: false,
-                        itemCount: 5,
-                        itemSize: 28,
-                        itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-                        itemBuilder: (context, _) =>
-                            Icon(Icons.star, color: Color(0xFF23395D)),
-                        onRatingUpdate: (r) {
-                          rating = r.round();
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 14),
-                    Divider(height: 1, thickness: 1, color: Color(0xFFE0E0E0)),
-                    SizedBox(height: 14),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundImage: review.userAvatar != null
-                              ? NetworkImage(review.userAvatar!)
-                              : null,
-                          child: review.userAvatar == null
-                              ? Icon(Icons.person, size: 22)
-                              : null,
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Feedback",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF232323),
-                                ),
+                          Spacer(),
+                          InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () => Navigator.of(context).pop(),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Icon(
+                                Icons.close,
+                                size: 22,
+                                color: Colors.grey[500],
                               ),
-                              SizedBox(height: 4),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 8,
-                                ),
-                                child: Stack(
-                                  children: [
-                                    TextFormField(
-                                      controller: feedbackController,
-                                      decoration: InputDecoration(
-                                        hintText: "Write your feedback...",
-                                        border: InputBorder.none,
-                                        isDense: true,
-                                        counterText: "",
-                                      ),
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: Color(0xFF232323),
-                                      ),
-                                      onChanged: (value) {
-                                        feedback = value;
-                                      },
-                                      validator: (value) {
-                                        if (value == null ||
-                                            value.trim().isEmpty) {
-                                          return 'Feedback cannot be empty';
-                                        }
-                                        return null;
-                                      },
-                                      maxLines: null,
-                                      maxLength: 150,
-                                    ),
-                                    Positioned(
-                                      right: 5,
-                                      bottom: 10,
-                                      child:
-                                          ValueListenableBuilder<
-                                            TextEditingValue
-                                          >(
-                                            valueListenable: feedbackController,
-                                            builder: (context, value, _) {
-                                              return Text(
-                                                "${value.text.length}/150",
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey[500],
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 14),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                      ],
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: RatingBar.builder(
+                          initialRating: review.rating.toDouble(),
+                          minRating: 1,
+                          direction: Axis.horizontal,
+                          allowHalfRating: false,
+                          itemCount: 5,
+                          itemSize: 32,
+                          itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+                          itemBuilder: (context, _) =>
+                              Icon(Icons.star, color: Colors.black),
+                          onRatingUpdate: (r) {
+                            rating = r.round();
+                          },
+                        ),
+                      ),
                     ),
                     SizedBox(height: 18),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: isLoading,
-                      builder: (context, loading, _) {
-                        return SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: EdgeInsets.symmetric(vertical: 14),
-                              elevation: 2,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 14,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundImage:
+                                  (review.userAvatar != null &&
+                                      review.userAvatar!.isNotEmpty)
+                                  ? NetworkImage(review.userAvatar!)
+                                  : null,
+                              child:
+                                  (review.userAvatar == null ||
+                                      review.userAvatar!.isEmpty)
+                                  ? Icon(Icons.person, size: 22)
+                                  : null,
                             ),
-                            onPressed: loading
-                                ? null
-                                : () async {
-                                    if (_formKey.currentState != null &&
-                                        !_formKey.currentState!.validate()) {
-                                      return;
-                                    }
-                                    isLoading.value = true;
-                                    try {
-                                      String? reviewerUid = review.reviewerUid;
-                                      String? userAvatar = review.userAvatar;
-                                      String? userName = review.userName;
-                                      if (reviewerUid != null) {
-                                        final userDoc = await FirebaseFirestore
-                                            .instance
-                                            .collection('users')
-                                            .doc(reviewerUid)
-                                            .get();
-                                        final data = userDoc.data();
-                                        if (data != null) {
-                                          userAvatar =
-                                              data['display_picture'] ?? null;
-                                          userName =
-                                              data['display_name'] ?? 'User';
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Feedback",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xFF646161),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  TextFormField(
+                                    controller: feedbackController,
+                                    decoration: InputDecoration(
+                                      hintText: "Write your feedback...",
+                                      border: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      focusedBorder: InputBorder.none,
+                                      isDense: true,
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Color(0xFF232323),
+                                    ),
+                                    onChanged: (value) {
+                                      feedback = value;
+                                    },
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Feedback cannot be empty';
+                                      }
+                                      return null;
+                                    },
+                                    maxLines: null,
+                                    autofocus: true,
+                                    maxLength: 150,
+                                    cursorColor: Colors.black,
+                                    textAlign: TextAlign.start,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 28),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: isLoading,
+                        builder: (context, loading, _) {
+                          return SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: EdgeInsets.symmetric(vertical: 18),
+                                elevation: 0,
+                              ),
+                              onPressed: loading
+                                  ? null
+                                  : () async {
+                                      if (_formKey.currentState != null &&
+                                          !_formKey.currentState!.validate()) {
+                                        return;
+                                      }
+                                      isLoading.value = true;
+                                      try {
+                                        String? reviewerUid =
+                                            review.reviewerUid;
+                                        String? userAvatar = review.userAvatar;
+                                        String? userName = review.userName;
+                                        if (reviewerUid != null) {
+                                          final userDoc =
+                                              await FirebaseFirestore.instance
+                                                  .collection('users')
+                                                  .doc(reviewerUid)
+                                                  .get();
+                                          final data = userDoc.data();
+                                          if (data != null) {
+                                            userAvatar =
+                                                data['display_picture'] ?? null;
+                                            userName =
+                                                data['display_name'] ?? 'User';
+                                          }
                                         }
-                                      }
-                                      // Ensure reviewerUid is set
-                                      if (reviewerUid == null ||
-                                          reviewerUid.isEmpty) {
-                                        try {
-                                          reviewerUid =
-                                              AuthentificationService()
-                                                  .currentUser
-                                                  .uid;
-                                        } catch (e) {}
-                                      }
-                                      if (feedback.trim().isEmpty) {
+                                        // Ensure reviewerUid is set
+                                        if (reviewerUid == null ||
+                                            reviewerUid.isEmpty) {
+                                          try {
+                                            reviewerUid =
+                                                AuthentificationService()
+                                                    .currentUser
+                                                    .uid;
+                                          } catch (e) {}
+                                        }
+                                        if (feedback.trim().isEmpty) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Feedback cannot be empty',
+                                              ),
+                                            ),
+                                          );
+                                          isLoading.value = false;
+                                          return;
+                                        }
+                                        print(
+                                          'DEBUG: feedback before save: ' +
+                                              feedback,
+                                        );
+                                        final newReview = Review(
+                                          review.id,
+                                          reviewerUid: reviewerUid,
+                                          rating: rating,
+                                          review: feedback,
+                                          createdAt: DateTime.now(),
+                                          likes: review.likes,
+                                          replyCount: review.replyCount,
+                                          userAvatar: userAvatar,
+                                          userName: userName,
+                                        );
+                                        Navigator.pop(context, newReview);
+                                      } catch (e) {
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                              'Feedback cannot be empty',
+                                              'Error: ���${e.toString()}',
                                             ),
                                           ),
                                         );
+                                      } finally {
                                         isLoading.value = false;
-                                        return;
                                       }
-                                      print(
-                                        'DEBUG: feedback before save: ' +
-                                            feedback,
-                                      );
-                                      final newReview = Review(
-                                        review.id,
-                                        reviewerUid: reviewerUid,
-                                        rating: rating,
-                                        review: feedback,
-                                        createdAt: DateTime.now(),
-                                        likes: review.likes,
-                                        replyCount: review.replyCount,
-                                        userAvatar: userAvatar,
-                                        userName: userName,
-                                      );
-                                      Navigator.pop(context, newReview);
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Error: ���${e.toString()}',
-                                          ),
-                                        ),
-                                      );
-                                    } finally {
-                                      isLoading.value = false;
-                                    }
-                                  },
-                            child: Text(
-                              loading ? "Submitting..." : "Submit",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
+                                    },
+                              child: Text(
+                                loading ? "Submitting..." : "Submit",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
+                    SizedBox(height: 24),
                   ],
                 ),
               ),
