@@ -1,5 +1,4 @@
 import 'package:fishkart/components/async_progress_dialog.dart';
-import 'package:fishkart/constants.dart';
 import 'package:fishkart/models/Product.dart';
 import 'package:fishkart/screens/cart/cart_screen.dart';
 import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
@@ -21,7 +20,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:convert';
 import '../../../utils.dart';
 import '../components/home_header.dart';
-import 'product_type_box.dart';
 
 const String ICON_KEY = "icon";
 const String TITLE_KEY = "title";
@@ -105,14 +103,17 @@ class _BodyState extends ConsumerState<Body> {
             Expanded(
               child: SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),
-                child: Padding(
-                  padding: EdgeInsets.only(left: 20.w),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 20.h),
-                      HomeHeader(
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    // Banner section with full horizontal padding
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      child: Column(
+                        children: [
+                          SizedBox(height: 20.h),
+                          HomeHeader(
                         onSearchSubmitted: (value) async {
                           final query = value.toString();
                           if (query.isEmpty) return;
@@ -208,155 +209,35 @@ class _BodyState extends ConsumerState<Body> {
                           }
                         },
                       ),
-                      SizedBox(height: 12.h),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final screenWidth = MediaQuery.of(context).size.width;
-                          // You can adjust the aspect ratio as needed (e.g., 2:1)
-                          final bannerHeight = screenWidth * 0.5;
-                          return SvgPicture.asset(
-                            'assets/images/banner.svg',
-                            width: screenWidth,
-                            height: bannerHeight,
-                            fit: BoxFit.fill,
-                          );
-                        },
-                      ),
-                      SizedBox(height: 18.h),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            top: 4.h,
-                            left: 4.w,
-                            right: 4.w,
-                            bottom: 0, // Reduce bottom padding
+                          SizedBox(height: 12.h),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final screenWidth = MediaQuery.of(context).size.width;
+                              final bannerHeight = screenWidth * 0.5;
+                              return SvgPicture.asset(
+                                'assets/images/banner.svg',
+                                width: screenWidth,
+                                height: bannerHeight,
+                                fit: BoxFit.fill,
+                              );
+                            },
                           ),
-                          child: Text(
-                            'Fresh Fish Category',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16.sp,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
+                        ],
                       ),
-                      SizedBox(
-                        height: 160.h,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.only(left: 0),
-                          itemCount: productCategories.length,
-                          separatorBuilder: (context, i) =>
-                              SizedBox(width: 6.w),
-                          itemBuilder: (context, index) {
-                            final cat = productCategories[index];
-                            final selected = index == selectedIndex;
-                            return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedIndex = index;
-                                });
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        CategoryProductsScreen(
-                                          key: UniqueKey(),
-                                          productType: cat[PRODUCT_TYPE_KEY],
-                                        ),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                width: 105.w,
-                                height: 150.h,
-                                alignment: Alignment.center,
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  curve: Curves.easeInOut,
-                                  width: 95.w,
-                                  height: 140.h,
-                                  margin: EdgeInsets.only(
-                                    top: 16.h,
-                                    bottom: 16.h,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(70.r),
-                                    border: selected
-                                        ? Border.all(
-                                            color: const Color(0xFFE0E0E0),
-                                            width: 1.w,
-                                          )
-                                        : Border.all(
-                                            color: Colors.transparent,
-                                            width: 0,
-                                          ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.06),
-                                        blurRadius: 8.r,
-                                        offset: Offset(0, 2.h),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.only(
-                                          top: 9.h,
-                                          left: 9.w,
-                                          right: 9.w,
-                                        ),
-                                        child: Container(
-                                          width: 110.w,
-                                          height: 70.h,
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: ClipOval(
-                                            child: Image.asset(
-                                              cat[ICON_KEY],
-                                              width: 90.w,
-                                              height: 90.h,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(height: 10.h),
-                                      SizedBox(
-                                        width: 85.w,
-                                        child: Text(
-                                          cat[TITLE_KEY],
-                                          style: TextStyle(
-                                            color: const Color(0xFF2C2C2C),
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 12.sp,
-                                            fontFamily: 'Poppins',
-                                          ),
-                                          textAlign: TextAlign.center,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+                    ),
+                    SizedBox(height: 18.h),
+                    // Fresh Fish Category section (left padding only)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: 4.h,
+                          left: 20.w,
+                          right: 0,
+                          bottom: 0,
                         ),
-                      ),
-                      // Popular Items Section
-                      Align(
-                        alignment: Alignment.centerLeft,
-
                         child: Text(
-                          'Popular Items',
+                          'Fresh Fish Category',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16.sp,
@@ -364,280 +245,320 @@ class _BodyState extends ConsumerState<Body> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 18.h),
-
-                      Consumer(
-                        builder: (context, ref, _) {
-                          final allProductsAsync = ref.watch(
-                            latestProductsProvider(
-                              99999,
-                            ), // Fetch all products, no limit
+                    ),
+                    SizedBox(
+                      height: 160.h,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: EdgeInsets.only(left: 20.w),
+                        itemCount: productCategories.length,
+                        separatorBuilder: (context, i) => SizedBox(width: 6.w),
+                        itemBuilder: (context, index) {
+                          final cat = productCategories[index];
+                          final selected = index == selectedIndex;
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedIndex = index;
+                              });
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => CategoryProductsScreen(
+                                    key: UniqueKey(),
+                                    productType: cat[PRODUCT_TYPE_KEY],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 105.w,
+                              height: 150.h,
+                              alignment: Alignment.center,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeInOut,
+                                width: 95.w,
+                                height: 140.h,
+                                margin: EdgeInsets.only(
+                                  top: 16.h,
+                                  bottom: 16.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(70.r),
+                                  border: selected
+                                      ? Border.all(
+                                          color: const Color(0xFFE0E0E0),
+                                          width: 1.w,
+                                        )
+                                      : Border.all(
+                                          color: Colors.transparent,
+                                          width: 0,
+                                        ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.06),
+                                      blurRadius: 8.r,
+                                      offset: Offset(0, 2.h),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        top: 9.h,
+                                        left: 9.w,
+                                        right: 9.w,
+                                      ),
+                                      child: Container(
+                                        width: 110.w,
+                                        height: 70.h,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: ClipOval(
+                                          child: Image.asset(
+                                            cat[ICON_KEY],
+                                            width: 90.w,
+                                            height: 90.h,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 10.h),
+                                    SizedBox(
+                                      width: 85.w,
+                                      child: Text(
+                                        cat[TITLE_KEY],
+                                        style: TextStyle(
+                                          color: const Color(0xFF2C2C2C),
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.sp,
+                                          fontFamily: 'Poppins',
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           );
-                          return allProductsAsync.when(
-                            data: (productIds) {
-                              // Fetch all products and cache them immediately
-                              return FutureBuilder<List<Product>>(
-                                future:
-                                    Future.wait(
+                        },
+                      ),
+                    ),
+                    // Popular Items Section and product cards with full horizontal padding
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      child: Column(
+                        children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Popular Items',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16.sp,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 18.h),
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final allProductsAsync = ref.watch(
+                                latestProductsProvider(99999),
+                              );
+                              return allProductsAsync.when(
+                                data: (productIds) {
+                                  return FutureBuilder<List<Product>>(
+                                    future: Future.wait(
                                       productIds.map((id) async {
-                                        final cached = HiveService.instance
-                                            .getCachedProduct(id);
+                                        final cached = HiveService.instance.getCachedProduct(id);
                                         if (cached != null) return cached;
-                                        final product =
-                                            await ProductDatabaseHelper()
-                                                .getProductWithID(id);
-                                        return product ??
-                                            Product(
-                                              id,
-                                              title: 'Unknown',
-                                              images: [],
-                                              discountPrice: 0,
-                                              originalPrice: 0,
-                                            );
+                                        final product = await ProductDatabaseHelper().getProductWithID(id);
+                                        return product ?? Product(id, title: 'Unknown', images: [], discountPrice: 0, originalPrice: 0);
                                       }),
                                     ).then((products) async {
-                                      // Cache all products at once
-                                      await HiveService.instance.cacheProducts(
-                                        products,
-                                      );
+                                      await HiveService.instance.cacheProducts(products);
                                       return products;
                                     }),
-                                builder: (context, snapshot) {
-                                  if (!snapshot.hasData) {
-                                    // Show shimmer effect while loading
-                                    return ListView.separated(
-                                      shrinkWrap: true,
-                                      physics: NeverScrollableScrollPhysics(),
-                                      itemCount: 6,
-                                      separatorBuilder: (context, index) =>
-                                          SizedBox(height: 20.h),
-                                      itemBuilder: (context, index) {
-                                        return Shimmer.fromColors(
-                                          baseColor: Colors.grey[300]!,
-                                          highlightColor: Colors.grey[100]!,
-                                          child: Container(
-                                            margin: EdgeInsets.symmetric(
-                                              horizontal: 2.w,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(24.r),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black12,
-                                                  blurRadius: 16.r,
-                                                  offset: Offset(0, 8.h),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Padding(
-                                                  padding: EdgeInsets.all(12.w),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          16.r,
-                                                        ),
-                                                    child: Container(
-                                                      width: 80.w,
-                                                      height: 80.w,
-                                                      color: Colors.grey[200],
+                                    builder: (context, snapshot) {
+                                      if (!snapshot.hasData) {
+                                        return ListView.separated(
+                                          shrinkWrap: true,
+                                          physics: NeverScrollableScrollPhysics(),
+                                          itemCount: 6,
+                                          separatorBuilder: (context, index) => SizedBox(height: 20.h),
+                                          itemBuilder: (context, index) {
+                                            return Shimmer.fromColors(
+                                              baseColor: Colors.grey[300]!,
+                                              highlightColor: Colors.grey[100]!,
+                                              child: Container(
+                                                margin: EdgeInsets.symmetric(horizontal: 2.w),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(24.r),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black12,
+                                                      blurRadius: 16.r,
+                                                      offset: Offset(0, 8.h),
                                                     ),
-                                                  ),
+                                                  ],
                                                 ),
-                                                Expanded(
-                                                  child: Padding(
-                                                    padding:
-                                                        EdgeInsets.symmetric(
-                                                          vertical: 18.h,
-                                                          horizontal: 4.w,
-                                                        ),
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Container(
-                                                          width:
-                                                              double.infinity,
-                                                          height: 20.h,
-                                                          color:
-                                                              Colors.grey[300],
-                                                        ),
-                                                        SizedBox(height: 8.h),
-                                                        Container(
+                                                child: Row(
+                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  children: [
+                                                    Padding(
+                                                      padding: EdgeInsets.all(12.w),
+                                                      child: ClipRRect(
+                                                        borderRadius: BorderRadius.circular(16.r),
+                                                        child: Container(
                                                           width: 80.w,
-                                                          height: 14.h,
-                                                          color:
-                                                              Colors.grey[300],
+                                                          height: 80.w,
+                                                          color: Colors.grey[200],
                                                         ),
-                                                        SizedBox(height: 6.h),
-                                                        Row(
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      child: Padding(
+                                                        padding: EdgeInsets.symmetric(vertical: 18.h, horizontal: 4.w),
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
                                                           children: [
                                                             Container(
-                                                              width: 40.w,
-                                                              height: 16.h,
-                                                              color: Colors
-                                                                  .grey[300],
+                                                              width: double.infinity,
+                                                              height: 20.h,
+                                                              color: Colors.grey[300],
                                                             ),
-                                                            SizedBox(
-                                                              width: 8.w,
-                                                            ),
+                                                            SizedBox(height: 8.h),
                                                             Container(
-                                                              width: 40.w,
+                                                              width: 80.w,
                                                               height: 14.h,
-                                                              color: Colors
-                                                                  .grey[300],
+                                                              color: Colors.grey[300],
+                                                            ),
+                                                            SizedBox(height: 6.h),
+                                                            Row(
+                                                              children: [
+                                                                Container(
+                                                                  width: 40.w,
+                                                                  height: 16.h,
+                                                                  color: Colors.grey[300],
+                                                                ),
+                                                                SizedBox(width: 8.w),
+                                                                Container(
+                                                                  width: 40.w,
+                                                                  height: 14.h,
+                                                                  color: Colors.grey[300],
+                                                                ),
+                                                              ],
                                                             ),
                                                           ],
                                                         ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 16.0,
                                                       ),
-                                                  child: Container(
-                                                    width: 56,
-                                                    height: 56,
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      shape: BoxShape.circle,
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.black12,
-                                                          blurRadius: 12,
-                                                        ),
-                                                      ],
                                                     ),
-                                                  ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                                      child: Container(
+                                                        width: 56,
+                                                        height: 56,
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white,
+                                                          shape: BoxShape.circle,
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors.black12,
+                                                              blurRadius: 12,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }
+                                      final selectedAddressId = ref.read(selectedAddressIdProvider);
+                                      String userCity = '';
+                                      if (selectedAddressId != null) {
+                                        final address = HiveService.instance.getCachedAddresses().cast<Map<dynamic, dynamic>>().map((a) => a.cast<String, dynamic>()).firstWhere((a) => a['id'] == selectedAddressId, orElse: () => <String, dynamic>{});
+                                        if (address['city'] != null) {
+                                          userCity = (address['city'] as String).trim().toLowerCase();
+                                        }
+                                      }
+                                      final products = (snapshot.data ?? [])
+                                          .where((p) {
+                                            final areaLocation = (p.areaLocation ?? '').trim().toLowerCase();
+                                            bool showProduct = false;
+                                            String reason = '';
+                                            if (userCity.isEmpty) {
+                                              showProduct = true;
+                                              reason = 'userCity is empty, showing all products';
+                                            } else if (areaLocation.isEmpty) {
+                                              showProduct = false;
+                                              reason = 'areaLocation is empty, hiding product';
+                                            } else if (areaLocation == userCity) {
+                                              showProduct = true;
+                                              reason = 'areaLocation matches userCity';
+                                            } else {
+                                              showProduct = false;
+                                              reason = 'areaLocation does not match userCity';
+                                            }
+                                            Logger().i('[Product Filter] userCity: "$userCity", areaLocation: "$areaLocation", show: $showProduct, reason: $reason, productId: ${p.id}');
+                                            return showProduct;
+                                          })
+                                          .where((p) => p.isInStock)
+                                          .where((p) => (p as dynamic).isAvailable == true)
+                                          .toList();
+                                      HiveService.instance.cacheProducts(products);
+                                      if (products.isEmpty) {
+                                        return Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 32.0),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.info_outline, size: 48, color: Colors.grey),
+                                                SizedBox(height: 16),
+                                                Text('No products available in your area.', style: TextStyle(fontSize: 18, color: Colors.grey), textAlign: TextAlign.center),
                                               ],
                                             ),
                                           ),
                                         );
-                                      },
-                                    );
-                                  }
-                                  // Get user's selected address city
-                                  final selectedAddressId = ref.read(
-                                    selectedAddressIdProvider,
-                                  );
-                                  String userCity = '';
-                                  if (selectedAddressId != null) {
-                                    final address = HiveService.instance
-                                        .getCachedAddresses()
-                                        .cast<Map<dynamic, dynamic>>()
-                                        .map((a) => a.cast<String, dynamic>())
-                                        .firstWhere(
-                                          (a) => a['id'] == selectedAddressId,
-                                          orElse: () => <String, dynamic>{},
-                                        );
-                                    if (address['city'] != null) {
-                                      userCity = (address['city'] as String)
-                                          .trim()
-                                          .toLowerCase();
-                                    }
-                                  }
-                                  // Filter products by areaLocation, with debug logging
-                                  final products = (snapshot.data ?? [])
-                                      .where((p) {
-                                        final areaLocation =
-                                            (p.areaLocation ?? '')
-                                                .trim()
-                                                .toLowerCase();
-                                        bool showProduct = false;
-                                        String reason = '';
-                                        if (userCity.isEmpty) {
-                                          showProduct = true;
-                                          reason =
-                                              'userCity is empty, showing all products';
-                                        } else if (areaLocation.isEmpty) {
-                                          showProduct = false;
-                                          reason =
-                                              'areaLocation is empty, hiding product';
-                                        } else if (areaLocation == userCity) {
-                                          showProduct = true;
-                                          reason =
-                                              'areaLocation matches userCity';
-                                        } else {
-                                          showProduct = false;
-                                          reason =
-                                              'areaLocation does not match userCity';
-                                        }
-                                        // Debug log for each product
-                                        Logger().i(
-                                          '[Product Filter] userCity: "$userCity", areaLocation: "$areaLocation", show: $showProduct, reason: $reason, productId: ${p.id}',
-                                        );
-                                        return showProduct;
-                                      })
-                                      .where((p) => p.isInStock)
-                                      .where(
-                                        (p) =>
-                                            (p as dynamic).isAvailable == true,
-                                      )
-                                      .toList();
-                                  HiveService.instance.cacheProducts(products);
-                                  if (products.isEmpty) {
-                                    return Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 32.0,
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.info_outline,
-                                              size: 48,
-                                              color: Colors.grey,
-                                            ),
-                                            SizedBox(height: 16),
-                                            Text(
-                                              'No products available in your area.',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.grey,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  return ListView.separated(
-                                    shrinkWrap: true,
-                                    physics: NeverScrollableScrollPhysics(),
-                                    itemCount: products.length,
-                                    separatorBuilder: (context, index) =>
-                                        SizedBox(height: 16.h),
-                                    itemBuilder: (context, index) {
-                                      final product = products[index];
-                                      return _buildProductCard(product, ref);
+                                      }
+                                      return ListView.separated(
+                                        shrinkWrap: true,
+                                        physics: NeverScrollableScrollPhysics(),
+                                        itemCount: products.length,
+                                        separatorBuilder: (context, index) => SizedBox(height: 16.h),
+                                        itemBuilder: (context, index) {
+                                          final product = products[index];
+                                          return _buildProductCard(product, ref);
+                                        },
+                                      );
                                     },
                                   );
                                 },
+                                loading: () => Center(child: CircularProgressIndicator()),
+                                error: (e, _) => Center(child: Text('Failed to load products')),
                               );
                             },
-                            loading: () =>
-                                Center(child: CircularProgressIndicator()),
-                            error: (e, _) =>
-                                Center(child: Text('Failed to load products')),
-                          );
-                        },
+                          ),
+                          SizedBox(height: 80.h),
+                        ],
                       ),
-                      SizedBox(height: 80.h),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
