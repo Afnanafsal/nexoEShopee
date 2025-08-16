@@ -264,7 +264,7 @@ class _ReviewBoxState extends State<ReviewBox> {
                         Text(
                           (review.userName ?? 'User').split(' ')[0],
                           style: TextStyle(
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w400,
                             fontSize: 12.sp,
                           ),
                         ),
@@ -274,7 +274,7 @@ class _ReviewBoxState extends State<ReviewBox> {
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 16.sp,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Padding(

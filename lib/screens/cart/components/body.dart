@@ -17,15 +17,12 @@ import 'package:fishkart/models/Address.dart';
 import 'package:fishkart/models/Product.dart';
 import 'package:fishkart/providers/user_providers.dart';
 import 'package:fishkart/screens/cart/components/checkout_card.dart';
-import 'package:fishkart/screens/product_details/product_details_screen.dart';
-import 'package:fishkart/screens/my_orders/order_details_screen.dart';
 import 'package:fishkart/services/authentification/authentification_service.dart';
 import 'package:fishkart/services/razorpay_service.dart';
 import 'package:fishkart/services/base64_image_service/base64_image_service.dart';
 import 'package:fishkart/services/database/product_database_helper.dart';
 import 'package:fishkart/services/database/user_database_helper.dart';
 import 'package:fishkart/services/cache/hive_service.dart';
-import 'package:fishkart/utils.dart';
 
 class ExpiryDateTextInputFormatter extends TextInputFormatter {
   // import 'package:fishkart/screens/product_details/product_details_screen.dart';
@@ -205,10 +202,10 @@ class _BodyState extends ConsumerState<Body> {
       builder: (context, setState) {
         int currentQuantity = initialQuantity;
         return Container(
-          margin: EdgeInsets.only(bottom: 12),
+          margin: EdgeInsets.only(bottom: 12.h),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20.r),
           ),
           child: Row(
             children: [
@@ -235,36 +232,71 @@ class _BodyState extends ConsumerState<Body> {
                         ),
                 ),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: 12.w),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         product.title ?? "Product",
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 16.sp,
                           fontWeight: FontWeight.w500,
                           color: Colors.black,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 2),
+                      SizedBox(height: 2.h),
                       Text(
                         "Net weight 500 gms",
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        "₹${(product.discountPrice ?? product.originalPrice ?? 0).toStringAsFixed(2)}",
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
+                          fontSize: 12.sp,
+                          color: Color(0Xff646161),
+                          fontWeight: FontWeight.w400,
                         ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '₹${(product.discountPrice ?? product.originalPrice ?? 0).toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14.sp,
+                              color: (product as dynamic).isAvailable == true
+                                  ? Colors.black
+                                  : Colors.grey.shade600,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                          SizedBox(width: 6.w),
+                          if ((product.originalPrice ?? 0) > 0 &&
+                              (product.originalPrice != product.discountPrice))
+                            Transform.translate(
+                              offset: Offset(0, -4.h),
+                              child: Text(
+                                '₹${(product.originalPrice ?? 0).toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color:
+                                      (product as dynamic).isAvailable == true
+                                      ? const Color(0x61000000)
+                                      : Colors.grey.shade500,
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationColor:
+                                      (product as dynamic).isAvailable == true
+                                      ? const Color.fromARGB(103, 0, 0, 0)
+                                      : Colors.grey.shade500,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ),
@@ -272,6 +304,27 @@ class _BodyState extends ConsumerState<Body> {
               ),
               Column(
                 children: [
+                  IconButton(
+                    icon: Icon(Icons.add, color: Color(0xFF646161)),
+                    onPressed: () async {
+                      final newQuantity = currentQuantity + 1;
+                      await updateCartItemQuantity(
+                        cartItemId,
+                        newQuantity,
+                        currentQuantity,
+                      );
+                      setState(() => currentQuantity = newQuantity);
+                    },
+                  ),
+                  Text(
+                    currentQuantity.toString(),
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+
                   IconButton(
                     icon: Icon(Icons.remove, color: Color(0xFF646161)),
                     onPressed: () async {
@@ -291,26 +344,6 @@ class _BodyState extends ConsumerState<Body> {
                         );
                         setState(() => currentQuantity = 0);
                       }
-                    },
-                  ),
-                  Text(
-                    currentQuantity.toString(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.add, color: Color(0xFF646161)),
-                    onPressed: () async {
-                      final newQuantity = currentQuantity + 1;
-                      await updateCartItemQuantity(
-                        cartItemId,
-                        newQuantity,
-                        currentQuantity,
-                      );
-                      setState(() => currentQuantity = newQuantity);
                     },
                   ),
                 ],
@@ -396,22 +429,22 @@ class _BodyState extends ConsumerState<Body> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.only(bottom: 8),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: EdgeInsets.only(bottom: 8.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
           border: (title.toLowerCase().contains('scan & pay'))
-              ? Border.all(color: Colors.grey[300]!, width: 1)
+              ? Border.all(color: Colors.grey[300]!, width: 1.w)
               : null,
         ),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 24,
+              width: 40.w,
+              height: 24.h,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(4.r),
                 border: (title.toLowerCase().contains('scan & pay'))
                     ? Border.all(color: Colors.grey[300]!)
                     : null,
@@ -419,23 +452,23 @@ class _BodyState extends ConsumerState<Body> {
               child: SvgPicture.asset(
                 imageAsset,
                 fit: BoxFit.contain,
-                width: 32,
-                height: 20,
+                width: 32.w,
+                height: 20.h,
               ),
             ),
-            SizedBox(width: 12),
+            SizedBox(width: 12.w),
             Expanded(
               child: Text(
                 title,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
                   color: Colors.black,
                 ),
               ),
             ),
             if (showAddIcon)
-              Icon(Icons.add, color: Colors.grey[600], size: 20)
+              Icon(Icons.add, color: Colors.grey[600], size: 20.sp)
             else if (onEdit != null || onDelete != null)
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -446,19 +479,19 @@ class _BodyState extends ConsumerState<Body> {
                       child: Icon(
                         Icons.edit,
                         color: Colors.grey[600],
-                        size: 20,
+                        size: 20.sp,
                       ),
                     ),
-                  if (onEdit != null && onDelete != null) SizedBox(width: 8),
+                  if (onEdit != null && onDelete != null) SizedBox(width: 8.w),
                   if (onDelete != null)
                     GestureDetector(
                       onTap: onDelete,
-                      child: Icon(Icons.delete, color: Colors.red, size: 20),
+                      child: Icon(Icons.delete, color: Colors.red, size: 20.sp),
                     ),
                 ],
               )
             else
-              Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
+              Icon(Icons.chevron_right, color: Colors.grey[400], size: 20.sp),
           ],
         ),
       ),
@@ -467,10 +500,10 @@ class _BodyState extends ConsumerState<Body> {
 
   Widget buildCheckoutSection(double totalPrice) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(24.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
         children: [
@@ -480,12 +513,12 @@ class _BodyState extends ConsumerState<Body> {
               children: [
                 Text(
                   "Total Amount",
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
                 ),
                 Text(
                   "₹${totalPrice.toStringAsFixed(0)}",
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 24.sp,
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
@@ -493,7 +526,7 @@ class _BodyState extends ConsumerState<Body> {
               ],
             ),
           ),
-          SizedBox(width: 16),
+          SizedBox(width: 16.w),
           ElevatedButton(
             onPressed: () {
               showModalBottomSheet(
@@ -516,15 +549,15 @@ class _BodyState extends ConsumerState<Body> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: 48.w, vertical: 24.h),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               elevation: 0,
             ),
             child: Text(
               "Checkout",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -541,16 +574,16 @@ class _BodyState extends ConsumerState<Body> {
         if (snapshot.hasData && snapshot.data != null) {
           final address = snapshot.data!;
           return Container(
-            padding: EdgeInsets.fromLTRB(28, 22, 22, 22),
+            padding: EdgeInsets.fromLTRB(28.w, 22.h, 22.w, 22.h),
             margin: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(24.r),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black12,
-                  blurRadius: 16,
-                  offset: Offset(0, 6),
+                  blurRadius: 16.r,
+                  offset: Offset(0, 6.h),
                 ),
               ],
             ),
@@ -566,27 +599,27 @@ class _BodyState extends ConsumerState<Body> {
                           Text(
                             "Delivery to",
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 14.sp,
                               color: Color(0xFF8F8F8F),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          SizedBox(height: 8.h),
                           Text(
                             "${address.receiver ?? ''}, ${address.pincode ?? ''}",
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              fontSize: 14,
+                              fontSize: 14.sp,
                               color: Colors.black,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          SizedBox(height: 6),
+                          SizedBox(height: 6.h),
                           Text(
                             "${address.addressLine1 ?? ''}",
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 14.sp,
                               color: Color(0xFF8F8F8F),
                               fontWeight: FontWeight.w500,
                             ),
@@ -595,7 +628,7 @@ class _BodyState extends ConsumerState<Body> {
                             Text(
                               "${address.addressLine2}",
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 14.sp,
                                 color: Color(0xFF8F8F8F),
                                 fontWeight: FontWeight.w500,
                               ),
@@ -605,30 +638,30 @@ class _BodyState extends ConsumerState<Body> {
                             Text(
                               "${address.city ?? ''}${(address.city != null && address.city!.isNotEmpty && address.state != null && address.state!.isNotEmpty) ? ', ' : ''}${address.state ?? ''}",
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 14.sp,
                                 color: Color(0xFF8F8F8F),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                          SizedBox(height: 4),
+                          SizedBox(height: 4.h),
                           Text(
                             "Phone: ${address.phone ?? ''}",
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 14.sp,
                               fontWeight: FontWeight.w500,
                               color: Colors.black,
                             ),
                           ),
-                          SizedBox(height: 18),
+                          SizedBox(height: 18.h),
                           Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(12.r),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black12,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 2),
+                                  blurRadius: 10.r,
+                                  offset: Offset(0, 2.h),
                                 ),
                               ],
                             ),
@@ -638,11 +671,11 @@ class _BodyState extends ConsumerState<Body> {
                                 foregroundColor: Colors.black,
                                 elevation: 0,
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                  vertical: 14,
+                                  horizontal: 40.w,
+                                  vertical: 14.h,
                                 ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(12.r),
                                 ),
                               ),
                               onPressed: () async {
@@ -651,7 +684,7 @@ class _BodyState extends ConsumerState<Body> {
                                   builder: (context) {
                                     return Container(
                                       color: Color(0XffEFF1F5),
-                                      padding: EdgeInsets.all(20),
+                                      padding: EdgeInsets.all(20.w),
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment:
@@ -660,11 +693,11 @@ class _BodyState extends ConsumerState<Body> {
                                           Text(
                                             "Select Delivery Address",
                                             style: TextStyle(
-                                              fontSize: 18,
+                                              fontSize: 18.sp,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          SizedBox(height: 16),
+                                          SizedBox(height: 16.h),
                                           ..._addresses.map(
                                             (
                                               addressId,
@@ -707,7 +740,7 @@ class _BodyState extends ConsumerState<Body> {
                                               },
                                             ),
                                           ),
-                                          SizedBox(height: 12),
+                                          SizedBox(height: 12.h),
                                           SizedBox(
                                             width: double.infinity,
                                             child: ElevatedButton(
@@ -715,11 +748,13 @@ class _BodyState extends ConsumerState<Body> {
                                                 backgroundColor: Colors.black,
                                                 foregroundColor: Colors.white,
                                                 padding: EdgeInsets.symmetric(
-                                                  vertical: 16,
+                                                  vertical: 16.h,
                                                 ),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(8),
+                                                      BorderRadius.circular(
+                                                        8.r,
+                                                      ),
                                                 ),
                                                 elevation: 0,
                                               ),
@@ -733,7 +768,7 @@ class _BodyState extends ConsumerState<Body> {
                                                 "Add New Address",
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
+                                                  fontSize: 16.sp,
                                                   color: Colors.white,
                                                 ),
                                                 textAlign: TextAlign.center,
@@ -750,7 +785,7 @@ class _BodyState extends ConsumerState<Body> {
                                 "Change/Add Address",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w400,
-                                  fontSize: 14,
+                                  fontSize: 10.sp,
                                 ),
                               ),
                             ),
@@ -758,23 +793,26 @@ class _BodyState extends ConsumerState<Body> {
                         ],
                       ),
                     ),
-                    SizedBox(width: 18),
-                    SizedBox(width: 120),
+                    SizedBox(width: 18.w),
+                    SizedBox(width: 120.w),
                   ],
                 ),
                 Positioned(
-                  top: 14,
-                  right: 10,
+                  top: 14.h,
+                  right: 10.w,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 14.w,
+                      vertical: 6.h,
+                    ),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(18.r),
                       border: Border.all(color: Colors.grey[300]!),
                     ),
                     child: Text(
                       (address.title ?? "Home").toLowerCase(),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         color: Color(0xFF5C5C5C),
                         fontWeight: FontWeight.w400,
                       ),
@@ -787,10 +825,10 @@ class _BodyState extends ConsumerState<Body> {
                   child: Stack(
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(20.r),
                         child: Container(
-                          width: 120,
-                          height: 120,
+                          width: 120.w,
+                          height: 120.w,
                           color: Colors.grey[200],
                           child: Image.asset(
                             'assets/icons/location.png',
@@ -997,7 +1035,6 @@ class _BodyState extends ConsumerState<Body> {
   }
 
   Future<void> checkoutButtonCallback({bool useRazorpay = false}) async {
-    OrderedProduct? orderedProductToShow;
     bool orderSuccess = false;
     String snackbarmMessage = "Something went wrong";
     await showDialog(
@@ -1102,9 +1139,7 @@ class _BodyState extends ConsumerState<Body> {
               if (addedProductsToMyProducts) {
                 snackbarmMessage = "Products ordered Successfully";
                 orderSuccess = true;
-                if (orderedProducts.isNotEmpty) {
-                  orderedProductToShow = orderedProducts.first;
-                }
+                // orderedProductToShow removed (unused)
               } else {
                 throw "Could not order products due to unknown issue";
               }
@@ -1442,7 +1477,7 @@ class _BodyState extends ConsumerState<Body> {
                   'Your Cart',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 18.sp,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
